@@ -1,0 +1,32 @@
+
+====Hardware Details====
+
+Work in progress
+
+====Software Details====
+
+Work in progress
+
+====Operating System Notes====
+
+Work in progress
+
+====Client information====
+['Server url is : http://localhost:3000/']
+['# requests    : 10000']
+['# concurrency    : 100']
+['====Database Parameters====']
+['# records    : 100']
+['#  unique name: 25']
+['#  unique zips: 25']
+['#  URLs  : 100']
+['#  id_url(%): 50']
+['#  name url ratio(%): 25']
+['#  zip url ratio(%): 25']
+
+====Report Summary====
+Min Response time =0.0078980922699
+Max Response time=0.302004098892
+Mean Response time=0.0676900683834
+99 percentile=0.154464688301
+Throughput=738.552439304
