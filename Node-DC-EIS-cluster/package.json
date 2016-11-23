@@ -1,7 +1,7 @@
 {
-  "name": "nodejs-benchmark",
-  "version": "1.0.0",
-  "description": "Employee Database",
+  "name": "Node-DC-EIS-cluster",
+  "version": "0.9",
+  "description": "Employee Information Services",
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
