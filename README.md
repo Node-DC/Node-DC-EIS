@@ -9,7 +9,7 @@ Server Codebase:
   - microservices
 
 Client driver codebase
-  - node_dc_eis-client
+  - node-dc-eis-client
 
 NOTE : 
 If proxy needs to be set up, make sure the it has been properly set.
@@ -168,7 +168,7 @@ driver program and other supporting files.
 	User can override all parameters from the command line as well..
   - Invoke "runspec.py -h" for detail help
 
-- node_dc_eis_testurls.py: 
+- node-dc-eis-testurls.py: 
   The workload driver file which sends actual requests using python's requests 
   module to the server.
 
