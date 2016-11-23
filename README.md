@@ -1,4 +1,9 @@
-This is a node_dc_eis workload code, which contains following directories,
+Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
+--------------------------------------------------------------------------- 
+Modelling Employee Information Services using Node.js in Data Center.
+
+
+This is a Node-DC-EIS workload code, which contains following directories,
 Server Codebase:
   - cluster, and
   - microservices
