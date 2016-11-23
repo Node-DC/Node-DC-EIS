@@ -1,6 +1,5 @@
 This is a node_dc_eis workload code, which contains following directories,
 Server Codebase:
-  - monlithic ,
   - cluster, and
   - microservices
 
