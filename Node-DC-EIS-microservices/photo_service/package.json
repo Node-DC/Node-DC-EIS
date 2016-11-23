@@ -1,6 +1,6 @@
 {
   "name": "Node-DC-EIS-microservices",
-  "version": "0.9",
+  "version": "0.0.9",
   "description": "Employee Information Services",
   "main": "server.js",
   "scripts": {
