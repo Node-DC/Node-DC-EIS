@@ -223,11 +223,9 @@ Known Issues:
 Known issues/limitations:
 If you try to populate with very high number of DB records, you may encounter
 following issues,
-
 0) On the Server side, server may run out of memory causing core-dump
   - If you see [GC in old space requested], restart node server 
-  with --max_old_space_size=5000
-  This will set the heap space to 5 GB, large databases take up more space 
+  with --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space 
   while the records are loaded.   
 1) On the client side, initial request to populate the DB may fail due 
    to HTTP timeout. 
