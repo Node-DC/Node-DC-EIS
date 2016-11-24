@@ -104,25 +104,25 @@ Running application server in microservices mode (default port: 3000):
 		python npm_install_all.py
 
   - Start each service in separate terminal window.
-    $ cd <topdir>/employee_service;   
+    $ cd <topdir>/Node-DC-EIS-microservices/employee_service;   
 		$ node server.js (default port: 3000)
 
-    $ cd <topdir>/address_service;
+    $ cd <topdir>/Node-DC-EIS-microservices/address_service;
 		$ node server.js (default port: 3001)
 
-    $ cd <topdir>/family_service;
+    $ cd <topdir>/Node-DC-EIS-microservices/family_service;
 		$ node server.js (default port: 3002)
 
-	  $ cd <topdir>/health_service;
+	  $ cd <topdir>/Node-DC-EIS-microservices/health_service;
 		$ node server.js (default port: 3003)
 
-    $ cd <topdir>/comp_service;
+    $ cd <topdir>/Node-DC-EIS-microservices/comp_service;
 		$ node server.js (default port: 3004)
 
-    $ cd <topdir>/photo_service;
+    $ cd <topdir>/Node-DC-EIS-microservices/photo_service;
 		$ node server.js (default port: 3005)
 
-    $ cd <topdir>/db_loader_service;
+    $ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
 		$ node server.js (default port: 4001)
 
 Note: 1) For micro-sevices mode, it's possible to deploy each service on 
