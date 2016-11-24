@@ -3,6 +3,10 @@
   "version": "0.0.9",
   "description": "Employee Information Services",
   "main": "server.js",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Node-DC/Node-DC-EIS.git"
+  }, 
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
