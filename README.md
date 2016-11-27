@@ -29,7 +29,8 @@ Open for contributions to take from v0.9 to v1.0
 Following changes are required to take from v0.9 to v1.0
   - Feedback from community
   - Change from Mongoose to MongoDB driver
-	
+  - Increase unique lastnames from 777 to at least 5000 or more 
+  
 Following changes are optional but good to have:
   - Options for alternate DB choices
   - Changing client from Python to Node.js 
@@ -269,15 +270,12 @@ Known issues/limitations:
  
 - Some issue while running on CentOS. 
 - Following issues are observed while installing python and related dependencies
-	Tool "pip" is not install by default with python
-	Proxy errors while using pip and npm 
-	NPM is not build if use your own build of nodejs
+	  - Tool "pip" is not install by default with python
+	  - Proxy errors while using pip and npm 
+	  - NPM is not build if use your own build of nodejs
 
 - If you try to populate with very high number of DB records, you may encounter following issues,
-1) On the Server side, server may run out of memory causing core-dump
-  - If you see [GC in old space requested], restart node server 
-  with --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space 
-  while the records are loaded.   
-2) On the client side, initial request to populate the DB may fail due to HTTP timeout. 
-3) Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)
-#NODE-DC-EIS
+	  - On the Server side, server may run out of memory causing core-dump
+	  - with --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space while the records are loaded.   
+	  - On the client side, initial request to populate the DB may fail due to HTTP timeout. 
+	  - Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)#NODE-DC-EIS
