@@ -5,16 +5,19 @@ Develop workloads representing realistic use cases of Node.js in Data Center wit
 
 Workloads APIs, functionalities and metrics should be very useful to evluate performance of complete software stack of Node.js, Operating Systems, containers, virtulization, network stacks as well as data center choices relevant for hardware developers, deployments, researchers and Node.js community. It is also very important to update the workloads to keep it up with the fast moving eco-system of Node.js. 
 
-Community and Contributing  
+Contributing and Community  
 --------------------------------------------------------------------------- 
-Contribution to use cases: We are constantly evluating the relevant use cases. List below is evolving based on continuous feedback.
+
+Contribution to individual projects: 
+If you want to contribute code to a project, first you need to fork the project. The next step is to send a pull request (PR) for review to the repository. For small changes, you can implement at first step and for large changes, it is encouraged to send the architecure and data flow before investing lots of time in implementation. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
+
+Contribution to use cases: 
+We are constantly evluating the relevant use cases. List below is evolving based on continuous feedback.
   - Node-DC-EIS (Node.js - Data Center - Employee Information Services) : Current status at v0.9 with v1.0 by Q1 2017
     
   - Node-DC-SSR (Node.js - Data Center - Server Side Rendering) : Under consideration as next candidate
 
   - Open for community suggestion
-
-Contribution to individual projects: If you want to contribute code to a project, first you need to fork the project. The next step is to send a pull request (PR) for review to the repository. For small changes, you can implement at first step and for large changes, it is encouraged to send the architecure and data flow before investing lots of time in implementation. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
 
 Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
 --------------------------------------------------------------------------- 
