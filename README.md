@@ -268,10 +268,10 @@ Known issues/limitations:
 --------------------------------------------------------------------------- 
  
 - Some issue while running on CentOS. 
-  Most issue are observed while installing python and related dependencies
-- Tool "pip" is not install by default with python
-- Proxy errors while using pip and npm 
-- NPM is not build if use your own build of nodejs
+- Following issues are observed while installing python and related dependencies
+	Tool "pip" is not install by default with python
+	Proxy errors while using pip and npm 
+	NPM is not build if use your own build of nodejs
 
 - If you try to populate with very high number of DB records, you may encounter following issues,
 1) On the Server side, server may run out of memory causing core-dump
