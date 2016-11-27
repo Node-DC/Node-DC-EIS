@@ -1,6 +1,26 @@
 Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
 --------------------------------------------------------------------------- 
-Modelling Employee Information Services using Node.js in Data Center.
+Node.js in Data Center modelling use case of Employee Information Services.
+
+Open for contributions to take from v0.9 to v1.0  
+--------------------------------------------------------------------------- 
+Following changes are required to take from v0.9 to v1.0
+	+ Feedback from community
+	+ Change from Mongoose to MongoDB driver
+	
+Following changes are optional but good to have:
+	+ Options for alternate DB choices
+	+ Changing client from Python to Node.js 
+	+ Node.js in Data Center modelling use case of Employee Information Services.
+
+Workload modes  
+--------------------------------------------------------------------------- 
+This workload has two modes 
+
+Cluster mode
+
+
+Micro-services mode
 
 
 This is a Node-DC-EIS workload code, which contains following directories,
