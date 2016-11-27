@@ -219,7 +219,8 @@ Known Issues:
 - Proxy errors while using pip and npm 
 - NPM is not build if use your own build of nodejs
 
-- Platforms Tested ON:
+Platforms Tested ON:
+--------------------------------------------------------------------------- 
   Linux Client:
   - Intel(R) Core (™) i7-4770 CPU @ 3.40 GHz
   - Debian (jessie)
