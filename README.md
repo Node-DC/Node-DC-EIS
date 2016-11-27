@@ -1,7 +1,9 @@
 -------------------------------------------------------------------------------
 Objective 
 --------------------------------------------------------------------------- 
-Develop workloads representing realistic use cases of Node.js in Data Center with open collaboration from community, Node.js experts and companies playing important roles in Node.js evolution and production deployments in Data Centers. Workloads APIs, functionalities and metrics should be very useful to evluate performance of complete software stack of Node.js, Operating Systems, containers, virtulization, network stacks as well as data center choices relevant for hardware developers, deployments, researchers and Node.js community. 
+Develop workloads representing realistic use cases of Node.js in Data Center with open collaboration from community, Node.js experts and companies playing important roles in Node.js evolution and production deployments in Data Centers. 
+
+Workloads APIs, functionalities and metrics should be very useful to evluate performance of complete software stack of Node.js, Operating Systems, containers, virtulization, network stacks as well as data center choices relevant for hardware developers, deployments, researchers and Node.js community. 
 
 Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
 --------------------------------------------------------------------------- 
