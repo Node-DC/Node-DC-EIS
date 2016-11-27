@@ -17,7 +17,7 @@ We are constantly evluating the relevant use cases. List below is evolving based
     
   - Node-DC-SSR (Node.js - Data Center - Server Side Rendering) : Under consideration as next candidate
 
-  - Open for community suggestion
+  - Open for community suggestions
 
 Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
 --------------------------------------------------------------------------- 
