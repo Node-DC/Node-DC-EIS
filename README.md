@@ -1,7 +1,11 @@
 -------------------------------------------------------------------------------
+Objective 
+--------------------------------------------------------------------------- 
+Develop workloads representing realistic use cases of Node.js in Data Center with open collaboration from community, Node.js experts and companies playing important roles in Node.js evolution and production deployments in Data Centers. Workloads APIs, functionalities and metrics should be very useful to evluate performance of complete software stack of Node.js, Operating Systems, containers, virtulization, network stacks as well as data center choices relevant for hardware developers, deployments, researchers and Node.js community. 
+
 Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
 --------------------------------------------------------------------------- 
-Node.js in Data Center modelling use case of Employee Information Services.
+This is first in series of upcoming workloads for modelling various use cases of Node.js in Data Center (Node-DC). This workload is modelling various functionalities of Employee Information Services implemented in Node.js in Data Center.
 
 Open for contributions to take from v0.9 to v1.0  
 --------------------------------------------------------------------------- 
@@ -14,10 +18,11 @@ Following changes are optional but good to have:
   - Changing client from Python to Node.js 
   - Option for time based rampup, measurement, and rampdown windows inaddition to current total requests 
   - Aggregating response time samples every n sec interval instead of postprocessing at the end of complete run
+  - Containerize the client, server and DB for easy testing and setup of the workload 
 
 Contributing  
 --------------------------------------------------------------------------- 
-If you want to contribute code to this project, first you need to fork the project. The next step is to send a pull request (PR) for review to this repository. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
+If you want to contribute code to this project, first you need to fork the project. The next step is to send a pull request (PR) for review to this repository. For small changes, you can implement at first step and for large changes, it is encouraged to send the architecure and data flow before investing lots of time in implementation. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
 
 Workload modes  
 --------------------------------------------------------------------------- 
