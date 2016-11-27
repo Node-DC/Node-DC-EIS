@@ -17,8 +17,9 @@ We are constantly evluating the relevant use cases. List below is evolving based
     
   - Node-DC-SSR (Node.js - Data Center - Server Side Rendering) : Under consideration as next candidate
 
-  - Open for community suggestions
+  - Open for community suggestions for other use cases
 
+-------------------------------------------------------------------------------
 Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
 --------------------------------------------------------------------------- 
 This is first in series of upcoming workloads for modelling various use cases of Node.js in Data Center (Node-DC). This workload is modelling various functionalities of Employee Information Services implemented in Node.js in Data Center.
@@ -36,31 +37,38 @@ Following changes are optional but good to have:
   - Aggregating response time samples every n sec interval instead of postprocessing at the end of complete run
   - Containerize the client, server and DB for easy testing and setup of the workload 
 
-Workload modes  
+Node-DC-EIS architecture  
+---------------------------------------------------------------------------
+
+
+Node-DC-EIS workload modes  
 --------------------------------------------------------------------------- 
 This workload has two modes 
 
   - Cluster mode (includes monolithic mode when setting CPU count = 1)
-
 
   - Micro-services mode
 
 -------------------------------------------------------------------------------
 Content and Setup  
 ---------------------------------------------------------------------------
-This is a Node-DC-EIS workload code, which contains following directories,
+Node-DC-EIS workload code, which contains following directories,
 Server Codebase:
-  - cluster, and
-  - microservices
+  - Node-DC-EIS-cluster, and
+  - Node-DC-EIS-microservices
 
 Client driver codebase
-  - node-dc-eis-client
+  - Node-DC-EIS-client
 
 NOTE : 
 If proxy needs to be set up, make sure the it has been properly set.
   (npm config set proxy http://proxy.example.com:8080)
   (npm config set https-proxy http://proxy.example.com:8080)
- 
+
+-------------------------------------------------------------------------------
+Client Setup  
+---------------------------------------------------------------------------
+
 Linux Client: Required Modules and installations
 ------------------------------------------------------------------------------- 
 - Install Python 2.7.10
@@ -98,8 +106,10 @@ Note:
   Please make sure above modules are installed without any error. 
   Install any missing modules as per your system configuration.
 
-Server setup:
---------------------------------------------------------------------------- 
+-------------------------------------------------------------------------------
+Server setup  
+---------------------------------------------------------------------------
+ 
 Install the following:
   - node.js (www.nodejs.org)
   - mongodb (https://www.mongodb.com/download-center#community)
@@ -228,14 +238,6 @@ driver program and other supporting files.
 			- summarized throughput, min max,average response time.
     - Three output graphs (throughput,latency  and memory utilization graph).
 
-Known Issues:
---------------------------------------------------------------------------- 
-- We have encounterd some issue while running on CentOS. 
-  Most issue are observed while installing python and related dependencies
-- Tool "pip" is not install by default with python
-- Proxy errors while using pip and npm 
-- NPM is not build if use your own build of nodejs
-
 Platforms Tested ON:
 --------------------------------------------------------------------------- 
   Linux Client:
@@ -264,13 +266,18 @@ Platforms Tested ON:
 
 Known issues/limitations:
 --------------------------------------------------------------------------- 
-If you try to populate with very high number of DB records, you may encounter
-following issues,
-0) On the Server side, server may run out of memory causing core-dump
+ 
+- Some issue while running on CentOS. 
+  Most issue are observed while installing python and related dependencies
+- Tool "pip" is not install by default with python
+- Proxy errors while using pip and npm 
+- NPM is not build if use your own build of nodejs
+
+- If you try to populate with very high number of DB records, you may encounter following issues,
+1) On the Server side, server may run out of memory causing core-dump
   - If you see [GC in old space requested], restart node server 
   with --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space 
   while the records are loaded.   
-1) On the client side, initial request to populate the DB may fail due 
-   to HTTP timeout. 
-2) Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)
+2) On the client side, initial request to populate the DB may fail due to HTTP timeout. 
+3) Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)
 #NODE-DC-EIS
