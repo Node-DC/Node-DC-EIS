@@ -42,6 +42,14 @@ Node-DC-EIS Architecture
 ---------------------------------------------------------------------------
 
 
+Node-DC-EIS Metrics  
+---------------------------------------------------------------------------
+
+
+Node-DC-EIS default and configurable options for research and testing  
+---------------------------------------------------------------------------
+
+
 Node-DC-EIS Workload Modes  
 --------------------------------------------------------------------------- 
 This workload has two modes 
@@ -51,7 +59,7 @@ This workload has two modes
   - Micro-services mode
 
 -------------------------------------------------------------------------------
-Content and Setup  
+Content  
 ---------------------------------------------------------------------------
 Node-DC-EIS workload code, which contains following directories,
 Server Codebase:
