@@ -38,11 +38,11 @@ Following changes are optional but good to have:
   - Aggregating response time samples every n sec interval instead of postprocessing at the end of complete run
   - Containerize the client, server and DB for easy testing and setup of the workload 
 
-Node-DC-EIS architecture  
+Node-DC-EIS Architecture  
 ---------------------------------------------------------------------------
 
 
-Node-DC-EIS workload modes  
+Node-DC-EIS Workload Modes  
 --------------------------------------------------------------------------- 
 This workload has two modes 
 
@@ -70,7 +70,7 @@ If proxy needs to be set up, make sure the it has been properly set.
 Client Setup  
 ---------------------------------------------------------------------------
 
-Linux Client: Required Modules and installations
+Linux Client: Required Modules and Installations
 ------------------------------------------------------------------------------- 
 - Install Python 2.7.10
 - NumPy version '1.8.2' (command: pip install numpy)
@@ -81,7 +81,7 @@ Linux Client: Required Modules and installations
 Note: Please make sure above modules are installed without any error. 
       Install any missing modules as per your system configuration.
 
-Windows Client: Required Modules and installations
+Windows Client: Required Modules and Installations
 ------------------------------------------------------------------------------- 
 - Python 2.7.12 (2.7.10 – confirmed to work) 
   Download it from https://www.python.org/downloads/. 
@@ -108,7 +108,7 @@ Note:
   Install any missing modules as per your system configuration.
 
 -------------------------------------------------------------------------------
-Server setup  
+Server Setup  
 ---------------------------------------------------------------------------
  
 Install the following:
@@ -146,7 +146,7 @@ Running application server in Cluster mode (default port: 9000):
 
   NOTE: In cluster mode you (User) may have to increase the concurrency value 
         in order to achive high CPU/platform utilisation.
-        In cluster mode you can control the number CPU's by changing the configuration file in the cluster mode. If not set, it takes the default number of CPU's available.
+        In cluster mode you can control the number CPU's by changing the configuration file in the cluster mode. If not set, it takes the default number of CPU's (number of logical threads) available.
 
 Running application server in microservices mode (default port: 3000):
 	- run “npm install” to install all dependencies for each service directory
@@ -190,7 +190,7 @@ Note: 1) For micro-sevices mode, it's possible to deploy each service on
 --------------------------------------------------------------------------- 
 Testing:
 --------------------------------------------------------------------------- 
-Make sure you have access to the node_dc_eis-client, which contains client 
+Make sure you have access to the Node-DC-EIS-client, which contains client 
 driver program and other supporting files.
 
 - config.json: 
@@ -246,17 +246,16 @@ Platforms Tested ON:
   - Debian (jessie)
   - Ubuntu 15.10
 
-  Linux Server
-  Verified on
-  - Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
-  - Ubuntu 15.10, 16 Gig RAM
-  - Node.js version v4.4.5 / v5.5.0
-  - MongoDB version 3.2.10
-
   Windows Client – 8.1 Enterprise
   - Intel Core i5-4300U @ 1.9GHz
   - Memory 4GB
   - 51GB of storage free
+
+  Linux Server:
+  - Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
+  - Ubuntu 15.10, 16 Gig RAM
+  - Node.js version v4.4.5 / v5.5.0
+  - MongoDB version 3.2.10
 
   Windows Server 2012 R2
   - Intel XEON E5-2699 v3 @ 2.3GHz
