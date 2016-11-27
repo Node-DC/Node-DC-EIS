@@ -13,7 +13,11 @@ Following changes are optional but good to have:
   - Changing client from Python to Node.js 
   - Option for time based rampup, measurement, and rampdown windows inaddition to current total requests 
   - Aggregating response time samples every n sec interval instead of postprocessing at the end of complete run
-  
+
+Contributing  
+--------------------------------------------------------------------------- 
+If you want to contribute code to this project, first you need to fork the project. The next step is to send a pull request (PR) for review to this repository. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
+
 Workload modes  
 --------------------------------------------------------------------------- 
 This workload has two modes 
