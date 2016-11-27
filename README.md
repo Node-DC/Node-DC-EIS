@@ -1,3 +1,4 @@
+-------------------------------------------------------------------------------
 Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
 --------------------------------------------------------------------------- 
 Node.js in Data Center modelling use case of Employee Information Services.
@@ -27,7 +28,9 @@ This workload has two modes
 
   - Micro-services mode
 
-
+-------------------------------------------------------------------------------
+Content and Setup  
+---------------------------------------------------------------------------
 This is a Node-DC-EIS workload code, which contains following directories,
 Server Codebase:
   - cluster, and
@@ -40,8 +43,7 @@ NOTE :
 If proxy needs to be set up, make sure the it has been properly set.
   (npm config set proxy http://proxy.example.com:8080)
   (npm config set https-proxy http://proxy.example.com:8080)
-
-------------------------------------------------------------------------------- 
+ 
 Linux Client: Required Modules and installations
 ------------------------------------------------------------------------------- 
 - Install Python 2.7.10
@@ -53,7 +55,6 @@ Linux Client: Required Modules and installations
 Note: Please make sure above modules are installed without any error. 
       Install any missing modules as per your system configuration.
 
-------------------------------------------------------------------------------- 
 Windows Client: Required Modules and installations
 ------------------------------------------------------------------------------- 
 - Python 2.7.12 (2.7.10 – confirmed to work) 
@@ -80,14 +81,12 @@ Note:
   Please make sure above modules are installed without any error. 
   Install any missing modules as per your system configuration.
 
---------------------------------------------------------------------------- 
 Server setup:
 --------------------------------------------------------------------------- 
 Install the following:
   - node.js (www.nodejs.org)
   - mongodb (https://www.mongodb.com/download-center#community)
 
---------------------------------------------------------------------------- 
 Server Preparation:
 --------------------------------------------------------------------------- 
   - Make sure node.js and npm (node package manager) have been installed.
@@ -107,8 +106,7 @@ Server Preparation:
 	  active.
   - Set PATH pointing to node.js binary you installed.
   - Make sure npm is in your PATH.
-
---------------------------------------------------------------------------- 
+ 
 Starting server in various modes
 --------------------------------------------------------------------------- 
 NOTE: Each server mode starts at different default port.
@@ -214,6 +212,7 @@ driver program and other supporting files.
     - Three output graphs (throughput,latency  and memory utilization graph).
 
 Known Issues:
+--------------------------------------------------------------------------- 
 - We have encounterd some issue while running on CentOS. 
   Most issue are observed while installing python and related dependencies
 - Tool "pip" is not install by default with python
@@ -246,6 +245,7 @@ Known Issues:
   - MongoDB version 3.2.10
 
 Known issues/limitations:
+--------------------------------------------------------------------------- 
 If you try to populate with very high number of DB records, you may encounter
 following issues,
 0) On the Server side, server may run out of memory causing core-dump
