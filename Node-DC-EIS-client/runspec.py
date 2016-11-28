@@ -104,9 +104,9 @@ name_dbratio = 25
 zip_dbratio = 25
 
 #URL parameters
-get_ratio = 80 
-post_ratio = 10
-delete_ratio = 10
+get_ratio = 100 
+post_ratio = 0
+delete_ratio = 0
 
 #validation parameters
 after_dbload = {}
