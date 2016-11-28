@@ -1,27 +1,26 @@
--------------------------------------------------------------------------------
-Objective 
---------------------------------------------------------------------------- 
-Develop workloads representing realistic use cases of Node.js in Data Center with open collaboration from community, Node.js experts and companies playing important roles in Node.js evolution and production deployments in Data Centers. 
+# Objective 
+The Node-DC project is an open source collaboration project to develop workloads representing realistic use cases of Node.js in the Data Center. It started in 2016 with collaboration from the open source community, Node.js experts and companies playing important roles in Node.js’s evolution and production deployments in the Data Centers. 
 
-Workloads APIs, functionalities and metrics should be very useful to evluate performance of complete software stack of Node.js, Operating Systems, containers, virtulization, network stacks as well as data center choices relevant for hardware developers, deployments, researchers and Node.js community. It is also very important to update the workloads to keep it up with the fast moving eco-system of Node.js. 
+Workloads APIs, functionalities and metrics will be used to evaluate performance of the complete software stack for Node.js, Operating Systems, containers, virtualization, network stacks as well as various data center configuration choices. These are relevant for hardware and software developers, researchers and Node.js community. One priority for this project is to update the workloads in order to keep them up with the fast moving eco-system of Node.js. 
 
-Contributing and Community  
---------------------------------------------------------------------------- 
+# Contributing and Community  
+As an open source project, Node-DC operates with a hierarchical governance structure, having one project maintainer and multiple contributors from the ecosystem. 
 
-Contribution to individual projects: 
-If you want to contribute code to a project, first you need to fork the project. The next step is to send a pull request (PR) for review to the repository. For small changes, you can implement at first step and for large changes, it is encouraged to send the architecure and data flow before investing lots of time in implementation. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
+## Contribution to individual projects: 
+If you want to contribute code to a project, first you need to fork the project. Next step is to send a pull request (PR) for review to the repository. For small changes, you can implement at first step and for large changes, it is recommended to initially send the architecture and data flow, before investing significant time into the detailed implementation. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
 
-Contribution to use cases: 
-We are constantly evluating the relevant use cases. List below is evolving based on continuous feedback.
+## Contribution to use cases: 
+We are constantly evaluating the relevant use cases. The list below includes the current status and is evolving based on the continuous feedback we are receiving from the community and major datacenter deployments for Node.js: 
+
   - Node-DC-EIS (Node.js - Data Center - Employee Information Services) : Current status at v0.9 with v1.0 by Q1 2017
     
   - Node-DC-SSR (Node.js - Data Center - Server Side Rendering) : Under consideration as next candidate
 
-  - Open for community suggestions for other use cases
+  - We are looking for community suggestions for other relevant use cases
 
--------------------------------------------------------------------------------
-Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
---------------------------------------------------------------------------- 
+
+# Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
+ 
 This is first in series of upcoming workloads for modelling various use cases of Node.js in Data Center (Node-DC). This workload is modelling various functionalities of Employee Information Services implemented in Node.js in Data Center.
 
 Open for contributions to take from v0.9 to v1.0  
