@@ -84,8 +84,9 @@ If proxy needs to be set up, make sure the it has been properly set.
   - requests '2.10.0'     (command: sudo pip install requests)
   - eventlet '0.19.0'     (command: sudo pip install eventlet)
 
-Note: Please make sure above modules are installed without any error. 
-      Install any missing modules as per your system configuration.
+Note: 
+	Please make sure above modules are installed without any error. 
+	Install any missing modules as per your system configuration.
 
 ## Windows Client: Required Modules and Installations
 
