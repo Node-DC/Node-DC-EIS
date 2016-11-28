@@ -21,45 +21,46 @@ We are constantly evaluating the relevant use cases. The list below includes the
 
 # Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
  
-This is first in series of upcoming workloads for modelling various use cases of Node.js in Data Center (Node-DC). This workload is modelling various functionalities of Employee Information Services implemented in Node.js in Data Center.
+This is first in a series of upcoming workloads for modelling use cases of Node.js in Data Center (Node-DC). This workload is modelling various functionalities of Employee Information Services implemented in Node.js in Data Center.
 
-Open for contributions to take from v0.9 to v1.0  
---------------------------------------------------------------------------- 
-Following changes are required to take from v0.9 to v1.0
+# Open for contributions to take from v0.9 to v1.0  
+ 
+Following changes are being worked on from v0.9 to v1.0
   - Feedback from community
-  - Change from Mongoose to MongoDB driver
+  - Change from Mongoose to MongoDB driver   
   - Increase unique lastnames from 777 to at least 5000 or more 
   
-Following changes are optional but good to have:
+Following changes are being considered as optional:
   - Options for alternate DB choices
+  - Unit tests as part of PR acceptance criterion 
   - Changing client from Python to Node.js 
-  - Option for time based rampup, measurement, and rampdown windows inaddition to current total requests 
-  - Aggregating response time samples every n sec interval instead of postprocessing at the end of complete run
+  - Workload phases ramp-up, measurement, and ramp-down to be able to set for a given time instead of #requests 
+  - Reduce the size of output file by processing response time samples every n sec interval instead of post-processing at the end of complete run
   - Containerize the client, server and DB for easy testing and setup of the workload 
 
-Node-DC-EIS Architecture  
----------------------------------------------------------------------------
+# Node-DC-EIS Architecture  
 
 
-Node-DC-EIS Metrics  
----------------------------------------------------------------------------
+
+# Node-DC-EIS Metrics  
 
 
-Node-DC-EIS default and configurable options for research and testing  
----------------------------------------------------------------------------
+
+# Node-DC-EIS default and configurable options for research and testing  
 
 
-Node-DC-EIS Workload Modes  
---------------------------------------------------------------------------- 
+
+# Node-DC-EIS Workload Modes  
+
 This workload has two modes 
 
-  - Cluster mode (includes monolithic mode when setting CPU count = 1)
+  - Cluster mode (includes a monolithic mode when setting CPU count = 1)
 
-  - Micro-services mode
+  - Microservices mode
 
--------------------------------------------------------------------------------
-Content  
----------------------------------------------------------------------------
+
+# Content  
+
 Node-DC-EIS workload code, which contains following directories,
 Server Codebase:
   - Node-DC-EIS-cluster, and
@@ -73,60 +74,50 @@ If proxy needs to be set up, make sure the it has been properly set.
   (npm config set proxy http://proxy.example.com:8080)
   (npm config set https-proxy http://proxy.example.com:8080)
 
--------------------------------------------------------------------------------
-Client Setup  
----------------------------------------------------------------------------
+# Client Setup  
 
-Linux Client: Required Modules and Installations
-------------------------------------------------------------------------------- 
-- Install Python 2.7.10
-- NumPy version '1.8.2' (command: pip install numpy)
-- Matplotlib '1.4.2'    (command: sudo apt-get install python-matplotlib)
-- requests '2.10.0'     (command: sudo pip install requests)
-- eventlet '0.19.0'     (command: sudo pip install eventlet)
+## Linux Client: Required Modules and Installations
+
+  - Install Python 2.7.10
+  - NumPy version '1.8.2' (command: pip install numpy)
+  - Matplotlib '1.4.2'    (command: sudo apt-get install python-matplotlib)
+  - requests '2.10.0'     (command: sudo pip install requests)
+  - eventlet '0.19.0'     (command: sudo pip install eventlet)
 
 Note: Please make sure above modules are installed without any error. 
       Install any missing modules as per your system configuration.
 
-Windows Client: Required Modules and Installations
-------------------------------------------------------------------------------- 
-- Python 2.7.12 (2.7.10 – confirmed to work) 
+## Windows Client: Required Modules and Installations
+
+  -Python 2.7.12 (2.7.10 – confirmed to work) 
   Download it from https://www.python.org/downloads/. 
 	Download “Windows x86 MSI installer
-  Once you have downloaded the Python MSI, navigate to the download 
-	location on your computer, double clicking the file and pressing Run 
-	when the dialog box pops up.
+  Once you have downloaded the Python MSI, navigate to the download location on your computer, double clicking the file and pressing Run when the dialog box pops up.
 
-- Follow the instructions in the dialog box
-- Once python is installed add Python to System Path Variable in the System 
- environment variables
-- If you are behind a proxy set your proxy
-- Install pip.py from https://pip.pypa.io/en/stable/installing/ and follow the 
-  instruction for running it
-- Make sure that pip is installed and is in your path before continuing 
-  installation
-- NumPy version '1.11.2' (command: pip install numpy)
-- Matplotlib 1.5.3       (command: pip install matplotlib)
-- requests '2.11.1'      (command: pip install requests)
-- eventlet '0.19.0'      (command: pip install eventlet)
+  - Follow the instructions in the dialog box
+  - Once python is installed add Python to System Path Variable in the System environment variables
+  - If you are behind a proxy set your proxy
+  - Install pip.py from https://pip.pypa.io/en/stable/installing/ and follow the instruction for running it
+  - Make sure that pip is installed and is in your path before continuing installation
+  - NumPy version '1.11.2' (command: pip install numpy)
+  - Matplotlib 1.5.3       (command: pip install matplotlib)
+  - requests '2.11.1'      (command: pip install requests)
+  - eventlet '0.19.0'      (command: pip install eventlet)
 
 Note: 
   Please make sure above modules are installed without any error. 
   Install any missing modules as per your system configuration.
 
--------------------------------------------------------------------------------
-Server Setup  
----------------------------------------------------------------------------
- 
+# Server Setup  
+
 Install the following:
   - node.js (www.nodejs.org)
   - mongodb (https://www.mongodb.com/download-center#community)
 
-Server Preparation:
---------------------------------------------------------------------------- 
+## Server Preparation:
+
   - Make sure node.js and npm (node package manager) have been installed.
-  - Make sure mongodb is running or start mongod server manually listening 
-	  at default port (27017).
+  - Make sure mongodb is running or start mongod server manually listening at default port (27017).
 
 - Windows Server Specific
   - Make Directory - C:\data\db.
@@ -134,16 +125,15 @@ Server Preparation:
 - Linux Server Specific
   - Make Directory – ~/data/db
 
-- Both(This may or maynot be required as per your mongodb setting)
+- Both ( This may or may not be required as per your mongodb setting)
   - Navigate to data/db or data\db.
   - Run “mongod”, leave this terminal open to maintain the process.
-  - (Optional)In a separate terminal run “mongo” to confirm database is 
-	  active.
+  - (Optional)In a separate terminal run “mongo” to confirm database is active.
   - Set PATH pointing to node.js binary you installed.
   - Make sure npm is in your PATH.
  
-Starting server in various modes
---------------------------------------------------------------------------- 
+### Starting server in various modes
+
 NOTE: Each server mode starts at different default port.
 
 Running application server in Cluster mode (default port: 9000): 
@@ -151,14 +141,12 @@ Running application server in Cluster mode (default port: 9000):
 	- run “npm install” to install all dependencies (don't use sudo). 
   - Run “node server-cluster.js”
 
-  NOTE: In cluster mode you (User) may have to increase the concurrency value 
-        in order to achive high CPU/platform utilisation.
+NOTE: In cluster mode you (User) may have to increase the concurrency value in order to achieve high CPU/platform utilization.
         In cluster mode you can control the number CPU's by changing the configuration file in the cluster mode. If not set, it takes the default number of CPU's (number of logical threads) available.
 
 Running application server in microservices mode (default port: 3000):
-	- run “npm install” to install all dependencies for each service directory
-	  (don't use sudo), and start each service seperately
-    - To auto run npm install run the script 
+  - run “npm install” to install all dependencies for each service directory (don't use sudo), and start each service separately
+  - To auto run npm install run the script 
 		python npm_install_all.py
 
   - Start each service in separate terminal window.
@@ -183,20 +171,16 @@ Running application server in microservices mode (default port: 3000):
     $ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
 		$ node server.js (default port: 4001)
 
-Note: 1) For micro-sevices mode, it's possible to deploy each service on 
-      different machine (seperate IP address). Please take a look at the 
-	  following file for any such changes,
-      2) In this mode you (User) may have to increase the concurrency value 
-      in order to achive platform utilisation.
+Note: 1) For microsevices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
+      2) In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
 
       microservices/employee_service/config/configuration.js file.
-	  In this mode employee_service acts as a main receiver and delegator for 
-	  all incoming requests.
+	  In this mode employee_service acts as a main receiver and delegator for all incoming requests.
 	  This mode works but if there are any questions, please reach out to us.
 
---------------------------------------------------------------------------- 
-Testing:
---------------------------------------------------------------------------- 
+
+# Testing:
+
 Make sure you have access to the Node-DC-EIS-client, which contains client 
 driver program and other supporting files.
 
