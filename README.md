@@ -69,10 +69,10 @@ Server Codebase:
 Client driver codebase
   - Node-DC-EIS-client
 
-NOTE : 
+#### NOTE : 
 If proxy needs to be set up, make sure the it has been properly set.
-  (npm config set proxy http://proxy.example.com:8080)
-  (npm config set https-proxy http://proxy.example.com:8080)
+  - (npm config set proxy http://proxy.example.com:8080)
+  - (npm config set https-proxy http://proxy.example.com:8080)
 
 # Client Setup  
 
@@ -84,15 +84,17 @@ If proxy needs to be set up, make sure the it has been properly set.
   - requests '2.10.0'     (command: sudo pip install requests)
   - eventlet '0.19.0'     (command: sudo pip install eventlet)
 
-Note: 
-	Please make sure above modules are installed without any error. 
-	Install any missing modules as per your system configuration.
+#### NOTE: 
+Please make sure above modules are installed without any error. 
+
+Install any missing modules as per your system configuration.
 
 ## Windows Client: Required Modules and Installations
 
-  -Python 2.7.12 (2.7.10 – confirmed to work) 
-  Download it from https://www.python.org/downloads/. 
-	Download “Windows x86 MSI installer
+  - Python 2.7.12 (2.7.10 – tested ). Download it from https://www.python.org/downloads/. 
+  
+  Download “Windows x86 MSI installer
+  
   Once you have downloaded the Python MSI, navigate to the download location on your computer, double clicking the file and pressing Run when the dialog box pops up.
 
   - Follow the instructions in the dialog box
@@ -105,7 +107,7 @@ Note:
   - requests '2.11.1'      (command: pip install requests)
   - eventlet '0.19.0'      (command: pip install eventlet)
 
-Note: 
+#### Note: 
   Please make sure above modules are installed without any error. 
   Install any missing modules as per your system configuration.
 
