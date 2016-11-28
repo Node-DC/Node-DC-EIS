@@ -7,6 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node server.js"
   },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/Node-DC/Node-DC-EIS.git"
+   }, 
   "author": "Uttam C Pawar (uttam.c.pawar@intel.com)",
   "license": "ISC",
   "dependencies": {
