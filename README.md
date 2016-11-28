@@ -107,9 +107,10 @@ Install any missing modules as per your system configuration.
   - requests '2.11.1'      (command: pip install requests)
   - eventlet '0.19.0'      (command: pip install eventlet)
 
-#### Note: 
-  Please make sure above modules are installed without any error. 
-  Install any missing modules as per your system configuration.
+#### NOTE: 
+
+Please make sure above modules are installed without any error. 
+Install any missing modules as per your system configuration.
 
 # Server Setup  
 
@@ -122,60 +123,65 @@ Install the following:
   - Make sure node.js and npm (node package manager) have been installed.
   - Make sure mongodb is running or start mongod server manually listening at default port (27017).
 
-- Windows Server Specific
-  - Make Directory - C:\data\db.
+  - Windows Server Specific
+  	- Make Directory - C:\data\db.
 
-- Linux Server Specific
-  - Make Directory – ~/data/db
+  - Linux Server Specific
+  	- Make Directory – ~/data/db
 
-- Both ( This may or may not be required as per your mongodb setting)
-  - Navigate to data/db or data\db.
-  - Run “mongod”, leave this terminal open to maintain the process.
-  - (Optional)In a separate terminal run “mongo” to confirm database is active.
-  - Set PATH pointing to node.js binary you installed.
-  - Make sure npm is in your PATH.
+  - Both ( This may or may not be required as per your mongodb setting)
+  	- Navigate to data/db or data\db.
+  	- Run “mongod”, leave this terminal open to maintain the process.
+  	- (Optional)In a separate terminal run “mongo” to confirm database is active.
+  	- Set PATH pointing to node.js binary you installed.
+  	- Make sure npm is in your PATH.
  
 ### Starting server in various modes
 
-NOTE: Each server mode starts at different default port.
+#### NOTE: 
+Each server mode starts at different default port.
 
 Running application server in Cluster mode (default port: 9000): 
   - Change directory to cluster,
 	- run “npm install” to install all dependencies (don't use sudo). 
   - Run “node server-cluster.js”
 
-NOTE: In cluster mode you (User) may have to increase the concurrency value in order to achieve high CPU/platform utilization.
-        In cluster mode you can control the number CPU's by changing the configuration file in the cluster mode. If not set, it takes the default number of CPU's (number of logical threads) available.
+#### NOTE: 
+In cluster mode user may have to increase the concurrency value in order to achieve high CPU/platform utilization.
+
+In cluster mode you can control the number CPU's by changing the configuration file in the cluster mode. If not set, it takes the default number of CPU's (number of logical threads) available.
 
 Running application server in microservices mode (default port: 3000):
   - run “npm install” to install all dependencies for each service directory (don't use sudo), and start each service separately
   - To auto run npm install run the script 
-		python npm_install_all.py
-
+	python npm_install_all.py
   - Start each service in separate terminal window.
-    $ cd <topdir>/Node-DC-EIS-microservices/employee_service;   
+  	
+	$ cd <topdir>/Node-DC-EIS-microservices/employee_service;   
 		$ node server.js (default port: 3000)
-
-    $ cd <topdir>/Node-DC-EIS-microservices/address_service;
+	
+	$ cd <topdir>/Node-DC-EIS-microservices/address_service;
 		$ node server.js (default port: 3001)
 
-    $ cd <topdir>/Node-DC-EIS-microservices/family_service;
+	$ cd <topdir>/Node-DC-EIS-microservices/family_service;
 		$ node server.js (default port: 3002)
 
-	  $ cd <topdir>/Node-DC-EIS-microservices/health_service;
+	$ cd <topdir>/Node-DC-EIS-microservices/health_service;
 		$ node server.js (default port: 3003)
 
-    $ cd <topdir>/Node-DC-EIS-microservices/comp_service;
+	$ cd <topdir>/Node-DC-EIS-microservices/comp_service;
 		$ node server.js (default port: 3004)
 
-    $ cd <topdir>/Node-DC-EIS-microservices/photo_service;
+	$ cd <topdir>/Node-DC-EIS-microservices/photo_service;
 		$ node server.js (default port: 3005)
 
-    $ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
+	$ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
 		$ node server.js (default port: 4001)
 
-Note: 1) For microsevices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
-      2) In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
+#### Note: 
+
+	1. For microsevices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
+	2. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
 
       microservices/employee_service/config/configuration.js file.
 	  In this mode employee_service acts as a main receiver and delegator for all incoming requests.
