@@ -66,6 +66,50 @@ Post-processing also produces response time graph as well as other histograms li
 # Node-DC-EIS default and configurable options for research and testing  
 Node-DC-EIS sets all parameters by default to model typical Node.js server deployment. Many important parameters have been defined in the configuration files to make it easy to be able to evluate, test and validate wide variety of deployments.  
 
+## Parameters in Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json :
+	- "request" : "10000",
+	- "concurrency" : "200",
+	- "rampup_rampdown": "100",
+	- "tempfile":"temp_log",
+	- "total_urls":"100",
+	- "server_ipaddress":"localhost",
+    "server_port":"9000",
+    "root_endpoint": "/",
+    "nameurl_count":"25", 
+    "zipurl_count":"25",
+    "idurl_ratio":"50"
+    
+    "db_params": 
+
+	- "dbrecord_count": "10000", 
+	- "name_ratio":"25",
+	- "zip_ratio":"25"
+
+"url_params": 
+
+    "get_ratio": "100", 
+    "post_ratio":"0",
+    "delete_ratio":"0"
+
+"memory_params": 
+
+    "memstat_interval": "1", 
+    "memlogfile": "memlog_file"
+
+## Parameters in "Node-DC-EIS-cluster/config/configuration.js"
+
+'cpu_count' : -1,
+  'db_url': 'mongodb://127.0.0.1:27017/node-els-db',
+  'app_port' : 9000,
+  'app_mode' : 'Cluster',
+  'count': 10000, 
+  'zipcount': 25,
+  'lastnamecount': 25,
+  'mongodb_timeout' : 30000,
+  'enable_caching' : true,
+  'cache_max_size' : 100000,
+  'cache_expiration' : 1200000
+
 
 # Node-DC-EIS Workload Modes  
 
@@ -193,7 +237,7 @@ Running application server in microservices mode (default port: 3000):
 	$ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
 		$ node server.js (default port: 4001)
 
-#### Note: 
+#### NOTE: 
 
 	1. For microsevices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
 	2. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
