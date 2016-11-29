@@ -1,16 +1,16 @@
-#Copyright (c) 2016 Intel Corporation 
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+Copyright (c) 2016 Intel Corporation 
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
 
 
 This client directory contains,
@@ -44,8 +44,8 @@ Note: If there are any eroors in any modules and if there are additional modules
  
 Windows Client: 
   Required Modules and installations
-  - Python 2.7.12 (2.7.10 ñ confirmed to work) Download it from https://www.python.org/downloads/
-    Downlaod ìWindows x86 MSI installer 
+  - Python 2.7.12 (2.7.10 ‚Äì confirmed to work) Download it from https://www.python.org/downloads/
+    Downlaod ‚ÄúWindows x86 MSI installer 
     Once you have downloaded the Python MSI, navigate to the download location on your computer, double clicking the file and pressing Run when the dialog box pops up.
     Follow the instructions in the dialog box
     Once python is installed add Python to System Path Variable in the Sytem environment variables
@@ -67,7 +67,7 @@ Windows Server 2012 R2
  -~2TB of storage free
  -Node.js version 6.9.1
  -MongoDB version 3.2.10
- -Windows Client ñ 8.1 Enterprise
+ -Windows Client ‚Äì 8.1 Enterprise
  -Intel Core i5-4300U @ 1.9GHz
  -Memory 4GB
  -51GB of storage free
@@ -78,7 +78,7 @@ Server:
    -Install the following:
      - node.js (www.nodejs.org)
      - mongodb (https://www.mongodb.com/download-center#community)
-     - Get the server code: ìgit clone git@10.7.189.152:/home/git/node-els.gitî
+     - Get the server code: ‚Äúgit clone git@10.7.189.152:/home/git/node-els.git‚Äù
        Which contains the directories for monolithic, cluster and microservice models.
      
 Steps to run (manual run):
@@ -89,24 +89,24 @@ Steps to run (manual run):
           -Windows Server
              - Make Directory - C:\data\db.
          - Linux Server
-             - Make Directory ñ ~/data/db
+             - Make Directory ‚Äì ~/data/db
          -Both
              - Navigate to data/db or data\db.
-            - Run ìmongodî, leave this terminal open to maintain the process.
-            - In a separate terminal run ìmongoî to confirm database is active.
+            - Run ‚Äúmongod‚Äù, leave this terminal open to maintain the process.
+            - In a separate terminal run ‚Äúmongo‚Äù to confirm database is active.
            
          - Set PATH pointing to node.js binary.
          - Make sure npm is in your PATH.
-         - Change directory to monolithic/cluster/microservices and run ìnpm installî to install all workload dependencies.
+         - Change directory to monolithic/cluster/microservices and run ‚Äúnpm install‚Äù to install all workload dependencies.
   
 Running the workload
 --Server:
-      - Start monolithic mode, go to the monolithic directory and run  ìnode server.jsî
-     - For cluster mode, go to the cluster directory and run ìnode server-cluster.jsî
-       -For Microservices mode navigate to the microservices directory. There are separate directory for each microservice. Go to individual directory, do an npm and install and start the server as ìnode server.jsî
+      - Start monolithic mode, go to the monolithic directory and run  ‚Äúnode server.js‚Äù
+     - For cluster mode, go to the cluster directory and run ‚Äúnode server-cluster.js‚Äù
+       -For Microservices mode navigate to the microservices directory. There are separate directory for each microservice. Go to individual directory, do an npm and install and start the server as ‚Äúnode server.js‚Äù
   --Client:
-      - Run the main script ìpython runspec.py <optional parameters example -n, -c ,-h>î.
-        - You will need to change the IP address and port of your server in ërunspec.pyí or in config.json. 
+      - Run the main script ‚Äúpython runspec.py <optional parameters example -n, -c ,-h>‚Äù.
+        - You will need to change the IP address and port of your server in ‚Äòrunspec.py‚Äô or in config.json. 
         - Takes additional command line parameters.
         - Default parameters in the script or can be read from a configuration file with -f/--config option (commandline has the maximum priority).
         -h gives the available options.
