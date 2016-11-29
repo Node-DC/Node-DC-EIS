@@ -49,16 +49,16 @@ Client controls various phases like ramp-up, measurement and ramp-down as well a
 
 ## Node.js server 
 Node.js server accepts all requests from client and responds back after retrieving employee information from the DB. Node.js cluster code is architected to scale by default. Monolithic mode can be run by setting CPU count as below:
-	- 'cpu_count' to 1 in "Node-DC-EIS-cluster/config/configuration.js" 
-	- default value is '-1' which will use all available CPUs
+  - 'cpu_count' to 1 in "Node-DC-EIS-cluster/config/configuration.js" 
+  - default value is '-1' which will use all available CPUs
 
 ## DB 
 Employee Information is stored in DB (current implementation using MongoDB). For each run, DB is populated based on configuration parameters set in the "Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json".     
 
 # Node-DC-EIS Metrics  
 Node-DC-EIS produces two primary metrics:
-	- Throughput ( n Node-DC-EIS requests / second ): It is calculated by "requests in measurement phase / measurement time" 
-	- p99 Response Time: It is 99 percentile of response time. 
+  - Throughput ( n Node-DC-EIS requests / second ): It is calculated by "requests in measurement phase / measurement time" 
+  - p99 Response Time: It is 99 percentile of response time. 
 	
 Report also contains detailed response time data like minimum, maximum, average and p99 (99 percentile) of response time. 
 Post-processing also produces response time graph as well as other histograms like memory utilization over the run length of the workload.  
@@ -80,12 +80,12 @@ Most parameters can be set in the client configuration file and these are passed
 	- "nameurl_count":"25", // 25 % of get_ratio type of requests are nameurl_count
 	- "zipurl_count":"25", // 25 % of get_ratio type of requests are zipurl_count
 	- "idurl_ratio":"50" // 50 % of get_ratio type of requests are idurl_count
-    
-    	- "db_params":  // Parameters below are related to DB
+	
+	- "db_params":  // Parameters below are related to DB
 	- "dbrecord_count": "10000", // DB is created with this many number of employee records
 	- "name_ratio":"25", // DB is created such that each last name search will find ~this many employee records  
 	- "zip_ratio":"25" // DB is created such that each last zipcode search will find ~this many employee records 
-
+	
 	- "url_params": // Parameters set the ratio for type of requests. total below must be 100 and post and delete must be equal to maintain approximately same number of empoyee records during a run
     	- "get_ratio": "100", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
     	- "post_ratio":"0", // Out of total requests this many requests are of post type
