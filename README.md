@@ -64,58 +64,51 @@ Report also contains detailed response time data like minimum, maximum, average 
 Post-processing also produces response time graph as well as other histograms like memory utilization over the run length of the workload.  
 
 # Node-DC-EIS default and configurable options for research and testing  
-Node-DC-EIS sets all parameters by default to model typical Node.js server deployment. Many important parameters have been defined in the configuration files to make it easy to be able to evluate, test and validate wide variety of deployments.  
+Node-DC-EIS sets all parameters by default to model typical Node.js server deployment. Many important parameters have been defined in the configuration files to make it easy to be able to evluate, test and validate wide variety of deployments. 
 
-## Parameters in Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json :
-	- "request" : "10000",
-	- "concurrency" : "200",
-	- "rampup_rampdown": "100",
-	- "tempfile":"temp_log",
-	- "total_urls":"100",
-	- "server_ipaddress":"localhost",
-    "server_port":"9000",
-    "root_endpoint": "/",
-    "nameurl_count":"25", 
-    "zipurl_count":"25",
-    "idurl_ratio":"50"
+Most parameters can be set in the client configuration file and these are passed to Node.js server and DB. But some parameters must be set at the start of Node.js server and DB. Such parameters must be defined in configuration files for respective components. 
+
+## Parameters in client configuration file ( Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json ) :
+	- "request" : "10000",  // Total number of requests to be issued
+	- "concurrency" : "200", // That many requests can be issued in parallel
+	- "rampup_rampdown": "100", // After this many requests, execution will enter measurement phase
+	- "tempfile":"temp_log", // Default name of the log file
+	- "total_urls":"100", // Number of urls which will be used to issue requests 
+	- "server_ipaddress":"localhost", // Server IP address
+	- "server_port":"9000",
+	- "root_endpoint": "/",
+	- "nameurl_count":"25", // 25 % of get_ratio type of requests are nameurl_count
+	- "zipurl_count":"25", // 25 % of get_ratio type of requests are zipurl_count
+	- "idurl_ratio":"50" // 50 % of get_ratio type of requests are idurl_count
     
-    "db_params": 
+    	- "db_params":  // Parameters below are related to DB
+	- "dbrecord_count": "10000", // DB is created with this many number of employee records
+	- "name_ratio":"25", // DB is created such that each last name search will find ~this many employee records  
+	- "zip_ratio":"25" // DB is created such that each last zipcode search will find ~this many employee records 
 
-	- "dbrecord_count": "10000", 
-	- "name_ratio":"25",
-	- "zip_ratio":"25"
+	- "url_params": // Parameters set the ratio for type of requests. total below must be 100 and post and delete must be equal to maintain approximately same number of empoyee records during a run
+    	- "get_ratio": "100", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
+    	- "post_ratio":"0", // Out of total requests this many requests are of post type
+    	- "delete_ratio":"0" // Out of total requests this many requests are of delete type
 
-"url_params": 
+	- "memory_params": // Parameters below helps in profiling memory usages by Node.js server
+    	- "memstat_interval": "1", 
+    	- "memlogfile": "memlog_file"
 
-    "get_ratio": "100", 
-    "post_ratio":"0",
-    "delete_ratio":"0"
+## Parameters in Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js"
 
-"memory_params": 
+	- 'cpu_count' : -1, // default -1 means set to total number of CPUs available, 1 means monolithic mode 
 
-    "memstat_interval": "1", 
-    "memlogfile": "memlog_file"
-
-## Parameters in "Node-DC-EIS-cluster/config/configuration.js"
-
-'cpu_count' : -1,
-  'db_url': 'mongodb://127.0.0.1:27017/node-els-db',
-  'app_port' : 9000,
-  'app_mode' : 'Cluster',
-  'count': 10000, 
-  'zipcount': 25,
-  'lastnamecount': 25,
-  'mongodb_timeout' : 30000,
-  'enable_caching' : true,
-  'cache_max_size' : 100000,
-  'cache_expiration' : 1200000
+  	- 'enable_caching' : true, // Caching of MongoDB in Node.js
+  	- 'cache_max_size' : 100000,
+  	- 'cache_expiration' : 1200000
 
 
 # Node-DC-EIS Workload Modes  
 
 This workload has two modes 
 
-  - Cluster mode (includes a monolithic mode when setting CPU count = 1)
+  - Cluster mode (includes a monolithic mode when setting CPU count by cpu_count = 1 in Node.js server configuration file)
 
   - Microservices mode
 
