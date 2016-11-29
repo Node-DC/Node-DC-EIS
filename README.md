@@ -226,7 +226,8 @@ driver program and other supporting files.
 - summary_file_sample.txt: 
   Sample summary file that is generated after a run.
 
-  Note: The validation report gives details of how many record were loaded in the database and how many records are present in the database after the run. There might be slight variation in the number of records after the run due to the additional requests in rampup or rampdown phase.
+#### NOTE
+The validation report gives details of how many record were loaded in the database and how many records are present in the database after the run. There might be slight variation in the number of records after the run due to the additional requests in rampup or rampdown phase.
 
 - results_node_dc_eis: 
   Sub directory with timestamp, will be created after the run.
@@ -239,42 +240,41 @@ driver program and other supporting files.
 			- summarized throughput, min max,average response time.
     - Three output graphs (throughput,latency  and memory utilization graph).
 
-Platforms Tested ON:
---------------------------------------------------------------------------- 
-  Linux Client:
+# Platforms Tested ON:
+ 
+Linux Client:
   - Intel(R) Core (™) i7-4770 CPU @ 3.40 GHz
   - Debian (jessie)
   - Ubuntu 15.10
 
-  Windows Client – 8.1 Enterprise
+Windows Client – 8.1 Enterprise
   - Intel Core i5-4300U @ 1.9GHz
   - Memory 4GB
   - 51GB of storage free
 
-  Linux Server:
+Linux Server:
   - Intel(R) Core(TM) i7-4790 CPU @ 3.60GHz
   - Ubuntu 15.10, 16 Gig RAM
   - Node.js version v4.4.5 / v5.5.0
   - MongoDB version 3.2.10
 
-  Windows Server 2012 R2
+Windows Server 2012 R2
   - Intel XEON E5-2699 v3 @ 2.3GHz
   - Memory 256GB
   - ~2TB of storage free
   - Node.js version 6.9.1
   - MongoDB version 3.2.10
 
-Known issues/limitations:
---------------------------------------------------------------------------- 
+# Known issues/limitations: 
  
 - Some issue while running on CentOS. 
 - Following issues are observed while installing python and related dependencies
-	  - Tool "pip" is not installed by default with Python
-	  - Proxy errors while using pip and npm 
-	  - NPM is not build if use your own build of Node.js
+	 - Tool "pip" is not installed by default with Python
+	 - Proxy errors while using pip and npm 
+	 - NPM is not build if use your own build of Node.js
 
 - If you try to populate with very high number of DB records, you may encounter following issues,
-	  - On the Server side, server may run out of memory causing core-dump
-	  - with --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space while the records are loaded.   
-	  - On the client side, initial request to populate the DB may fail due to HTTP timeout. 
-	  - Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)#NODE-DC-EIS
+	 - On the Server side, server may run out of memory causing core-dump
+	 - with --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space while the records are loaded.   
+	 - On the client side, initial request to populate the DB may fail due to HTTP timeout. 
+	 - Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)#NODE-DC-EIS
