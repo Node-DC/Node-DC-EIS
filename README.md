@@ -48,9 +48,9 @@ Node-DC-EIS follows a 3-tier model and consists of three components client, Node
 Client controls various phases like ramp-up, measurement and ramp-down as well as issues requests, tracks response time and errors. At the end of run, it validates the runs and post-processes the transactions log producing final metrics and graphs.
 
 ## Node.js server 
-Node.js server accepts all requests from client and responds back after retrieving employee information from the DB. Node.js cluster code is architected to scale by default. Monolithic mode can be run by setting CPU count as below:
-  - 'cpu_count' to 1 in "Node-DC-EIS-cluster/config/configuration.js" 
-  - default value is '-1' which will use all available CPUs
+Node.js server accepts all requests from client and responds back after retrieving employee information from the DB. Node.js cluster code is architected to scale by default. 
+
+In Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js", parameter 'cpu_count' can be used to scale to various number of CPUs. Default value is '-1' which will use all available CPUs. Monolithic mode can be set by 'cpu_count' to 1. 
 
 ## DB 
 Employee Information is stored in DB (current implementation using MongoDB). For each run, DB is populated based on configuration parameters set in the "Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json".     
@@ -91,7 +91,7 @@ Most parameters can be set in the client configuration file and these are passed
     	- "post_ratio":"0", // Out of total requests this many requests are of post type
     	- "delete_ratio":"0" // Out of total requests this many requests are of delete type
 
-	- "memory_params": // Parameters below helps in profiling memory usages by Node.js server
+    	- "memory_params": // Parameters below helps in profiling memory usages by Node.js server
     	- "memstat_interval": "1", 
     	- "memlogfile": "memlog_file"
 
