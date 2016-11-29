@@ -50,7 +50,9 @@ Client controls various phases like ramp-up, measurement and ramp-down as well a
 ## Node.js server 
 Node.js server accepts all requests from client and responds back after retrieving employee information from the DB. Node.js cluster code is architected to scale by default. 
 
-In Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js", parameter 'cpu_count' can be used to scale to various number of CPUs. Default value is '-1' which will use all available CPUs. Monolithic mode can be set by 'cpu_count' to 1. 
+In Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js", parameter 'cpu_count' can be used to scale to various number of CPUs. 
+  - Default value is '-1' which will use all available CPUs. 
+  - Monolithic mode can be set by 'cpu_count' to 1. 
 
 ## DB 
 Employee Information is stored in DB (current implementation using MongoDB). For each run, DB is populated based on configuration parameters set in the "Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json".     
@@ -87,13 +89,13 @@ Most parameters can be set in the client configuration file and these are passed
 	- "zip_ratio":"25" // DB is created such that each last zipcode search will find ~this many employee records 
 	
 	- "url_params": // Parameters set the ratio for type of requests. total below must be 100 and post and delete must be equal to maintain approximately same number of empoyee records during a run
-    	- "get_ratio": "100", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
-    	- "post_ratio":"0", // Out of total requests this many requests are of post type
-    	- "delete_ratio":"0" // Out of total requests this many requests are of delete type
-
-    	- "memory_params": // Parameters below helps in profiling memory usages by Node.js server
-    	- "memstat_interval": "1", 
-    	- "memlogfile": "memlog_file"
+	- "get_ratio": "100", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
+	- "post_ratio":"0", // Out of total requests this many requests are of post type
+	- "delete_ratio":"0" // Out of total requests this many requests are of delete type
+	
+	- "memory_params": // Parameters below helps in profiling memory usages by Node.js server
+	- "memstat_interval": "1", 
+	- "memlogfile": "memlog_file"
 
 ## Parameters in Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js"
 
