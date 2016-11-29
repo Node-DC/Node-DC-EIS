@@ -1,13 +1,12 @@
 # Objective 
-The Node-DC project is an open source collaboration project to develop workloads representing realistic use cases of Node.js in the Data Center. It started in 2016 with collaboration from the open source community, Node.js experts and companies playing important roles in Node.js’s evolution and production deployments in the Data Centers. 
+The Node-DC is an open source collaboration project to develop workloads representing realistic use cases of Node.js in the data center. It started in 2016 with collaboration from the open source community, Node.js experts and companies playing important roles in Node.js’s evolution and production deployments in the data centers. 
 
 Workloads APIs, functionalities and metrics will be used to evaluate performance of the complete software stack for Node.js, Operating Systems, containers, virtualization, network stacks as well as various data center configuration choices. These are relevant for hardware and software developers, researchers and Node.js community. One priority for this project is to update the workloads in order to keep them up with the fast moving eco-system of Node.js. 
 
-# Contributing and Community  
-As an open source project, Node-DC operates with a hierarchical governance structure, having one project maintainer and multiple contributors from the ecosystem. 
+# Contributing and Community   
 
 ## Contribution to individual projects: 
-If you want to contribute code to a project, first you need to fork the project. Next step is to send a pull request (PR) for review to the repository. For small changes, you can implement at first step and for large changes, it is recommended to initially send the architecture and data flow, before investing significant time into the detailed implementation. The PR will be reviewed by the project team members. You need at least one "Look Good To Me (LGTM)" or other positive signals from the project members. Once you have gained the required signals the project maintainers will merge the PR.
+If you want to contribute code to a project, first you need to fork the project. Next step is to send a pull request (PR) for review to the repository. For small changes, you can implement at first step and for large changes, it is recommended to initially send the architecture and data flow, before investing significant time into the detailed implementation. The PR will be reviewed by the project team members. You need one "Looks Good To Me (LGTM)" and no objections from the project members. Once you have gained the required approval, the project maintainers will merge the PR.
 
 ## Contribution to use cases: 
 We are constantly evaluating the relevant use cases. The list below includes the current status and is evolving based on the continuous feedback we are receiving from the community and major datacenter deployments for Node.js: 
@@ -18,6 +17,7 @@ We are constantly evaluating the relevant use cases. The list below includes the
 
   - We are looking for community suggestions for other relevant use cases
 
+Feedback can be sent either by creating issues or sending e-mail listed at https://github.com/Node-DC
 
 # Node-DC-EIS (Node.js - Data Center - Employee Information Services) 
  
