@@ -37,19 +37,34 @@ Following changes are being considered as optional:
   - Unit tests as part of PR acceptance criterion 
   - Changing client from Python to Node.js 
   - Workload phases ramp-up, measurement, and ramp-down to be able to set for a given time instead of #requests 
+  - Node internal stats like events in the loop etc.
   - Reduce the size of output file by processing response time samples every n sec interval instead of post-processing at the end of complete run
   - Containerize the client, server and DB for easy testing and setup of the workload 
 
 # Node-DC-EIS Architecture  
+Node-DC-EIS follows a 3-tier model and consists of three components client, Node.js server and DB.
 
+## Client 
+Client controls various phases like ramp-up, measurement and ramp-down as well as issues requests, tracks response time and errors. At the end of run, it validates the runs and post-processes the transactions log producing final metrics and graphs.
 
+## Node.js server 
+Node.js server accepts all requests from client and responds back after retrieving employee information from the DB. Node.js cluster code is architected to scale by default. Monolithic mode can be run by setting CPU count as below:
+	- 'cpu_count' to 1 in "Node-DC-EIS-cluster/config/configuration.js" 
+	- default value is '-1' which will use all available CPUs
+
+## DB 
+Employee Information is stored in DB (current implementation using MongoDB). For each run, DB is populated based on configuration parameters set in the "Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json".     
 
 # Node-DC-EIS Metrics  
-
-
+Node-DC-EIS produces two primary metrics:
+	- Throughput ( n Node-DC-EIS requests / second ): It is calculated by "requests in measurement phase / measurement time" 
+	- p99 Response Time: It is 99 percentile of response time. 
+	
+Report also contains detailed response time data like minimum, maximum, average and p99 (99 percentile) of response time. 
+Post-processing also produces response time graph as well as other histograms like memory utilization over the run length of the workload.  
 
 # Node-DC-EIS default and configurable options for research and testing  
-
+Node-DC-EIS sets all parameters by default to model typical Node.js server deployment. Many important parameters have been defined in the configuration files to make it easy to be able to evluate, test and validate wide variety of deployments.  
 
 
 # Node-DC-EIS Workload Modes  
