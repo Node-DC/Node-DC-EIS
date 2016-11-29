@@ -27,7 +27,9 @@ This is first in a series of upcoming workloads for modelling use cases of Node.
  
 Following changes are being worked on from v0.9 to v1.0
   - Feedback from community
-  - Change from Mongoose to MongoDB driver   
+  - Change from Mongoose to MongoDB driver
+  - Enable DB caching in microservices 
+  - Enable clustering of microservices 
   - Increase unique lastnames from 777 to at least 5000 or more 
   
 Following changes are being considered as optional:
@@ -91,12 +93,10 @@ Install any missing modules as per your system configuration.
 
 ## Windows Client: Required Modules and Installations
 
-  - Python 2.7.12 (2.7.10 – tested ). Download it from https://www.python.org/downloads/. 
-  
-  Download “Windows x86 MSI installer
-  
-  Once you have downloaded the Python MSI, navigate to the download location on your computer, double clicking the file and pressing Run when the dialog box pops up.
+Download Python from https://www.python.org/downloads/   
+  - Python 2.7.12 (2.7.10 – tested ). 
 
+Download “Windows x86 MSI installer. Once you have downloaded the Python MSI, navigate to the download location on your computer, double clicking the file and pressing Run when the dialog box pops up.
   - Follow the instructions in the dialog box
   - Once python is installed add Python to System Path Variable in the System environment variables
   - If you are behind a proxy set your proxy
@@ -267,14 +267,14 @@ Windows Server 2012 R2
 
 # Known issues/limitations: 
  
-- Some issue while running on CentOS. 
-- Following issues are observed while installing python and related dependencies
-	 - Tool "pip" is not installed by default with Python
-	 - Proxy errors while using pip and npm 
-	 - NPM is not build if use your own build of Node.js
+  - Some issue while running on CentOS. 
+  - Following issues are observed while installing python and related dependencies
+  	- Tool "pip" is not installed by default with Python
+	- Proxy errors while using pip and npm 
+	- NPM is not build if use your own build of Node.js
 
-- If you try to populate with very high number of DB records, you may encounter following issues,
-	 - On the Server side, server may run out of memory causing core-dump
-	 - with --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space while the records are loaded.   
-	 - On the client side, initial request to populate the DB may fail due to HTTP timeout. 
-	 - Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)#NODE-DC-EIS
+  - If you try to populate with very high number of DB records, you may encounter following issues,
+  	- On the Server side, server may run out of memory causing core-dump
+	- With --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space while the records are loaded.
+	- On the client side, initial request to populate the DB may fail due to HTTP timeout.
+	- Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)#NODE-DC-EIS
