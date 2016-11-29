@@ -11,9 +11,9 @@ If you want to contribute code to a project, first you need to fork the project.
 ## Contribution to use cases: 
 We are constantly evaluating the relevant use cases. The list below includes the current status and is evolving based on the continuous feedback we are receiving from the community and major datacenter deployments for Node.js: 
 
-  - Node-DC-EIS (Node.js - Data Center - Employee Information Services) : Current status at v0.9 with v1.0 by Q1 2017
+  - Node-DC-EIS (Node.js - Data Center - Employee Information Services): Current status at v0.9 with v1.0 by Q1 2017
     
-  - Node-DC-SSR (Node.js - Data Center - Server Side Rendering) : Under consideration as next candidate
+  - Node-DC-SSR (Node.js - Data Center - Server Side Rendering): Under consideration as next candidate
 
   - We are looking for community suggestions for other relevant use cases
 
@@ -269,9 +269,9 @@ Known issues/limitations:
  
 - Some issue while running on CentOS. 
 - Following issues are observed while installing python and related dependencies
-	  - Tool "pip" is not install by default with python
+	  - Tool "pip" is not installed by default with Python
 	  - Proxy errors while using pip and npm 
-	  - NPM is not build if use your own build of nodejs
+	  - NPM is not build if use your own build of Node.js
 
 - If you try to populate with very high number of DB records, you may encounter following issues,
 	  - On the Server side, server may run out of memory causing core-dump
