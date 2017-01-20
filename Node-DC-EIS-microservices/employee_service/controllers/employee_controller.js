@@ -437,8 +437,11 @@ exports.getEmployeeById = function(req, res) {
       }
     ], function(err) {
       if (err) {
-        console.log(err);
-        return callback(err);
+        console.log('getEmployeeById: Error occured with async.parallel');
+        sendJSONResponse(res, 500, {
+          message: 'async.parallel error while finding an employee record by ID'
+        });
+        return;
       }
 
       sendJSONResponse(res, 200, result);
@@ -652,7 +655,7 @@ exports.deleteByEmployeeId = function(req, res) {
       if (err) {
         console.log('Delete Employee: Error occured with async.parallel');
         sendJSONResponse(res, 500, {
-          message: 'async.parallel error while saving employee record'
+          message: 'async.parallel error while deleting employee record'
         });
         return;
       }
