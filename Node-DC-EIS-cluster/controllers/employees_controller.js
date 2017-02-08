@@ -682,8 +682,11 @@ exports.findById = function findById(req, res) {
       }
     ], function(err) {
       if (err) {
-        console.log(err);
-        return callback(err);
+        console.log('findById: Error occured with async.parallel');
+        sendJSONResponse(res, 500, {
+          message: 'async.parallel error while finding an employee record by ID'
+        });
+        return;
       } else {
         if (enable_caching) {
           employeeCache.set(req, result);
