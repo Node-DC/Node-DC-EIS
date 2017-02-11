@@ -187,15 +187,13 @@ Install the following:
   	- Make Directory - C:\data\db.
     - Make Directory - C:\data\log.
     - Create/edit mongod.cfg in your MongoDB install location (for example C:\MongoDB) with the following contents:
-        systemLog:
-            destination: file
-            path: C:\data\log\mongod.log
-        storage:
-            dbpath: C:\data\log
-    - Set up MongoDB:
-        "C:\MongoDB\bin\mongod.exe" --config "C:\MongoDB\mongod.cfg" --install
-    - Start the MongoDB service:
-        net start MongoDB
+	systemLog:
+		destination: file
+		path: C:\data\log\mongod.log
+	storage:
+		dbpath: C:\data\log
+    - Set up MongoDB            (command: "C:\MongoDB\bin\mongod.exe" --config "C:\MongoDB\mongod.cfg" --install)
+    - Start the MongoDB service (command: net start MongoDB)
 
   - Linux Server Specific
   	- Make Directory – ~/data/db
@@ -251,7 +249,7 @@ Running application server in microservices mode (default port: 3000):
 
 #### NOTE: 
 
-	1. For microsevices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
+	1. For microservices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
 	2. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
 
       microservices/employee_service/config/configuration.js file.
