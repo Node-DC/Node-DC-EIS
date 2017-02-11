@@ -187,11 +187,13 @@ Install the following:
   	- Make Directory - C:\data\db.
     - Make Directory - C:\data\log.
     - Create/edit mongod.cfg in your MongoDB install location (for example C:\MongoDB) with the following contents:
+    ```
 	systemLog:
 		destination: file
 		path: C:\data\log\mongod.log
 	storage:
 		dbpath: C:\data\log
+    ```
     - Set up MongoDB            (command: "C:\MongoDB\bin\mongod.exe" --config "C:\MongoDB\mongod.cfg" --install)
     - Start the MongoDB service (command: net start MongoDB)
 
