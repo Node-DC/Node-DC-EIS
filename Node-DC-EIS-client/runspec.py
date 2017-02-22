@@ -348,19 +348,19 @@ def arg_parse():
 #prints all the environment details
 def run_printenv(log):
   print >> log, ('Server url is : %s' % server_url)
-  print >> log, "# requests    :", request +"  (Default value = 10000)"
-  print >> log, "# concurrency    :", concurrency +"  (Default value = 200)"
-  print >> log, "#  URLs  :", total_urls +"  (Default value = 100)"
-  print >> log, "#  get url ratio:",  get_ratio +"  (Default value = 80)"
-  print >> log,"#  post url ratio:",  post_ratio +"  (Default value = 10)"
-  print >> log, "#  delete url ratio:",  delete_ratio+"  (Default value = 10)"
-  print >> log, "#  id_url:",  idurl_ratio +"  (Default value = 50)"
-  print >> log, "#  name url ratio:",  str(nameurl_ratio) +"  (Default value = 25)"
-  print >> log,"#  zip url ratio:",  str(zipurl_ratio)+"  (Default value = 25)"
+  print >> log, "# requests    :"+ str(request) +"  (Default value = 10000)"
+  print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
+  print >> log, "#  URLs  :" +str(total_urls) +"  (Default value = 100)"
+  print >> log, "#  get url ratio:" + str(get_ratio) +"  (Default value = 80)"
+  print >> log,"#  post url ratio:"+ str(post_ratio) +"  (Default value = 10)"
+  print >> log, "#  delete url ratio:"+ str(delete_ratio)+"  (Default value = 10)"
+  print >> log, "#  id_url:"+ str(idurl_ratio)  +"  (Default value = 50)"
+  print >> log, "#  name url ratio:"+  str(nameurl_ratio) +"  (Default value = 25)"
+  print >> log,"#  zip url ratio:"+  str(zipurl_ratio)+"  (Default value = 25)"
   print >> log, "====Database Parameters===="
-  print >> log, "# records    :", dbrecord_count +"  (Default value = 10000)"
-  print >> log, "#  unique name:",  name_dbratio +"  (Default value = 25)"
-  print >> log, "#  unique zips:",  zip_dbratio +"  (Default value = 25)"
+  print >> log, "# records    :"+ str(dbrecord_count) +"  (Default value = 10000)"
+  print >> log, "#  unique name:"  + str(name_dbratio) +"  (Default value = 25)"
+  print >> log, "#  unique zips:"  + str(zip_dbratio) +"  (Default value = 25)"
 
 #get IDS, names and zipcode depending on the ratio for IDs,names and zipcodes
 def get_data():
