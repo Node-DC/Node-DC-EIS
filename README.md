@@ -172,6 +172,8 @@ Download “Windows x86 MSI installer. Once you have downloaded the Python MSI, 
 Please make sure above modules are installed without any error. 
 Install any missing modules as per your system configuration.
 
+On Windows, there is a limit of 512 file descriptors open at a time. Because of this, the client script will crash if the concurrency setting is higher than 512.
+
 # Server Setup  
 
 Install the following:
