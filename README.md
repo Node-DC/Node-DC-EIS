@@ -134,14 +134,20 @@ If proxy needs to be set up, make sure the it has been properly set.
 
 ## Linux Client: Required Modules and Installations
 
-  - Install Python 2.7.10
-  - NumPy version '1.8.2' (command: pip install numpy)
-  - Matplotlib '1.4.2'    (command: sudo apt-get install python-matplotlib)
-  - requests '2.10.0'     (command: sudo pip install requests)
-  - eventlet '0.19.0'     (command: sudo pip install eventlet)
+Install Python '2.7.10'   (command: sudo apt-get python2.7-dev)
+
+Install Pip for Python    (command: sudo apt-get python-pip)
+  - Pip 1.5.4
+  
+Install the following modules  
+  - NumPy version '1.8.2'     (command: pip install numpy)
+  - Matplotlib '1.4.2'        (command: sudo apt-get install python-matplotlib)
+  - requests '2.10.0'         (command: sudo pip install requests)
+  - eventlet '0.19.0'         (command: sudo pip install eventlet)
 
 #### NOTE: 
 Please make sure above modules are installed without any error. 
+Installing pip modules may require gaining access to the local directory by calling 'sudo chown -R $USER /usr/local'.
 
 Install any missing modules as per your system configuration.
 
@@ -179,14 +185,25 @@ Install the following:
 
   - Windows Server Specific
   	- Make Directory - C:\data\db.
+    - Make Directory - C:\data\log.
+    - Create/edit mongod.cfg in your MongoDB install location (for example C:\MongoDB) with the following contents:
+    ```
+	systemLog:
+		destination: file
+		path: C:\data\log\mongod.log
+	storage:
+		dbpath: C:\data\log
+    ```
+    - Set up MongoDB            (command: "C:\MongoDB\bin\mongod.exe" --config "C:\MongoDB\mongod.cfg" --install)
+    - Start the MongoDB service (command: net start MongoDB)
 
   - Linux Server Specific
   	- Make Directory – ~/data/db
-
-  - Both ( This may or may not be required as per your mongodb setting)
-  	- Navigate to data/db or data\db.
+    - Navigate to data/db or data\db.
   	- Run “mongod”, leave this terminal open to maintain the process.
   	- (Optional)In a separate terminal run “mongo” to confirm database is active.
+
+  - Both ( This may or may not be required as per your mongodb setting)
   	- Set PATH pointing to node.js binary you installed.
   	- Make sure npm is in your PATH.
  
@@ -234,7 +251,7 @@ Running application server in microservices mode (default port: 3000):
 
 #### NOTE: 
 
-	1. For microsevices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
+	1. For microservices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
 	2. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
 
       microservices/employee_service/config/configuration.js file.
