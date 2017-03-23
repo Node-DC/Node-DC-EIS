@@ -16,7 +16,7 @@
 
 'use strict';
 module.exports = {
-  'cpu_count' : -1,
+  'cpu_count' : 0,
   'db_url': 'mongodb://127.0.0.1:27017/node-els-db',
   'app_port' : 9000,
   'app_mode' : 'Cluster',

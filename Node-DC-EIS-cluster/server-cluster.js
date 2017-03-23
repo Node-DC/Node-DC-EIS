@@ -16,31 +16,18 @@
 
 'use strict';
 
-var cluster = require('cluster');
 var appConfig = require('./config/configuration');
+var app_host = appConfig.app_host;
+var port = appConfig.app_port;
 const os = require('os');
 
-if (cluster.isMaster) {
-  var cpuCount = appConfig.cpu_count; 
-  if ((cpuCount === undefined) || (cpuCount < 0)) {
-    cpuCount = os.cpus().length;
-  }
-  
-  console.log('Setting up cluster with 1 Master and ' + cpuCount + ' workers..');
+function printHostInfo() {
+  console.log('********************************');
+  console.log('Server running at port:', port);
+  console.log('********************************');
+}
 
-  for (var i=0 ;i < cpuCount; i++) {
-    cluster.fork();
-  }
-
-  cluster.on('online', function(worker) {
-    console.log('Worker:' + worker.process.pid + ' is online');
-  });
-
-  cluster.on('exit', function(worker, code, signal) {
-    console.log('exit event occured. Stopping the server');
-    process.exit(0);
-  });
-} else {
+function startSingleNodeInstance() {
   var express = require('express');
   var mongoose = require('mongoose');
   var bodyParser = require('body-parser');
@@ -50,16 +37,25 @@ if (cluster.isMaster) {
 
   // Connect to the database
   mongoose.connect(appConfig.db_url);
+  var db = mongoose.connection;
+
+  db.on('error', console.error.bind(console, 'connection error:'));
+  db.once('open', function() {
+    // we're connected!
+    console.log('Mongoose connected to the database');
+  });
 
   app.use(bodyParser.urlencoded({extended: true}));
   app.use(bodyParser.json());
 
   app.get('/', function homeRoot(req, res) {
-    res.json({message: 'Hello from cluster version of node-els at /'});
+    res.json({message: 'Hello from node.js worker of node-dc-eis at /'});
   });
 
   //loads database
-  app.get('/loaddb', loaderCtrl.initDb);
+  app.get('/loaddb', function foo(req, res) {
+    loaderCtrl.initDb(req, res);
+  });
 
   //check the number of records in the DB
   app.get('/checkdb',loaderCtrl.isDBSet);
@@ -135,10 +131,43 @@ if (cluster.isMaster) {
     process.exit(0);
   });
 
-  var port = appConfig.app_port;
-  var server = app.listen(port);
+  var server = app.listen({ host: app_host, port: port});
 
-  console.log('********************************');
-  console.log('Server running at port:', port);
-  console.log('********************************');
 }
+
+function startCluster(cpus) {
+  const cluster = require('cluster');
+  if (cluster.isMaster) {
+    let cpu_count = cpus;
+    if ((cpu_count === undefined) || (cpu_count < 0)) {
+      cpu_count = os.cpus().length;
+    }
+
+    printHostInfo();
+    console.log('Setting up cluster with 1 Master (pid: ' + process.pid + ') and ' + cpu_count + ' workers..');
+
+    for (var i=0 ;i < cpu_count; i++) {
+      cluster.fork();
+    }
+
+    cluster.on('online', function(worker) {
+      console.log('Worker:' + worker.process.pid + ' is online');
+    });
+
+    cluster.on('exit', function(worker, code, signal) {
+      console.log('exit event occured. Stopping the server');
+      process.exit(0);
+    });
+  } else {
+    startSingleNodeInstance();
+  }
+} 
+
+const cpuCount = appConfig.cpu_count; 
+if (cpuCount === 0) {
+  console.log('Starting a single instance of Node.js process with (pid: ' + process.pid + ')');
+  printHostInfo();
+  startSingleNodeInstance();
+} else if (cpuCount === undefined || cpuCount !== 0) {
+  startCluster(cpuCount); 
+};

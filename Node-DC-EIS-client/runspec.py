@@ -472,12 +472,6 @@ def check_db():
     exit(1)
   if(result["result"]):
     checkdb_dict["count"] = result["result"]["count"]
-    checkdb_dict["e_count"] = result["result"]["e_count"]
-    checkdb_dict["a_count"] = result["result"]["a_count"]
-    checkdb_dict["c_count"] = result["result"]["c_count"]
-    checkdb_dict["f_count"] = result["result"]["f_count"]
-    checkdb_dict["f_count"] = result["result"]["f_count"]
-    checkdb_dict["p_count"] = result["result"]["p_count"]
   if(int(checkdb_dict["count"])) == int(dbrecord_count):
     print ("[%s] Database consistent-DB record count okay." % (time.strftime("%d-%m-%Y %H:%M:%S")))
   else:
@@ -876,8 +870,8 @@ def post_process(temp_log,output_file):
   print >> processed_file, "\n====Validation Report===="
   print >> processed_file, "Database Validation:"
   print >> processed_file, "Actual database record count: "+str(dbrecord_count)
-  print >> processed_file, "Database record count after loadDB: "+str(after_dbload["e_count"])
-  print >> processed_file, "Database record count after the run: " +str(after_run["e_count"])
+  print >> processed_file, "Database record count after loadDB: "+str(after_dbload["count"])
+  print >> processed_file, "Database record count after the run: " +str(after_run["count"])
   print >> processed_file, "--------------------------------------"
   print >> processed_file, "URL ratio Validation:"
   print >> processed_file, "Total number of urls generated: " +str(count)

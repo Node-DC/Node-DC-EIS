@@ -17,11 +17,6 @@
 'use strict';
 
 var Employee = require('../models/employee');
-var Address = require('../models/address');
-var Compensation = require('../models/compensation');
-var Family = require('../models/family');
-var Health = require('../models/health');
-var Photo = require('../models/photo');
 var fs = require('fs');
 var appConfig = require('../config/configuration');
 var async = require('async');
@@ -89,104 +84,124 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   employee.email = emp.email;
   employee.role = emp.role;
 
-  //Build Address Object
-  var address = new Address(); 
-  address.zipcode = addr.zipcode;
+ //Build Address Object
+  var address = {}; 
+  var zipcode = addr.zipcode;
 
   if(addr.country == undefined){
     missing_field_flag = true;
   } else{
-    address.country = addr.country;
+    var country = addr.country;
   }
 
   if(addr.state == undefined){
     missing_field_flag = true;
   } else{
-    address.state = addr.state;
+    var state = addr.state;
   }
 
   if(addr.street == undefined){
     missing_field_flag = true;
   } else{
-    address.street = addr.street;
+    var street = addr.street;
   }
-
+  employee.address ={
+    street : street,
+    zipcode : zipcode,
+    state : state,
+    country : country
+  }
+  
   if(missing_field_flag) {
     warning_msg = "Some field from Address input are missing";
     missing_field_flag = false;
   }
 
   //Build Compensation Object
-  var comp = new Compensation(); 
+  var compensation = {}; 
   if(com.stock == undefined){
     missing_field_flag = true;
   } else{
-    comp.stock = com.stock;
+    var stock = com.stock;
   }
 
   if(com.pay == undefined){
     missing_field_flag = true;
   } else{
-    comp.pay = com.pay;
+    var pay = com.pay;
   }  
-
+  
   if(missing_field_flag) {
     warning_msg = "Some field from Compensation input are missing";
     missing_field_flag = false;
   } 
+  employee.compensation = {
+    pay : pay,
+    stock : stock
+  }
 
   //Build Family Object
-  var family = new Family();
+  var family = {};
   if(fam.childrens == undefined){
     missing_field_flag = true;
   } else {
-    family.childrens = fam.childrens;
+    var childrens = fam.childrens;
   }
 
   if(fam.marital_status == undefined){
     missing_field_flag = true;
   } else {
-    family.marital_status = fam.marital_status;
+    var marital_status = fam.marital_status;
   }
 
   if(missing_field_flag) {
     warning_msg = "Some field from Family input are missing";
     missing_field_flag = false;
   }
+  employee.family = {
+    marital_status : marital_status,
+    childrens : childrens
+  }
 
   //Build Health Object
-  var health = new Health();
+  var health = {};
   if(heal.paid_family_leave == undefined){
     missing_field_flag = true;
   } else {
-    health.paid_family_leave = heal.paid_family_leave;
+    var paid_family_leave = heal.paid_family_leave;
   }
 
   if(heal.longterm_disability_plan == undefined){
     missing_field_flag = true;
   } else {
-    health.longterm_disability_plan = heal.longterm_disability_plan;
+    var longterm_disability_plan = heal.longterm_disability_plan;
   }
 
   if(heal.shortterm_disability_plan == undefined){
     missing_field_flag = true;
   } else {
-    health.shortterm_disability_plan = heal.shortterm_disability_plan; 
+    var shortterm_disability_plan = heal.shortterm_disability_plan; 
   }
 
   if(missing_field_flag) {
     warning_msg = "Some field from Health input are missing";
     missing_field_flag = false;
   }
+  employee.health = {
+    shortterm_disability_plan : shortterm_disability_plan,
+    longterm_disability_plan : longterm_disability_plan,
+    paid_family_leave : paid_family_leave
+  }
 
   //Build Photo Object
-  var photo = new Photo();
   if(phot && phot.image ){
-    photo.image = phot.image;
+    var image = phot.image;
   } else {
     missing_field_flag = true;
   }
-
+  employee.photo ={
+    image : image
+  }
   if(missing_field_flag) {
     warning_msg = "Photo input is missing";
     missing_field_flag = false;
@@ -202,69 +217,8 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
     }
 
     var employee_id = data._id;
-    var employee_obj = data;
-    address._employee = employee_id;
-    address.employee = employee_obj;
-    comp._employee = employee_id;
-    comp.employee = employee_obj;
-    family._employee = employee_id;
-    family.employee = employee_obj;
-    health._employee = employee_id;
-    health.employee = employee_obj;
-    photo._employee = employee_id;
-    photo.employee = employee_obj;
 
-    async.parallel([
-      function(callback) {
-        address.save(function saveEmployee(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        comp.save(function saveComp(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        family.save(function saveFamily(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        health.save(function saveHealth(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        photo.save(function savePhoto(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      }
-    ], function(err) {
-      if (err) {
-        console.log('NewEmployee: Error occured with async.parallel');
-        sendJSONResponse(res, 500, {
-          message: 'async.parallel error while saving employee record'
-        });
-        return;
-      }
-
-      var returned_obj = {};
+    var returned_obj = {};
       returned_obj.employee_id = employee_id;
       if (warning_msg) {
         returned_obj.warning_msg = warning_msg;  
@@ -273,7 +227,6 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
       sendJSONResponse(res, 200, { 
         result: returned_obj
       });
-    }); //End of async.parallel()
   }); //End of Employee.save()
 };
 
@@ -298,60 +251,9 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
         message: 'Deleting Employee: Internal error while deleting employee record'});
       return;
     }
-
-    async.parallel([
-      function(callback) {
-        Address.remove({'employee._id': new ObjectId(employee_id)}, function cb_err(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        Compensation.remove({'employee._id': new ObjectId(employee_id)}, function cb_err(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        Family.remove({'employee._id': new ObjectId(employee_id)}, function cb_err(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        Health.remove({'employee._id': new ObjectId(employee_id)}, function cb_err(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      },
-      function(callback) {
-        Photo.remove({'employee._id': new ObjectId(employee_id)}, function cb_err(err, data) {
-          if(err) {
-            return callback(err, null);
-          }
-          callback();
-        });
-      }
-    ], function(err) {
-      if (err) {
-        console.log('NewEmployee: Error occured with async.parallel');
-        sendJSONResponse(res, 500, {
-          message: 'async.parallel error while deleting employee record'
-        });
-        return;
-      }
-      sendJSONResponse(res, 200, {
-        message: 'Employee record Successfully deleted'}
-      );
-    }); //End of async.parallel()     
+  sendJSONResponse(res, 200, {
+    message: 'Employee record Successfully deleted'}
+    );     
   }); //ENd of employee remove
 };
 
@@ -429,7 +331,7 @@ function collectZipCodes(data) {
   var zipCodeArr = new Array(data.length);
   var idx = 0;
   for (var i of data) {
-    zipCodeArr[idx] = i.zipcode;
+    zipCodeArr[idx] = i.address.zipcode;
     idx++;
   }
   return(zipCodeArr);
@@ -446,7 +348,7 @@ exports.findByZipcode = function findByZipcode(req, res) {
   var zipcode=req.query.zipcode;
   
   if (!zipcode) {
-    Address.find(function findAddress(err, data) {
+    Employee.find(function findAddress(err, data) {
       if (err) {
         console.log(err);
         sendJSONResponse(res, 500, { 
@@ -462,7 +364,7 @@ exports.findByZipcode = function findByZipcode(req, res) {
       sendJSONResponse(res, 200, zipCodeArr);
     });
   } else {
-    Address.find({'zipcode' : zipcode})
+    Employee.find({'address.zipcode' : zipcode})
       .exec(function(err, addresses) {
       if (err) {
         console.log(err);
@@ -619,82 +521,25 @@ exports.findById = function findById(req, res) {
     }
 
     var result = {};
-    result.employee = employee;
+    result.employee = {
+      "_id" : employee._id,
+      "last_name" : employee.last_name,
+      "first_name" : employee.first_name,
+      "phone" : employee.phone,
+      "role" : employee.role,
+      "email" : employee.email
+    }
+    result.address = employee.address;
+    result.compensation = employee.compensation;
+    result.family = employee.family;
+    result.health = employee.health;
 
-    var employee_id = employee._id;
-    async.parallel([
-      function(callback) {
-        //Get address
-        Address.findOne({'employee._id': new ObjectId(employee_id)}, function findOneAddress(err, data) {
-          if(err) {
-            console.log(err);
-            return callback(err);
-          }
-          result.address = data;
-          callback();
-        });
-      },
-      function(callback) {
-        //Get compensation
-        Compensation.findOne({'employee._id': new ObjectId(employee_id)}, function findOneCompensation(err, data) {
-          if(err) {
-            console.log(err);
-            return callback(err);
-          }
-         
-          result.compensation = data;
-          callback();
-        });
-      },
-      function(callback) {
-        //Get health
-        Health.findOne({'employee._id': new ObjectId(employee_id)}, function findOneHealth(err, data) {
-          if(err) {
-            console.log(err);
-            return callback(err);
-          }
-          
-          result.health = data;
-          callback();
-        });
-      },
-      function(callback) {
-        //Get family
-        Family.findOne({'employee._id': new ObjectId(employee_id)}, function findOneFamily(err, data) {
-          if(err) {
-            console.log(err);
-            return callback(err);
-          }
-          result.family = data;
-          callback();
-        });
-      },
-      function(callback) {
-        //Get photo
-        Photo.findOne({'employee._id': new ObjectId(employee_id)}, function findOnePhoto(err, data) {
-          if(err) {
-            console.log(err);
-            return callback(err);
-          }
-          result.photo = data;
-          callback();
-        });
-      }
-    ], function(err) {
-      if (err) {
-        console.log('findById: Error occured with async.parallel');
-        sendJSONResponse(res, 500, {
-          message: 'async.parallel error while finding an employee record by ID'
-        });
-        return;
-      } else {
-        if (enable_caching) {
-          employeeCache.set(req, result);
-        }
-        sendJSONResponse(res, 200, result);
-        return;
-      }
-    });
-  }); 
+    if (enable_caching) {
+      employeeCache.set(req, result);
+    }
+    sendJSONResponse(res, 200, result);
+    return;
+    }
+  ); 
 };
 
