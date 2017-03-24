@@ -46,31 +46,30 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   var warning_msg;
 
   //Build Employee record
-  var emp = req.body.employee;
-  var addr = req.body.address;
-  var com = req.body.compensation;
-  var fam = req.body.family;
-  var heal = req.body.health;
-  var phot = req.body.photo;
-
+  var employeeObj = req.body.employee;
+  var addressObj = req.body.address;
+  var compensationObj = req.body.compensation;
+  var familyObj = req.body.family;
+  var healthObj = req.body.health;
+  var photoObj = req.body.photo;
   if (enable_caching) {
     employeeCache.reset();
   }
 
   //zipcode and last_name are required fields
-  if(!emp || !addr){
+  if(!employeeObj || !addressObj || !compensationObj || !familyObj || !healthObj || !photoObj){
     sendJSONResponse(res, 400, { 
       message: 'addNewEmployee: Missing employee input'});
     return;
   }
 
-  if(!emp.phone || !emp.first_name || !emp.last_name || !emp.email || !emp.role){
+  if(!employeeObj.phone || !employeeObj.first_name || !employeeObj.last_name || !employeeObj.email || !employeeObj.role){
     sendJSONResponse(res, 400, { 
       message: 'addNewEmployee: Missing employee input'});
     return;
   }
 
-  if(!addr.zipcode){
+  if(!addressObj.zipcode){
     sendJSONResponse(res, 400, { 
       message: 'addNewEmployee: Missing employee input'});
     return;
@@ -78,33 +77,31 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
 
   //Build Employee Object
   var employee = new Employee();
-  employee.phone = emp.phone;
-  employee.first_name = emp.first_name;
-  employee.last_name = emp.last_name;
-  employee.email = emp.email;
-  employee.role = emp.role;
+  employee.phone = employeeObj.phone;
+  employee.first_name = employeeObj.first_name;
+  employee.last_name = employeeObj.last_name;
+  employee.email = employeeObj.email;
+  employee.role = employeeObj.role;
 
  //Build Address Object
   var address = {}; 
-  var zipcode = addr.zipcode;
+  var zipcode = addressObj.zipcode;
+  var country = addressObj.country;
+  var state = addressObj.state;
+  var street = addressObj.street;
 
-  if(addr.country == undefined){
+  if(country == undefined){
     missing_field_flag = true;
-  } else{
-    var country = addr.country;
-  }
+  } 
 
-  if(addr.state == undefined){
+  if(state == undefined){
     missing_field_flag = true;
-  } else{
-    var state = addr.state;
-  }
+  } 
 
-  if(addr.street == undefined){
+  if(street == undefined){
     missing_field_flag = true;
-  } else{
-    var street = addr.street;
-  }
+  } 
+
   employee.address ={
     street : street,
     zipcode : zipcode,
@@ -119,16 +116,15 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
 
   //Build Compensation Object
   var compensation = {}; 
-  if(com.stock == undefined){
+  var stock = compensationObj.stock;
+  var pay = compensationObj.pay;
+
+  if(stock == undefined){
     missing_field_flag = true;
-  } else{
-    var stock = com.stock;
   }
 
-  if(com.pay == undefined){
+  if(pay == undefined){
     missing_field_flag = true;
-  } else{
-    var pay = com.pay;
   }  
   
   if(missing_field_flag) {
@@ -142,16 +138,15 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
 
   //Build Family Object
   var family = {};
-  if(fam.childrens == undefined){
-    missing_field_flag = true;
-  } else {
-    var childrens = fam.childrens;
-  }
+  var childrens = familyObj.childrens;
+  var marital_status = familyObj.marital_status;
 
-  if(fam.marital_status == undefined){
+  if(childrens == undefined){
     missing_field_flag = true;
-  } else {
-    var marital_status = fam.marital_status;
+  } 
+
+  if(marital_status == undefined){
+    missing_field_flag = true;
   }
 
   if(missing_field_flag) {
@@ -165,22 +160,19 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
 
   //Build Health Object
   var health = {};
-  if(heal.paid_family_leave == undefined){
+  var paid_family_leave = healthObj.paid_family_leave;
+  var longterm_disability_plan = healthObj.longterm_disability_plan;
+  var shortterm_disability_plan = healthObj.shortterm_disability_plan;
+  if(paid_family_leave == undefined){
     missing_field_flag = true;
-  } else {
-    var paid_family_leave = heal.paid_family_leave;
-  }
+  } 
 
-  if(heal.longterm_disability_plan == undefined){
+  if(longterm_disability_plan == undefined){
     missing_field_flag = true;
-  } else {
-    var longterm_disability_plan = heal.longterm_disability_plan;
-  }
+  } 
 
-  if(heal.shortterm_disability_plan == undefined){
+  if(shortterm_disability_plan == undefined){
     missing_field_flag = true;
-  } else {
-    var shortterm_disability_plan = heal.shortterm_disability_plan; 
   }
 
   if(missing_field_flag) {
@@ -192,12 +184,24 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
     longterm_disability_plan : longterm_disability_plan,
     paid_family_leave : paid_family_leave
   }
-
+  var image = photoObj.image;
   //Build Photo Object
-  if(phot && phot.image ){
-    var image = phot.image;
-  } else {
-    missing_field_flag = true;
+  if(!image){
+  try {
+      var fileContents;
+      fileContents = fs.readFileSync(__dirname + '/../data/image.jpeg');
+      image = fileContents.toString('base64');
+    } catch (err) {
+      console.log(err);
+      res.send({'message': 'image is null'});
+      missing_field_flag = true; }
+
+    if (!image) {
+      console.log(err);
+      console.log('image is null');
+      res.send({'message': 'image is null'});
+      missing_field_flag = true;
+    }
   }
   employee.photo ={
     image : image
@@ -533,6 +537,7 @@ exports.findById = function findById(req, res) {
     result.compensation = employee.compensation;
     result.family = employee.family;
     result.health = employee.health;
+    result.photo = employee.photo;
 
     if (enable_caching) {
       employeeCache.set(req, result);
