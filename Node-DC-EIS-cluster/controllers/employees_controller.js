@@ -63,7 +63,7 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
     return;
   }
 
-  if(!employeeObj.phone || !employeeObj.first_name || !employeeObj.last_name || !employeeObj.email || !employeeObj.role){
+  if(!employeeObj.first_name || !employeeObj.last_name){
     sendJSONResponse(res, 400, { 
       message: 'addNewEmployee: Missing employee input'});
     return;
@@ -84,7 +84,6 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   employee.role = employeeObj.role;
 
  //Build Address Object
-  var address = {}; 
   var zipcode = addressObj.zipcode;
   var country = addressObj.country;
   var state = addressObj.state;
@@ -114,8 +113,7 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
     missing_field_flag = false;
   }
 
-  //Build Compensation Object
-  var compensation = {}; 
+  //Build Compensation Object 
   var stock = compensationObj.stock;
   var pay = compensationObj.pay;
 
@@ -137,7 +135,6 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   }
 
   //Build Family Object
-  var family = {};
   var childrens = familyObj.childrens;
   var marital_status = familyObj.marital_status;
 
@@ -159,7 +156,6 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   }
 
   //Build Health Object
-  var health = {};
   var paid_family_leave = healthObj.paid_family_leave;
   var longterm_disability_plan = healthObj.longterm_disability_plan;
   var shortterm_disability_plan = healthObj.shortterm_disability_plan;
@@ -193,13 +189,13 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
       image = fileContents.toString('base64');
     } catch (err) {
       console.log(err);
-      res.send({'message': 'image is null'});
+      return res.send({'message': 'image is null'});
       missing_field_flag = true; }
 
     if (!image) {
       console.log(err);
       console.log('image is null');
-      res.send({'message': 'image is null'});
+      return res.send({'message': 'image is null'});
       missing_field_flag = true;
     }
   }
