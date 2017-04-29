@@ -21,6 +21,7 @@ from eventlet.green import urllib2
 requests = eventlet.import_patched('requests.__init__')
 import requests
 from collections import OrderedDict 
+import nodedc_utils
 
 headers = {'content-type': 'application/json'}
 post_datalist = []
@@ -40,10 +41,6 @@ static_postdata = {"employee" :
                 {"paid_family_leave" : "true", "longterm_disability_plan" : "true", "shortterm_disability_plan" : "false"} }
 
 #globals for error checking
-timeout_err = 0
-conn_err = 0
-http_err = 0
-bad_url = 0
 s = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=20)
 b = requests.adapters.HTTPAdapter(max_retries=20)
@@ -53,26 +50,12 @@ s.mount('https://', b)
 #sends GET requests to the server. Type 1 is GET requests.
 # handles 3 types of GET requests based on ID, last_name and zipcode.
 def get_url(url,request_num,log,phase): 
-  global timeout_err
-  global conn_err
-  global http_err
-  global bad_url 
   global post_data
   start = time.time()
   try:
     r = s.get(url, headers=headers)
-  except requests.exceptions.Timeout as e:
-    timeout_err = timeout_err + 1 
-  except requests.exceptions.ConnectionError as e:
-    conn_err = conn_err + 1
-  except requests.exceptions.HTTPError as e:
-    http_err = http_err + 1
-  except requests.exceptions.TooManyRedirects as e:
-    bad_url = bad_url + 1 
-  except requests.exceptions.RequestException as e:
-    #catastrophic error. bail.
-    print e
-    sys.exit(1)
+  except:
+    handleHTTPExcepton(requests.exceptions)
   finally:
     end = time.time()
     response_time = end-start
@@ -82,10 +65,6 @@ def get_url(url,request_num,log,phase):
 #sends POST requests to the server. Type 2 is POST requests.
 #also captures the ID that was posted and saves it in a list(employee_idlist) which is used in the ID list to send requests
 def post_url(url,request_num,log,phase): 
-  global timeout_err
-  global conn_err
-  global http_err
-  global bad_url 
   global employee_idlist
   global post_datalist
 
@@ -96,18 +75,8 @@ def post_url(url,request_num,log,phase):
   try:
     start = time.time()
     r = s.post(url, headers=headers, data = json.dumps(post_data))
-  except requests.exceptions.Timeout as e:
-    timeout_err = timeout_err + 1 
-  except requests.exceptions.ConnectionError as e:
-    conn_err = conn_err + 1
-  except requests.exceptions.HTTPError as e:
-    http_err = http_err + 1
-  except requests.exceptions.TooManyRedirects as e:
-    bad_url = bad_url + 1 
-  except requests.exceptions.RequestException as e:
-    #catastrophic error. bail.
-    print e
-    sys.exit(1)
+  except:
+    handleHTTPExcepton(requests.exceptions)
   finally:
     end = time.time()
     response_time = end-start
@@ -130,10 +99,6 @@ def post_url(url,request_num,log,phase):
 #sends delete requests to the server. Type 3 is delete requests.
 #also captures the data record being deleted and saves it in a list(post/_datalist) which is used for new post requests
 def delete_url(url,request_num,log,phase): 
-  global timeout_err
-  global conn_err
-  global http_err
-  global bad_url 
   global employee_idlist
   global post_datalist
   start = time.time()
@@ -141,8 +106,8 @@ def delete_url(url,request_num,log,phase):
   try:
     try:
       get_res = s.get(url, headers=headers)   
-    except requests.exceptions.RequestException as e:
-      #catastrophic error. bail.
+    except:
+      handleHTTPExcepton(requests.exceptions)
       print e
       sys.exit(1)
     try:
@@ -158,18 +123,8 @@ def delete_url(url,request_num,log,phase):
       print "Warning : Record not found"
     start = time.time()
     r = s.delete(url, headers=headers)
-  except requests.exceptions.Timeout as e:
-    timeout_err = timeout_err + 1 
-  except requests.exceptions.ConnectionError as e:
-    conn_err = conn_err + 1
-  except requests.exceptions.HTTPError as e:
-    http_err = http_err + 1
-  except requests.exceptions.TooManyRedirects as e:
-    bad_url = bad_url + 1 
-  except requests.exceptions.RequestException as e:
-    #catastrophic error. bail.
-    print e
-    sys.exit(1)
+  except:
+    handleHTTPExcepton(requests.exceptions)
   finally:
     end = time.time()
     response_time = end-start

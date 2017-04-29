@@ -1,0 +1,66 @@
+====Hardware Details====
+Architecture: x64
+Endianness: LE
+Total memory: 33686953984 bytes
+Free mempry available: 7366750208 bytes
+CPU model: Intel(R) Core(TM) i7-4770 CPU @ 3.40GHz
+CPU speed: 3400 MHz
+Time spent in sys mode: 408266900 ms
+Time spent in idle mode: 15141813900 ms
+Time spent in user mode: 225467800 ms
+Time spent in irq mode: 0 ms
+Time spent in nice mode: 4089900 ms
+
+====Operating System Details====
+Operating System Platform: linux
+Operating System Release: 3.16.0-4-amd64
+System uptime: 1581946
+Operating System type: Linux
+
+====Version Details of Node.js and dependencies====
+Node version: 7.7.2
+Zlib version: 1.2.11
+V8 version: 5.5.372.41
+UV version: 1.11.0
+Http Parser version: 2.7.0
+OpenSSL version: 1.0.2k
+Ares version: 1.10.1-DEV
+Modules version: 51
+ICU version: 58.2
+
+====Client information====
+['Server url is : http://localhost:9000/']
+['# requests    :10000  (Default value = 10000)']
+['# concurrency    :200  (Default value = 200)']
+['#  URLs  :100  (Default value = 100)']
+['#  get url ratio:100  (Default value = 80)']
+['#  post url ratio:0  (Default value = 10)']
+['#  delete url ratio:0  (Default value = 10)']
+['#  id_url:50  (Default value = 50)']
+['#  name url ratio:25  (Default value = 25)']
+['#  zip url ratio:25  (Default value = 25)']
+['====Database Parameters====']
+['# records    :10000  (Default value = 10000)']
+['#  unique name:25  (Default value = 25)']
+['#  unique zips:25  (Default value = 25)']
+
+====Report Summary====
+Primary Metrics:
+Throughput = 24.2 NODE-DC-EISv0.9 req/sec
+99 percentile = 19.223 NODE-DC-EISv0.9 sec
+
+Detailed summary:
+Min Response time = 0.116 NODE-DC-EISv0.9 sec
+Max Response time = 25.306 NODE-DC-EISv0.9 sec
+Mean Response time = 7.941 NODE-DC-EISv0.9 sec
+
+====Validation and Error Summary====
+Timeout Error = 0
+Connection Error = 0
+Http Error = 0
+Bad Url Error = 0
+
+====Validation Report====
+Database Validation:
+Actual database record count: 10000
+Database record count after loadDB: 10000
