@@ -470,18 +470,13 @@ def check_db():
    #decoding failed
     print "Exception -- Decoding of result from checkdb failed. Exiting"
     exit(1)
-  if(result["result"]):
-    checkdb_dict["count"] = result["result"]["count"]
-    checkdb_dict["e_count"] = result["result"]["e_count"]
-    checkdb_dict["a_count"] = result["result"]["a_count"]
-    checkdb_dict["c_count"] = result["result"]["c_count"]
-    checkdb_dict["f_count"] = result["result"]["f_count"]
-    checkdb_dict["f_count"] = result["result"]["f_count"]
-    checkdb_dict["p_count"] = result["result"]["p_count"]
-  if(int(checkdb_dict["count"])) == int(dbrecord_count):
+  if("db_status" in result and "message" in result):
+   if(result['db_status']==200):
     print ("[%s] Database consistent-DB record count okay." % (time.strftime("%d-%m-%Y %H:%M:%S")))
-  else:
+    checkdb_dict["message"] = result["message"]
+   else:
     print ("[%s] Database inconsistent. DB record count mismatch." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+    checkdb_dict["message"] = result["message"]
   return checkdb_dict
 
 
@@ -876,8 +871,8 @@ def post_process(temp_log,output_file):
   print >> processed_file, "\n====Validation Report===="
   print >> processed_file, "Database Validation:"
   print >> processed_file, "Actual database record count: "+str(dbrecord_count)
-  print >> processed_file, "Database record count after loadDB: "+str(after_dbload["e_count"])
-  print >> processed_file, "Database record count after the run: " +str(after_run["e_count"])
+  print >> processed_file, "Database record count after loadDB: "+str(after_dbload["message"])
+  print >> processed_file, "Database record count after the run: " +str(after_run["message"])
   print >> processed_file, "--------------------------------------"
   print >> processed_file, "URL ratio Validation:"
   print >> processed_file, "Total number of urls generated: " +str(count)

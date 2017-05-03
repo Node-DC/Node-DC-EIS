@@ -36,8 +36,9 @@ static_postdata = {"employee" :
                 {"stock" : "4739", "pay" : "521021"}, 
              "family": 
                 {"childrens" : "1", "marital_status" : "true"}, 
-              "health" : 
-                {"paid_family_leave" : "true", "longterm_disability_plan" : "true", "shortterm_disability_plan" : "false"} }
+             "health" : 
+                {"paid_family_leave" : "true", "longterm_disability_plan" : "true", "shortterm_disability_plan" : "false"},
+             "photo" : "1" }
 
 #globals for error checking
 timeout_err = 0

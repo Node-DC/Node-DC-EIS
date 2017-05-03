@@ -32,9 +32,6 @@ var EmployeeSchema = new mongoose.Schema({
   email: {
     type : String
   },
-  photo: {
-    type: String
-  },
   role: {
     type: String,
     default: 'regular'
@@ -46,7 +43,57 @@ var EmployeeSchema = new mongoose.Schema({
   updated_at: {
     type: Date,
     default: Date.now
-  }
+  },
+  address: {
+   street: {
+    type: String,
+    trim: true
+   },
+   state: {
+    type: String,
+    trim: true
+   },
+   country: {
+    type: String,
+    trim: true
+   },
+   zipcode: {
+    type: Number,
+    trim: true
+   }
+  },
+  compensation : {
+   pay: {
+    type: Number
+   },
+   stock: {
+    type: Number
+   }
+  },
+  family : {
+    marital_status: {
+     type: Boolean
+    },
+   childrens: {
+    type: Number
+   }
+  },
+  health : {
+   shortterm_disability_plan: {
+    type: Boolean
+   },
+   longterm_disability_plan: {
+    type: Boolean
+   },
+   paid_family_leave: {
+    type: Boolean
+   }
+  },
+  photo : {
+    image: {
+    type: String
+   }
+  }  
 });
 
 module.exports = mongoose.model('Employee', EmployeeSchema);
