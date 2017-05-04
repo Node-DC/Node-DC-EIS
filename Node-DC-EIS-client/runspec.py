@@ -387,7 +387,7 @@ def arg_parse():
   
 
 #prints all the environment details
-def run_printenv(log):
+def run_rPintenv(log):
   print >> log, ('Server url is : %s' % server_url)
   print >> log, "# requests    :"+ str(request) +"  (Default value = 10000)"
   print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
@@ -753,7 +753,7 @@ def request_based_run(employee_idlist, log):
   print ("[%s] All requests done." % (getCurrentTime()))
   after_run = check_db()
   log.close()
-  post_process_request_based_data(temp_log, output_file)
+  postProcessRequestBasedData(temp_log, output_file)
 
 def send_request(employee_idlist):
   global log
@@ -769,14 +769,14 @@ def send_request(employee_idlist):
   print ("[%s] Sending requests" % (getCurrentTime()))
 
   #Start actual client/server communication
-  request_based_run(employee_idlist, log)
+  requestBasedRun(employee_idlist, log)
 
 #post processing of log file to summarize the results. 
 #Generates a summary output file which contains,
 #   hardware,software OS and Client details
 #   Also gives MIN, MAX,MEAN response time, throughput, 
 #   99 percentile and error details of each run
-def post_process_request_based_data(temp_log, output_file):
+def postProcessRequestBasedData(temp_log, output_file):
   abs_start = 0;
   col_st = 3; #column number of start time
   col_et = 4
@@ -952,7 +952,6 @@ def post_process_request_based_data(temp_log, output_file):
   print >> processed_file, "Total number of get requests: " +str(tot_get)
   print >> processed_file, "Total number of post requests: " +str(tot_post)
   print >> processed_file, "Total number of delete requests: " +str(tot_del)
-  
 
   logfile.close()
   processed_file.flush() 
@@ -1033,4 +1032,6 @@ def plot_graph(output_file):
   temp_zip.close()
   os.remove(os.path.join(os.path.join(results_dir,directory),temp_log))
 
+
+## Main entry
 arg_parse()
