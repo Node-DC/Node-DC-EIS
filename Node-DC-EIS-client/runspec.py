@@ -377,13 +377,14 @@ def arg_parse():
   if int(concurrency) > int(request):
     print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency = number of requests"
     concurrency = request
+
   #Build URL queue
   startProcess()
  
   #global directory
   #directory="18:36:59_06-22-2016"
   #output_file="18:36:59_06-22-2016.csv"
-  post_process(temp_log,output_file)
+  
 
 #prints all the environment details
 def run_printenv(log):
@@ -684,7 +685,7 @@ def print_meminfo():
 
 #send concurrent requests to the server using the urls generated 
 # decides the type of the url depending on the method GET, POST or DELETE.
-def requestBasedRun(employee_idlist, log):
+def request_based_run(employee_idlist, log):
   global tot_get
   global phase
   global requests_done
@@ -752,10 +753,10 @@ def requestBasedRun(employee_idlist, log):
   print ("[%s] All requests done." % (getCurrentTime()))
   after_run = check_db()
   log.close()
+  post_process_request_based_data(temp_log, output_file)
 
 def send_request(employee_idlist):
   global log
-  print ("[%s] Sending requests" % (getCurrentTime()))
   try:
     log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
   except IOError as e:
@@ -765,15 +766,17 @@ def send_request(employee_idlist):
   #Print environment 
   run_printenv(log)
 
+  print ("[%s] Sending requests" % (getCurrentTime()))
+
   #Start actual client/server communication
-  requestBasedRun(employee_idlist, log)
+  request_based_run(employee_idlist, log)
 
 #post processing of log file to summarize the results. 
 #Generates a summary output file which contains,
 #   hardware,software OS and Client details
 #   Also gives MIN, MAX,MEAN response time, throughput, 
 #   99 percentile and error details of each run
-def post_process(temp_log,output_file):
+def post_process_request_based_data(temp_log, output_file):
   abs_start = 0;
   col_st = 3; #column number of start time
   col_et = 4
