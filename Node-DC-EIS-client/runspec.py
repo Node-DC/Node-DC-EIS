@@ -387,7 +387,7 @@ def arg_parse():
   
 
 #prints all the environment details
-def run_rPintenv(log):
+def run_printenv(log):
   print >> log, ('Server url is : %s' % server_url)
   print >> log, "# requests    :"+ str(request) +"  (Default value = 10000)"
   print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
