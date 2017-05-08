@@ -126,6 +126,10 @@ execfile("./node_dc_eis_testurls.py")
 results_dir = "results_node_DC_EIS"
 
 #Creates a run/log directory which contains all the result files
+def getCurrentTime():
+  currentTime=time.strftime("%d-%m-%Y %H:%M:%S")
+  return currentTime
+
 def setup():
   global appName
   global directory
@@ -147,7 +151,7 @@ def setup():
     if 'appName' in result:
       appName = result["appName"]
   print "Starting "+version + " in "+appName + " Mode"
-  print ("[%s] Setting up log directory." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Setting up log directory." % (getCurrentTime()))
   if not os.path.exists(results_dir):
       os.makedirs(results_dir)
   if not os.path.exists(os.path.join(results_dir,directory)):
@@ -157,26 +161,51 @@ def setup():
 #parse command line arguments
 def arg_parse():
   global output_file
-  print ("[%s] Parsing arguments." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Parsing arguments." % (getCurrentTime()))
   parser = argparse.ArgumentParser()
-  parser.add_argument('-o', '--output', dest="output_filename",help='The output file name')
-  parser.add_argument('-f', '--config',dest="config",action="store",help='The configuration file to be used')
-  parser.add_argument('-n','--request',dest="request",action="store",help='Number of requests to perform')
-  parser.add_argument('-c','--concurrency',dest="concurrency",action="store",help='Number of multiple requests to perform')
-  parser.add_argument('-t','--templogfile',dest="templogfile",action="store",help='The temporary log file to be used')
-  parser.add_argument('-W','--rampup_rampdown',dest="rampup_rampdown",action="store",help='Number of rampup-rampdown requests to perform')
-  parser.add_argument('-idr','--idurl_ratio',dest="idurl_ratio",action="store",help='The percentage of ID urls to be loaded in URL file')
-  parser.add_argument('-nur','--nameurl_ratio',dest="nameurl_ratio",action="store",help='The percentage of name urls to be loaded in URL file')
-  parser.add_argument('-zur','--zipurl_ratio', dest="zipurl_ratio",action="store",help='The percentage of zip urls to be loaded in URL file')
-  parser.add_argument('-dbc','--dbcount',dest="dbcount",action="store",help='The record count to load database')
-  parser.add_argument('-nr','--name_dbratio',dest="name_dbratio",action="store",help='The name ratio')
-  parser.add_argument('-zr','--zip_dbratio',dest="zip_dbratio",action="store",help='The zip ratio')
-  parser.add_argument("-or", "--order", dest="order",  help="order of requests. Either \"shuffled\" or \"sequential\"", default="shuffled")
-  parser.add_argument("-d", "--debug", dest="debug", help="Debug output", default=1, type=int)
+  parser.add_argument('-o', '--output', dest="output_filename",
+                  help='The output file name')
+  parser.add_argument('-f', '--config',dest="config",
+                  action="store",
+                  help='The configuration file to be used')
+  parser.add_argument('-n','--request',dest="request",
+                  action="store",
+                  help='Number of requests to perform')
+  parser.add_argument('-c','--concurrency',dest="concurrency",
+                  action="store",
+                  help='Number of multiple requests to perform')
+  parser.add_argument('-t','--templogfile',dest="templogfile",
+                  action="store",
+                  help='The temporary log file to be used')
+  parser.add_argument('-W','--rampup_rampdown',dest="rampup_rampdown",
+                  action="store",
+                  help='Number of rampup-rampdown requests to perform')
+  parser.add_argument('-idr','--idurl_ratio',dest="idurl_ratio",
+                  action="store",
+                  help='The percentage of ID urls to be loaded in URL file')
+  parser.add_argument('-nur','--nameurl_ratio',dest="nameurl_ratio",
+                  action="store",
+                  help='The percentage of name urls to be loaded in URL file')
+  parser.add_argument('-zur','--zipurl_ratio', dest="zipurl_ratio",
+                  action="store",
+                  help='The percentage of zip urls to be loaded in URL file')
+  parser.add_argument('-dbc','--dbcount',dest="dbcount",
+                  action="store",
+                  help='The record count to load database')
+  parser.add_argument('-nr','--name_dbratio',dest="name_dbratio",
+                  action="store",
+                  help='The name ratio')
+  parser.add_argument('-zr','--zip_dbratio',dest="zip_dbratio",
+                  action="store",
+                  help='The zip ratio')
+  parser.add_argument("-or", "--order", dest="order",
+                  help="order of requests. Either \"shuffled\" or \"sequential\"", default="shuffled")
+  parser.add_argument("-d", "--debug", dest="debug", 
+                  help="Debug output", default=1, type=int)
   options = parser.parse_args()
-  
+
   print('Input options config files: %s' % options.config)
- 
+
   if(options.output_filename):
     output_file = options.output_filename
 
@@ -251,7 +280,7 @@ def arg_parse():
 
           if "zipurl_ratio" in json_data["client_params"]:
             zipurl_ratio = json_data["client_params"]["zipurl_ratio"]
-  
+
           if "url_file" in json_data["client_params"]:
             url_file = json_data["client_params"]["url_file"]
 
@@ -260,7 +289,7 @@ def arg_parse():
 
           if "total_urls" in json_data["client_params"]:
             total_urls = json_data["client_params"]["total_urls"]
-     
+
         #database setup parameters
         if "db_params" in json_data:
           if "dbrecord_count" in json_data["db_params"]:
@@ -271,7 +300,7 @@ def arg_parse():
 
           if "zip_ratio" in json_data["db_params"]:
             zip_dbratio = json_data["db_params"]["zip_ratio"]
-            
+
         #URL setup paramaters
         if "url_params" in json_data:
           if "get_ratio" in json_data["url_params"]:
@@ -294,8 +323,7 @@ def arg_parse():
     except IOError as e:
       print("Error: %s File not found." % options.config)
       return None
-  
-  
+
   if(options.request) :
     request = options.request
   if(options.concurrency) :
@@ -331,14 +359,14 @@ def arg_parse():
   checkdb_url = server_url + checkdb_endpoint
   #Setup function, create logdir, etc
   setup()
- 
+
   if int(concurrency) > int(request):
     print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests"
     concurrency = request
 
   #Build URL queue
   get_data()
- 
+
   #global directory
   #directory="18:36:59_06-22-2016"
   #output_file="18:36:59_06-22-2016.csv"
@@ -368,7 +396,7 @@ def get_data():
   #Populate database
   run_loaddb()
 
-  print ("[%s] Build list of employee IDs." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee IDs." % (getCurrentTime()))
   try:
     ids_get = requests.get(id_url)
   except requests.exceptions.RequestException as e:
@@ -377,25 +405,25 @@ def get_data():
     print e
     sys.exit(1)
   ids = ids_get.content
-  print ("[%s] Build list of employee IDs done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee IDs done." % (getCurrentTime()))
 
-  print ("[%s] Build list of employee last names." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee last names." % (getCurrentTime()))
   try:
     names_get = requests.get(name_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee names failed.Exiting")
     exit(1)
   names = names_get.content
-  print ("[%s] Build list of employee last names done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee last names done." % (getCurrentTime()))
 
-  print ("[%s] Build list of address zipcodes." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of address zipcodes." % (getCurrentTime()))
   try:
     zipcode_get = requests.get(zipcode_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee address zipcodes failed.Exiting")
     exit(1)
   zipcode= zipcode_get.content
-  print ("[%s] Build list of address zipcode done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of address zipcode done." % (getCurrentTime()))
 
   if not ids and names and zipcode:
     print "Exception -- IDs or names or zipcodes not returned.Make sure application server is up and running.\n Make sure Database Server is up and running and \n Make sure client can communicate with server"
@@ -435,7 +463,7 @@ def get_data():
 #loads the database
 def run_loaddb():
   global after_dbload
-  print ("[%s] Loading database with %d records." % (time.strftime("%d-%m-%Y %H:%M:%S"), int(dbrecord_count)))
+  print ("[%s] Loading database with %d records." % (getCurrentTime(), int(dbrecord_count)))
   print "In progress..."  
   loaddbparams = {'count': int(dbrecord_count), 'zipcode': int(zip_dbratio), 'lastname' : int(name_dbratio) }
   try:
@@ -446,7 +474,7 @@ def run_loaddb():
     print("Loading database failed.Exiting")
     sys.exit(1)
   if ( res.status_code == requests.codes.ok ):
-    print ("[%s] Loading database done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+    print ("[%s] Loading database done." % (getCurrentTime()))
     after_dbload = check_db()
   else:
     print("Loading database failed with status code "+str(res.status_code)+". Exiting")
@@ -455,7 +483,7 @@ def run_loaddb():
 #returns the total number of records in the database
 def check_db():
   checkdb_dict = {}
-  print ("[%s] Checking the number of records in the DB." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Checking the number of records in the DB." % (getCurrentTime()))
   checkdbparams = {'count': int(dbrecord_count)}
   try:
     res = requests.get(checkdb_url, params=checkdbparams)
@@ -472,10 +500,10 @@ def check_db():
     exit(1)
   if("db_status" in result and "message" in result):
    if(result['db_status']==200):
-    print ("[%s] Database consistent-DB record count okay." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+    print ("[%s] Database consistent-DB record count okay." % (getCurrentTime()))
     checkdb_dict["message"] = result["message"]
    else:
-    print ("[%s] Database inconsistent. DB record count mismatch." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+    print ("[%s] Database inconsistent. DB record count mismatch." % (getCurrentTime()))
     checkdb_dict["message"] = result["message"]
   return checkdb_dict
 
@@ -483,7 +511,7 @@ def check_db():
 #build the url list based on get, post and delete ratios and on ID, last name and zipcode ratios
 #the urls are selected randomly so that there is a good mix of all types of URLS
 def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_matches, zip_number,post_urlcount,delete_urlcount):
-  print ("[%s] Building list of Urls" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Building list of Urls" % (getCurrentTime()))
   id_usedlist = []
   global id_count
   global name_count
@@ -528,7 +556,7 @@ def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_mat
         break
   seed(iseed)
   shuffle(urllist)
-  print ("[%s] Building list of Urls done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Building list of Urls done." % (getCurrentTime()))
 
 #prints rampup rampdown information and the progress of requests 
 def print_ramp(request_index):
@@ -536,13 +564,13 @@ def print_ramp(request_index):
   if request_index <= int(rampup_rampdown):
     phase = "RU"
     if request_index == 1:
-       print ("[%s] Entering Rampup window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+       print ("[%s] Entering Rampup window" % (getCurrentTime()))
     if request_index == int(rampup_rampdown):
-      print ("[%s] Exiting Rampup window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Exiting Rampup window" % (getCurrentTime()))
   elif (request_index - int(rampup_rampdown)) <= int(request):
     phase = "MT"
     if (request_index - int(rampup_rampdown)) == 1:
-      print ("[%s] Entering Measuring time window" % (time.strftime("%d-%m-%Y %H:%M:%S"))) 
+      print ("[%s] Entering Measuring time window" % (getCurrentTime()))
       print "In progress..."  
     if(request_index - int(rampup_rampdown)== 0.1*int(request)):
       print "10% of requests done"
@@ -563,13 +591,13 @@ def print_ramp(request_index):
     if(request_index - int(rampup_rampdown)== 0.9*int(request)):
       print "90% of requests done"
     if (request_index - int(rampup_rampdown)) == int(request):
-      print ("[%s] Exiting Measuring time window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Exiting Measuring time window" % (getCurrentTime()))
   elif request_index - (int(rampup_rampdown)+int(request)) <= int(rampup_rampdown):
     phase = "RD"
     if request_index - (int(rampup_rampdown)+int(request)) == 1:
-      print ("[%s] Entering Rampdown window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Entering Rampdown window" % (getCurrentTime()))
     if request_index - (int(rampup_rampdown)+int(request)) == int(rampup_rampdown):
-      print ("[%s] Exiting Rampdown window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Exiting Rampdown window" % (getCurrentTime()))
 
 #get employee ID to make get or delete requests
 def getNextEmployeeId(employee_idlist):
@@ -642,7 +670,7 @@ def send_request(employee_idlist):
   global tot_get
   global tot_post
   global tot_del
-  print ("[%s] Sending requests" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Sending requests" % (getCurrentTime()))
   pool = eventlet.GreenPool(int(concurrency))
   try:
     log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
@@ -659,7 +687,7 @@ def send_request(employee_idlist):
     loop = int(request)
   thread = Thread(target = print_meminfo)
   thread.start()
-  print ("[%s] Started processing of [%d] total requests with concurrency of [%d]" % (time.strftime("%d-%m-%Y %H:%M:%S"), int(request), int(concurrency)))
+  print ("[%s] Started processing of [%d] total requests with concurrency of [%d]" % (getCurrentTime(), int(request), int(concurrency)))
   for request_index in range(1, (loop+1)):
     try:
       if(url_index >= len(urllist)):
@@ -705,7 +733,7 @@ def send_request(employee_idlist):
   requests_done = True
   pool.waitall()
   thread.join()
-  print ("[%s] All requests done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] All requests done." % (getCurrentTime()))
   after_run = check_db()
   log.close()
 
@@ -721,7 +749,7 @@ def post_process(temp_log,output_file):
   read_time = [] #list with elapsed time
   response_array = []
   url_array = []
-  print ("[%s] Post_process phase." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Post_process phase." % (getCurrentTime()))
   try:
     logfile = open(os.path.join(os.path.join(results_dir,directory),temp_log), "r")
   except IOError as e:
@@ -896,7 +924,7 @@ def post_process(temp_log,output_file):
   print processed_file.read()
   processed_file.close() 
   plot_graph(output_file)
-  print ("[%s] Post processing is done.\n" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Post processing is done.\n" % (getCurrentTime()))
 
 # Function to plot graphs. Plots three graphs, latency graph, throughput graph and a memory usage graph. These files are stored in the result directory
 def plot_graph(output_file):
@@ -913,7 +941,7 @@ def plot_graph(output_file):
     print("Error: %s File not found." % temp_log)
     exit(1)
 
-  print ("[%s] Plotting graphs." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Plotting graphs." % (getCurrentTime()))
   csvReader = csv.reader(filehl)
   for row in csvReader:
     if len(row) == 6 and row[1].isdigit():
@@ -962,7 +990,7 @@ def plot_graph(output_file):
       plt.tight_layout(pad=3)
       plt.savefig(os.path.join(os.path.join(results_dir,directory), directory+'-memory_usage.png'))
       print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-memory_usage.png')))
-  print ("[%s] Plotting graphs done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Plotting graphs done." % (getCurrentTime()))
   #zip the temp_log file
   temp_zip = zipfile.ZipFile(os.path.join(os.path.join(results_dir,directory),'temp_log.zip') , mode='w')
   temp_zip.write(os.path.join(os.path.join(results_dir,directory),temp_log))
