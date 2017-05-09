@@ -676,7 +676,7 @@ def requestBasedRun(pool, log, employee_idlist):
     loop = int(request)
 
   print ("[%s] Started request based run" % (getCurrentTime()))
-  print ("Total requests [%d], concurrency of [%d]" % (int(request), int(concurrency)))
+  print ("[%s] Requests:[%d], Concurrency:[%d]" % (getCurrentTime(), int(request), int(concurrency)))
   for request_index in range(1, (loop+1)):
     try:
       if(url_index >= len(urllist)):
