@@ -617,12 +617,12 @@ def getNextEmployeeId(employee_idlist):
 def removeEmployeeId(ids,employee_idlist):
     id_found = False
     if len(employee_idlist) > 0:
-        if ids in employee_idlist:
-            employee_idlist.remove(ids)
-            id_found = True
+      if ids in employee_idlist:
+        employee_idlist.remove(ids)
+        id_found = True
     if not id_found:
-        print "Fatal error-No more IDs available. Aborting"
-        exit(1)
+      print "Fatal error-No more IDs available. Aborting"
+      exit(1)
 
 #get memory information from the server
 def print_meminfo():
@@ -630,7 +630,7 @@ def print_meminfo():
   rss_list =[]
   heapTotlist =[]
   heapUsedlist = []
-  
+ 
   start_time = time.time()
   while True:
     if requests_done:
@@ -639,13 +639,13 @@ def print_meminfo():
       r = requests.get(meminfo_url)
     except requests.exceptions.RequestException as e:
       #catastrophic error. bail.
+      print("[%s] Call to retrieve server memory data failed." % (getCurrentTime()))
       print e
-      print("Meminfo call failed.Exiting")
       sys.exit(1) 
     try:
       result = json.loads(r.content)
     except ValueError:
-    #decoding failed
+      #decoding failed
       print "Exception -- Decoding of result from meminfo failed. Exiting"
       exit(1)
     if result and result["memoryInfo"]:
@@ -659,41 +659,30 @@ def print_meminfo():
   elapsed_time = time.time() - start_time
   with open(os.path.join(os.path.join(results_dir,directory),directory+"-"+memlogfile+".csv"), 'wb') as f:
     writer = csv.writer(f)
-    writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))    
+    writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))
 
 #send concurrent requests to the server using the urls generated 
 # decides the type of the url depending on the method GET, POST or DELETE.
-def send_request(employee_idlist):
-  global after_run
-  global phase
+def requestBasedRun(pool, log, employee_idlist):
   global requests_done
   global tot_get
   global tot_post
   global tot_del
-  print ("[%s] Sending requests" % (getCurrentTime()))
-  pool = eventlet.GreenPool(int(concurrency))
-  try:
-    log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
-  except IOError as e:
-    print("Error: %s File not found." % temp_log)
-    return None
-  #Print environment 
-  run_printenv(log)
-  print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
+  global phase
   url_index = 0
   if ramp:
     loop = int(request)+(2*int(rampup_rampdown))
   else:
     loop = int(request)
-  thread = Thread(target = print_meminfo)
-  thread.start()
-  print ("[%s] Started processing of [%d] total requests with concurrency of [%d]" % (getCurrentTime(), int(request), int(concurrency)))
+
+  print ("[%s] Started request based run" % (getCurrentTime()))
+  print ("Total requests [%d], concurrency of [%d]" % (int(request), int(concurrency)))
   for request_index in range(1, (loop+1)):
     try:
       if(url_index >= len(urllist)):
          url_index = 0  
       url = urllist[url_index]['url']
-      
+
       parsed = urlparse(url)
       #check for rampup and rampdown requests
       if ramp:
@@ -704,7 +693,7 @@ def send_request(employee_idlist):
           print "Entering Measuring time window"
         if request_index == int(request):
           print "Exiting Measuring time window"
-        
+
       if(urllist[url_index]['method']== 'GET'):
         url_type = 1
         tot_get = tot_get +1
@@ -720,7 +709,7 @@ def send_request(employee_idlist):
         ids = getNextEmployeeId(employee_idlist)
         removeEmployeeId(ids,employee_idlist)
         url = url+ids
-        
+
       #call main function with type and url
       if(int(concurrency) == 1):
         main_entry(url,request_index,url_type,log,phase)
@@ -731,9 +720,32 @@ def send_request(employee_idlist):
       print Exception, err
       exit(1)
   requests_done = True
+  print ("[%s] All requests done." % (getCurrentTime()))
+
+def send_request(employee_idlist):
+  global after_run
+
+  pool = eventlet.GreenPool(int(concurrency))
+
+  print ("[%s] Creating temperory log file" % (getCurrentTime()))
+  try:
+    log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
+  except IOError as e:
+    print("Error: %s Log file not found." % temp_log)
+    return None
+
+  #Print environment 
+  run_printenv(log)
+  print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
+
+  thread = Thread(target = print_meminfo)
+  thread.start()
+
+  ## Start requests based run
+  requestBasedRun(pool, log, employee_idlist)
+
   pool.waitall()
   thread.join()
-  print ("[%s] All requests done." % (getCurrentTime()))
   after_run = check_db()
   log.close()
 
@@ -866,7 +878,7 @@ def post_process(temp_log,output_file):
           continue    
     if ("Mode" not in row and "RU" not in row and "RD" not in row and "MT" not in row):
       print >> processed_file, row
-  
+
   tot_lapsedtime = max(read_time) - abs_start
   if not tot_lapsedtime:
     throughput = 1
