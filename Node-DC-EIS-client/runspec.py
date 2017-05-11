@@ -762,6 +762,29 @@ def collect_meminfo():
   return
 
 ####################################################################################
+# Name  : send_request()
+# Desc  : Main function initiates requests to server
+# Input : List of EmployeeId
+# Output: Generates per request details in a templog file
+####################################################################################
+def send_request(employee_idlist):
+
+  print ("[%s] Creating temperory log file" % (getCurrentTime()))
+  try:
+    log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
+  except IOError as e:
+    print("Error: %s Log file not found." % temp_log)
+    return None
+
+  #Print environment 
+  run_printenv(log)
+  print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
+
+  ## Start requests based run
+  requestBasedRun(log, employee_idlist)
+  return
+
+####################################################################################
 # Name  : requestBasedRun()
 # Desc  : Function to start Requests based run
 #         Creates threadpool for concurrency, and sends concurrent requests
@@ -851,29 +874,6 @@ def requestBasedRun(log, employee_idlist):
   post_process_request_based_data(temp_log,output_file)
   return
 
-####################################################################################
-# Name  : send_request()
-# Desc  : Main function initiates requests to server
-# Input : List of EmployeeId
-# Output: Generates per request details in a templog file
-####################################################################################
-def send_request(employee_idlist):
-
-  print ("[%s] Creating temperory log file" % (getCurrentTime()))
-  try:
-    log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
-  except IOError as e:
-    print("Error: %s Log file not found." % temp_log)
-    return None
-
-  #Print environment 
-  run_printenv(log)
-  print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
-
-  ## Start requests based run
-  requestBasedRun(log, employee_idlist)
-
-  return
 
 ####################################################################################
 # Name  : post_process_request_based_data()
@@ -911,8 +911,8 @@ def post_process_request_based_data(temp_log,output_file):
     r = requests.get(cpuinfo_url)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
+    print("Remote call to [%s] failed. Exiting" % (cpuinfo_url))
     print e
-    print("CPU call failed.Exiting")
     sys.exit(1)
   if(r.content):
     try:
