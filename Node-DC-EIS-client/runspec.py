@@ -45,9 +45,9 @@ import platform
 from itertools import izip
 from threading import Thread
 
-###################################################################################
-# All globals
-###################################################################################
+"""
+#  All globals
+"""
 version = "NODE-DC-EISv0.9"
 appName = "cluster"
 order = "sequential"
@@ -74,14 +74,14 @@ memlogfile = "memlog_file"
 ramp = 1
 phase = "MT" 
 
-###################################################################################
-# Results directory - defaults
-###################################################################################
+"""
+#  Results directory - defaults
+"""
 results_dir = "results_node_DC_EIS"
 
-###################################################################################
-# Server end points (urls) to test
-###################################################################################
+"""
+#  Server end points (urls) to test
+"""
 server_root_endpoint = "/"
 loaddb_endpoint  = "loaddb"
 id_endpoint      = "employees/id"
@@ -92,9 +92,9 @@ meminfo_endpoint = "getmeminfo"
 cpuinfo_endpoint = "getcpuinfo"
 checkdb_endpoint = "checkdb"
 
-###################################################################################
-# Absolute server url prefix to build all the urls
-###################################################################################
+"""
+#  Absolute server url prefix to build all the urls
+"""
 server_url = "http://" + server_ipaddress + ":" + server_port + server_root_endpoint
 loaddb_url = server_url + loaddb_endpoint
 id_url = server_url + id_endpoint
@@ -104,35 +104,34 @@ meminfo_url = server_url + meminfo_endpoint
 cpuinfo_url = server_url + cpuinfo_endpoint
 checkdb_url = server_url + checkdb_endpoint
 
-###################################################################################
-# Type of URL ratio - defaults
-###################################################################################
+"""
+#  Type of URL ratio - defaults
+"""
 get_ratio = 100
 post_ratio = 0
 delete_ratio = 0
 
-###################################################################################
-# GET URL distribution (% of total urls - make sure this adds upto 100) - default
-###################################################################################
+"""
+#  GET URL distribution (% of total urls - make sure this adds upto 100) - default
+"""
 idurl_ratio = 50
 nameurl_ratio = 25
 zipurl_ratio = 25
 
-###################################################################################
-# Database parameters - defaults
-###################################################################################
+"""
+#  Database parameters - defaults
+"""
 dbrecord_count = 10000
 
-###################################################################################
-# Database record distribution parameters - defaults
-# 
-###################################################################################
+"""
+#  Database record distribution parameters - defaults
+"""
 name_dbratio = 25
 zip_dbratio = 25
 
-###################################################################################
-# Validation globals - defaults
-###################################################################################
+"""
+#  Validation globals - defaults
+"""
 after_dbload = {}
 after_run = {}
 id_count = 0
@@ -145,35 +144,34 @@ tot_get = 0
 tot_post = 0
 tot_del = 0
 
-###################################################################################
-# Import Node-DC specific python file containing request function
-###################################################################################
+"""
+#  Import Node-DC specific python file containing request function
+"""
 execfile("./node_dc_eis_testurls.py")
 
 
-####################################################################################
-# Name  : getCurrentTime()
-# Desc  : Function returns current date and time
-# Input : None
-# Output: Return current date and time in specific format for all log messages
-####################################################################################
 def getCurrentTime():
+  """
+  #  Desc  : Function returns current date and time
+  #  Input : None
+  #  Output: Return current date and time in specific format for all log messages
+  """
   currentTime=time.strftime("%d-%m-%Y %H:%M:%S")
   return currentTime
 
-####################################################################################
-# Name  : setup()
-# Desc  : Create a run/log directory, to save all the result files
-# Input : None
-# Output: None
-####################################################################################
 def setup():
+  """
+  #  Desc  : Create a run/log directory, to save all the result files
+  #  Input : None
+  #  Output: None
+  """
   global appName
   global directory
   try:
     r = requests.get(cpuinfo_url)
   except requests.exceptions.RequestException as e:
-    #catastrophic error. bail.
+    """ catastrophic error. bail.
+    """
     print e
     print("CPU call failed.Exiting")
     sys.exit(1)
@@ -181,7 +179,8 @@ def setup():
     try:
       result = json.loads(r.content)
     except ValueError:
-    # decoding failed
+      """  decoding failed
+      """
       print "Exception -- Decoding of result from cpuinfo failed. Exiting"
       exit(1)
   if result:
@@ -196,13 +195,12 @@ def setup():
       os.makedirs(os.path.join(results_dir, directory))
   return
 
-####################################################################################
-# Name  : arg_parse()
-# Desc  : Function to parse command line arguments
-# Input : None
-# Output: None
-####################################################################################
 def arg_parse():
+  """
+  #  Desc  : Function to parse command line arguments
+  #  Input : None
+  #  Output: None
+  """
   global output_file
   print ("[%s] Parsing arguments." % (getCurrentTime()))
   parser = argparse.ArgumentParser()
@@ -410,17 +408,14 @@ def arg_parse():
 
   #Build URL queue
   get_data()
-
   return
 
-#prints all the environment details
-####################################################################################
-# Name  : run_printenv()
-# Desc  : Function prints setup environment details
-# Input : None
-# Output: None
-####################################################################################
 def run_printenv(log):
+  """
+  # Desc  : Function prints setup environment details
+  # Input : None
+  # Output: None
+  """
   print >> log, ('Server url is : %s' % server_url)
   print >> log, "# requests    :"+ str(request) +"  (Default value = 10000)"
   print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
@@ -437,18 +432,16 @@ def run_printenv(log):
   print >> log, "#  unique zips:"  + str(zip_dbratio) +"  (Default value = 25)"
   return
 
-#get IDS, names and zipcode depending on the ratio for IDs,names and zipcodes
-####################################################################################
-# Name  : get_data()
-# Desc  : Main entry point to do multiple operations, such as
-#         Populate database (send remote request)
-#         Build list of URLS with ID, zipcode and name by querying the server
-#         Initiates client requests either to do request based or 
-#         time based run
-# Input : None
-# Output: None
-####################################################################################
 def get_data():
+  """
+  # Desc  : Main entry point to do multiple operations, such as
+  #         Populate database (send remote request)
+  #         Build list of URLS with ID, zipcode and name by querying the server
+  #         Initiates client requests either to do request based or 
+  #         time based run
+  # Input : None
+  # Output: None
+  """
   global employee_idlist
 
   #Populate database
@@ -515,13 +508,12 @@ def get_data():
   send_request(employee_idlist)
   return
   
-####################################################################################
-# Name  : run_loaddb()
-# Desc  : Function to populate database by sending request to server
-# Input : None
-# Output: None
-####################################################################################
 def run_loaddb():
+  """
+  # Desc  : Function to populate database by sending request to server
+  # Input : None
+  # Output: None
+  """
   global after_dbload
   print ("[%s] Loading database with %d records." % (getCurrentTime(), int(dbrecord_count)))
   print "In progress..."  
@@ -541,13 +533,12 @@ def run_loaddb():
     sys.exit(1) 
   return
 
-####################################################################################
-# Name  : check_db()
-# Desc  : Function to do database consistency check after the run
-# Input : None
-# Output: None
-####################################################################################
 def check_db():
+  """
+  # Desc  : Function to do database consistency check after the run
+  # Input : None
+  # Output: None
+  """
   checkdb_dict = {}
   print ("[%s] Checking database consistancy." % (getCurrentTime()))
   checkdbparams = {'count': int(dbrecord_count)}
@@ -576,13 +567,13 @@ def check_db():
 
   return checkdb_dict
 
-####################################################################################
-# Name  : buildurllist()
-# Desc  : Function build list of URLs with enough randomness for realistic behavior
-# Input : global list array,..... 
-# Output: Return current date and time in specific format for all log messages
-####################################################################################
 def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_matches, zip_number,post_urlcount,delete_urlcount):
+  """
+  # Desc  :Function build list of URLs with enough randomness for realistic 
+  #        behavior
+  # Input :global list array,..... 
+  # Output:Return current date and time in specific format for all log messages
+  """
   print ("[%s] Building list of Urls" % (getCurrentTime()))
   id_usedlist = []
   global id_count
@@ -632,13 +623,12 @@ def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_mat
   print ("[%s] Building list of Urls done." % (getCurrentTime()))
   return
 
-####################################################################################
-# Name  : print_ramp()
-# Desc  : Function to print live progress status
-# Input : None
-# Output: None
-####################################################################################
 def print_ramp(request_index):
+  """
+  # Desc  : Function to print live progress status
+  # Input : None
+  # Output: None
+  """
   global phase
   if request_index <= int(rampup_rampdown):
     phase = "RU"
@@ -679,13 +669,12 @@ def print_ramp(request_index):
       print ("[%s] Exiting Rampdown window" % (getCurrentTime()))
   return
 
-####################################################################################
-# Name  : getNextEmployeeId()
-# Desc  : Function returns next employee id from the global list
-# Input : Global employee list
-# Output: Return employeeId
-###################################################################################
 def getNextEmployeeId(employee_idlist):
+  """
+  # Desc  : Function returns next employee id from the global list
+  # Input : Global employee list
+  # Output: Return employeeId
+  """
   global idmatches_index
   global postid_index
   if len(employee_idlist) > 0:
@@ -698,14 +687,13 @@ def getNextEmployeeId(employee_idlist):
     exit(1)
   return return_id
 
-###################################################################################
-# Name  : removeEmployeeId()
-# Desc  : Function deletes employeeid from global list after successful 
-#         DELETE request
-# Input : input employeeid and global list
-# Output: None
-###################################################################################
 def removeEmployeeId(ids,employee_idlist):
+  """
+  # Desc  : Function deletes employeeid from global list after successful 
+  #         DELETE request
+  # Input : input employeeid and global list
+  # Output: None
+  """
   id_found = False
   if len(employee_idlist) > 0:
     if ids in employee_idlist:
@@ -716,14 +704,13 @@ def removeEmployeeId(ids,employee_idlist):
     exit(1)
   return
 
-###################################################################################
-# Name  : collect_meminfo()
-# Desc  : Function to collect server memory usage stats by periodic server
-#         requests
-# Input : None.
-# Output: Collects data in dictionary, which will be process later.
-###################################################################################
 def collect_meminfo():
+  """
+  # Desc  : Function to collect server memory usage stats by periodic server
+  #         requests
+  # Input : None.
+  # Output: Collects data in dictionary, which will be process later.
+  """
   global requests_done
   rss_list =[]
   heapTotlist =[]
@@ -761,14 +748,12 @@ def collect_meminfo():
     writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))
   return
 
-####################################################################################
-# Name  : send_request()
-# Desc  : Main function initiates requests to server
-# Input : List of EmployeeId
-# Output: Generates per request details in a templog file
-####################################################################################
 def send_request(employee_idlist):
-
+  """
+  # Desc  : Main function initiates requests to server
+  # Input : List of EmployeeId
+  # Output: Generates per request details in a templog file
+  """
   print ("[%s] Creating temperory log file" % (getCurrentTime()))
   try:
     log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
@@ -784,17 +769,16 @@ def send_request(employee_idlist):
   requestBasedRun(log, employee_idlist)
   return
 
-####################################################################################
-# Name  : requestBasedRun()
-# Desc  : Function to start Requests based run
-#         Creates threadpool for concurrency, and sends concurrent requests
-#         to server for the input #requests.
-#         Dynamically generates URL with employeeid, zipcode, name for GET
-#         requests
-# Input : templog, List of EmployeeId
-# Output: Generates per request details in a templog file
-####################################################################################
 def requestBasedRun(log, employee_idlist):
+  """
+  # Desc  : Function to start Requests based run
+  #         Creates threadpool for concurrency, and sends concurrent requests
+  #         to server for the input #requests.
+  #         Dynamically generates URL with employeeid, zipcode, name for GET
+  #         requests
+  # Input : templog, List of EmployeeId
+  # Output: Generates per request details in a templog file
+  """
   global requests_done
   global tot_get
   global tot_post
@@ -874,18 +858,16 @@ def requestBasedRun(log, employee_idlist):
   post_process_request_based_data(temp_log,output_file)
   return
 
-
-####################################################################################
-# Name  : post_process_request_based_data()
-# Desc  : Post processing of log file
-# Input : Input templog and output filename
-# Output: Generates a summary output with,
-#         hardware, Server Software OS and Client input details
-#         In addition it calculates,
-#         MIN, MAX, MEAN response time, 
-#         throughput, 99 percentile and error details of each run
-####################################################################################
 def post_process_request_based_data(temp_log,output_file):
+  """
+  # Desc  : Post processing of log file
+  # Input : Input templog and output filename
+  # Output: Generates a summary output with,
+  #         hardware, Server Software OS and Client input details
+  #         In addition it calculates,
+  #         MIN, MAX, MEAN response time, 
+  #         throughput, 99 percentile and error details of each run
+  """
   abs_start = 0;
   col_st = 3; #column number of start time
   col_et = 4
@@ -1072,13 +1054,12 @@ def post_process_request_based_data(temp_log,output_file):
   print ("[%s] Post processing is done.\n" % (getCurrentTime()))
   return
 
-####################################################################################
-# Name  : plot_graph()
-# Desc  : Function create static graph for latency, throughput and memory usage
-# Input : Output file
-# Output: All resulted files will be stored in the result directory
-####################################################################################
 def plot_graph(output_file):
+  """
+  # Desc  : Function create static graph for latency, throughput and memory usage
+  # Input : Output file
+  # Output: All resulted files will be stored in the result directory
+  """
   start_time = []
   response_time = []
   rps = []
@@ -1149,10 +1130,7 @@ def plot_graph(output_file):
   os.remove(os.path.join(os.path.join(results_dir,directory),temp_log))
   return
 
-####################################################################################
-# Name  : Main
+"""
 # Desc  : This the main entry call.
-# Input : None
-# Output: None
-####################################################################################
+"""
 arg_parse()
