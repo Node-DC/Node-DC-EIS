@@ -45,7 +45,9 @@ import platform
 from itertools import izip
 from threading import Thread
 
-#globals
+"""
+#  All globals
+"""
 version = "NODE-DC-EISv0.9"
 appName = "cluster"
 order = "sequential"
@@ -67,11 +69,19 @@ postid_index = 0
 requests_done = False
 memstat_interval = 3
 memlogfile = "memlog_file"
+
 #default set to 1. Set it to 0 if ramp up rampdown phase is not required
 ramp = 1
 phase = "MT" 
 
-#Various end points
+"""
+#  Results directory - defaults
+"""
+results_dir = "results_node_DC_EIS"
+
+"""
+#  Server end points (urls) to test
+"""
 server_root_endpoint = "/"
 loaddb_endpoint  = "loaddb"
 id_endpoint      = "employees/id"
@@ -82,7 +92,9 @@ meminfo_endpoint = "getmeminfo"
 cpuinfo_endpoint = "getcpuinfo"
 checkdb_endpoint = "checkdb"
 
-#Various urls
+"""
+#  Absolute server url prefix to build all the urls
+"""
 server_url = "http://" + server_ipaddress + ":" + server_port + server_root_endpoint
 loaddb_url = server_url + loaddb_endpoint
 id_url = server_url + id_endpoint
@@ -92,23 +104,34 @@ meminfo_url = server_url + meminfo_endpoint
 cpuinfo_url = server_url + cpuinfo_endpoint
 checkdb_url = server_url + checkdb_endpoint
 
-### URL ratio (% of total urls - make sure this adds upto 100)
+"""
+#  Type of URL ratio - defaults
+"""
+get_ratio = 100
+post_ratio = 0
+delete_ratio = 0
+
+"""
+#  GET URL distribution (% of total urls - make sure this adds upto 100) - default
+"""
 idurl_ratio = 50
 nameurl_ratio = 25
 zipurl_ratio = 25
 
-#DBparamaters
+"""
+#  Database parameters - defaults
+"""
 dbrecord_count = 10000
-#Records with at least 25 unique zipcodes and names
+
+"""
+#  Database record distribution parameters - defaults
+"""
 name_dbratio = 25
 zip_dbratio = 25
 
-#URL parameters
-get_ratio = 100 
-post_ratio = 0
-delete_ratio = 0
-
-#validation parameters
+"""
+#  Validation globals - defaults
+"""
 after_dbload = {}
 after_run = {}
 id_count = 0
@@ -121,18 +144,34 @@ tot_get = 0
 tot_post = 0
 tot_del = 0
 
-#read contents of the main file
+"""
+#  Import Node-DC specific python file containing request function
+"""
 execfile("./node_dc_eis_testurls.py")
-results_dir = "results_node_DC_EIS"
 
-#Creates a run/log directory which contains all the result files
+
+def getCurrentTime():
+  """
+  #  Desc  : Function returns current date and time
+  #  Input : None
+  #  Output: Return current date and time in specific format for all log messages
+  """
+  currentTime=time.strftime("%d-%m-%Y %H:%M:%S")
+  return currentTime
+
 def setup():
+  """
+  #  Desc  : Create a run/log directory, to save all the result files
+  #  Input : None
+  #  Output: None
+  """
   global appName
   global directory
   try:
     r = requests.get(cpuinfo_url)
   except requests.exceptions.RequestException as e:
-    #catastrophic error. bail.
+    """ catastrophic error. bail.
+    """
     print e
     print("CPU call failed.Exiting")
     sys.exit(1)
@@ -140,43 +179,74 @@ def setup():
     try:
       result = json.loads(r.content)
     except ValueError:
-    # decoding failed
+      """  decoding failed
+      """
       print "Exception -- Decoding of result from cpuinfo failed. Exiting"
       exit(1)
   if result:
     if 'appName' in result:
       appName = result["appName"]
   print "Starting "+version + " in "+appName + " Mode"
-  print ("[%s] Setting up log directory." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Setting up log directory." % (getCurrentTime()))
   if not os.path.exists(results_dir):
       os.makedirs(results_dir)
   if not os.path.exists(os.path.join(results_dir,directory)):
       directory = directory+"-"+appName
       os.makedirs(os.path.join(results_dir, directory))
-    
-#parse command line arguments
+  return
+
 def arg_parse():
+  """
+  #  Desc  : Function to parse command line arguments
+  #  Input : None
+  #  Output: None
+  """
   global output_file
-  print ("[%s] Parsing arguments." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Parsing arguments." % (getCurrentTime()))
   parser = argparse.ArgumentParser()
-  parser.add_argument('-o', '--output', dest="output_filename",help='The output file name')
-  parser.add_argument('-f', '--config',dest="config",action="store",help='The configuration file to be used')
-  parser.add_argument('-n','--request',dest="request",action="store",help='Number of requests to perform')
-  parser.add_argument('-c','--concurrency',dest="concurrency",action="store",help='Number of multiple requests to perform')
-  parser.add_argument('-t','--templogfile',dest="templogfile",action="store",help='The temporary log file to be used')
-  parser.add_argument('-W','--rampup_rampdown',dest="rampup_rampdown",action="store",help='Number of rampup-rampdown requests to perform')
-  parser.add_argument('-idr','--idurl_ratio',dest="idurl_ratio",action="store",help='The percentage of ID urls to be loaded in URL file')
-  parser.add_argument('-nur','--nameurl_ratio',dest="nameurl_ratio",action="store",help='The percentage of name urls to be loaded in URL file')
-  parser.add_argument('-zur','--zipurl_ratio', dest="zipurl_ratio",action="store",help='The percentage of zip urls to be loaded in URL file')
-  parser.add_argument('-dbc','--dbcount',dest="dbcount",action="store",help='The record count to load database')
-  parser.add_argument('-nr','--name_dbratio',dest="name_dbratio",action="store",help='The name ratio')
-  parser.add_argument('-zr','--zip_dbratio',dest="zip_dbratio",action="store",help='The zip ratio')
-  parser.add_argument("-or", "--order", dest="order",  help="order of requests. Either \"shuffled\" or \"sequential\"", default="shuffled")
-  parser.add_argument("-d", "--debug", dest="debug", help="Debug output", default=1, type=int)
+  parser.add_argument('-o', '--output', dest="output_filename",
+                  help='The output file name')
+  parser.add_argument('-f', '--config',dest="config",
+                  action="store",
+                  help='The configuration file to be used')
+  parser.add_argument('-n','--request',dest="request",
+                  action="store",
+                  help='Number of requests to perform')
+  parser.add_argument('-c','--concurrency',dest="concurrency",
+                  action="store",
+                  help='Number of multiple requests to perform')
+  parser.add_argument('-t','--templogfile',dest="templogfile",
+                  action="store",
+                  help='The temporary log file to be used')
+  parser.add_argument('-W','--rampup_rampdown',dest="rampup_rampdown",
+                  action="store",
+                  help='Number of rampup-rampdown requests to perform')
+  parser.add_argument('-idr','--idurl_ratio',dest="idurl_ratio",
+                  action="store",
+                  help='The percentage of ID urls to be loaded in URL file')
+  parser.add_argument('-nur','--nameurl_ratio',dest="nameurl_ratio",
+                  action="store",
+                  help='The percentage of name urls to be loaded in URL file')
+  parser.add_argument('-zur','--zipurl_ratio', dest="zipurl_ratio",
+                  action="store",
+                  help='The percentage of zip urls to be loaded in URL file')
+  parser.add_argument('-dbc','--dbcount',dest="dbcount",
+                  action="store",
+                  help='The record count to load database')
+  parser.add_argument('-nr','--name_dbratio',dest="name_dbratio",
+                  action="store",
+                  help='The name ratio')
+  parser.add_argument('-zr','--zip_dbratio',dest="zip_dbratio",
+                  action="store",
+                  help='The zip ratio')
+  parser.add_argument("-or", "--order", dest="order",
+                  help="order of requests. Either \"shuffled\" or \"sequential\"", default="shuffled")
+  parser.add_argument("-d", "--debug", dest="debug", 
+                  help="Debug output", default=1, type=int)
   options = parser.parse_args()
-  
+
   print('Input options config files: %s' % options.config)
- 
+
   if(options.output_filename):
     output_file = options.output_filename
 
@@ -251,7 +321,7 @@ def arg_parse():
 
           if "zipurl_ratio" in json_data["client_params"]:
             zipurl_ratio = json_data["client_params"]["zipurl_ratio"]
-  
+
           if "url_file" in json_data["client_params"]:
             url_file = json_data["client_params"]["url_file"]
 
@@ -260,7 +330,7 @@ def arg_parse():
 
           if "total_urls" in json_data["client_params"]:
             total_urls = json_data["client_params"]["total_urls"]
-     
+
         #database setup parameters
         if "db_params" in json_data:
           if "dbrecord_count" in json_data["db_params"]:
@@ -271,7 +341,7 @@ def arg_parse():
 
           if "zip_ratio" in json_data["db_params"]:
             zip_dbratio = json_data["db_params"]["zip_ratio"]
-            
+
         #URL setup paramaters
         if "url_params" in json_data:
           if "get_ratio" in json_data["url_params"]:
@@ -294,8 +364,7 @@ def arg_parse():
     except IOError as e:
       print("Error: %s File not found." % options.config)
       return None
-  
-  
+
   if(options.request) :
     request = options.request
   if(options.concurrency) :
@@ -329,24 +398,24 @@ def arg_parse():
   meminfo_url = server_url + meminfo_endpoint
   cpuinfo_url = server_url + cpuinfo_endpoint
   checkdb_url = server_url + checkdb_endpoint
-  #Setup function, create logdir, etc
-  setup()
- 
+
   if int(concurrency) > int(request):
     print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests"
     concurrency = request
 
+  #Setup function, create logdir, etc
+  setup()
+
   #Build URL queue
   get_data()
- 
-  #global directory
-  #directory="18:36:59_06-22-2016"
-  #output_file="18:36:59_06-22-2016.csv"
+  return
 
-  post_process(temp_log,output_file)
-
-#prints all the environment details
 def run_printenv(log):
+  """
+  # Desc  : Function prints setup environment details
+  # Input : None
+  # Output: None
+  """
   print >> log, ('Server url is : %s' % server_url)
   print >> log, "# requests    :"+ str(request) +"  (Default value = 10000)"
   print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
@@ -361,14 +430,24 @@ def run_printenv(log):
   print >> log, "# records    :"+ str(dbrecord_count) +"  (Default value = 10000)"
   print >> log, "#  unique name:"  + str(name_dbratio) +"  (Default value = 25)"
   print >> log, "#  unique zips:"  + str(zip_dbratio) +"  (Default value = 25)"
+  return
 
-#get IDS, names and zipcode depending on the ratio for IDs,names and zipcodes
 def get_data():
+  """
+  # Desc  : Main entry point to do multiple operations, such as
+  #         Populate database (send remote request)
+  #         Build list of URLS with ID, zipcode and name by querying the server
+  #         Initiates client requests either to do request based or 
+  #         time based run
+  # Input : None
+  # Output: None
+  """
   global employee_idlist
+
   #Populate database
   run_loaddb()
 
-  print ("[%s] Build list of employee IDs." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee IDs." % (getCurrentTime()))
   try:
     ids_get = requests.get(id_url)
   except requests.exceptions.RequestException as e:
@@ -377,25 +456,25 @@ def get_data():
     print e
     sys.exit(1)
   ids = ids_get.content
-  print ("[%s] Build list of employee IDs done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee IDs done." % (getCurrentTime()))
 
-  print ("[%s] Build list of employee last names." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee last names." % (getCurrentTime()))
   try:
     names_get = requests.get(name_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee names failed.Exiting")
     exit(1)
   names = names_get.content
-  print ("[%s] Build list of employee last names done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of employee last names done." % (getCurrentTime()))
 
-  print ("[%s] Build list of address zipcodes." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of address zipcodes." % (getCurrentTime()))
   try:
     zipcode_get = requests.get(zipcode_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee address zipcodes failed.Exiting")
     exit(1)
   zipcode= zipcode_get.content
-  print ("[%s] Build list of address zipcode done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Build list of address zipcode done." % (getCurrentTime()))
 
   if not ids and names and zipcode:
     print "Exception -- IDs or names or zipcodes not returned.Make sure application server is up and running.\n Make sure Database Server is up and running and \n Make sure client can communicate with server"
@@ -427,63 +506,75 @@ def get_data():
 
   #Send requests
   send_request(employee_idlist)
+  return
   
-  if order == "shuffled": 
-    seed(iseed)
-    shuffle(urllist)
- 
-#loads the database
 def run_loaddb():
+  """
+  # Desc  : Function to populate database by sending request to server
+  # Input : None
+  # Output: None
+  """
   global after_dbload
-  print ("[%s] Loading database with %d records." % (time.strftime("%d-%m-%Y %H:%M:%S"), int(dbrecord_count)))
+  print ("[%s] Loading database with %d records." % (getCurrentTime(), int(dbrecord_count)))
   print "In progress..."  
   loaddbparams = {'count': int(dbrecord_count), 'zipcode': int(zip_dbratio), 'lastname' : int(name_dbratio) }
   try:
     res = requests.get(loaddb_url, params=loaddbparams, timeout=300)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
+    print("[%s] Loading database failed. Exiting" % (getCurrentTime()))
     print e
-    print("Loading database failed.Exiting")
     sys.exit(1)
   if ( res.status_code == requests.codes.ok ):
-    print ("[%s] Loading database done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+    print ("[%s] Loading database done." % (getCurrentTime()))
     after_dbload = check_db()
   else:
-    print("Loading database failed with status code "+str(res.status_code)+". Exiting")
+    print("[%s] Loading database failed:[%d]. Exiting" % (getCurrentTime(), +str(res.status_code)))
     sys.exit(1) 
+  return
 
-#returns the total number of records in the database
 def check_db():
+  """
+  # Desc  : Function to do database consistency check after the run
+  # Input : None
+  # Output: None
+  """
   checkdb_dict = {}
-  print ("[%s] Checking the number of records in the DB." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Checking database consistancy." % (getCurrentTime()))
   checkdbparams = {'count': int(dbrecord_count)}
+
   try:
     res = requests.get(checkdb_url, params=checkdbparams)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
-    print e
     print("Function Checkdb failed.Exiting")
+    print e
     sys.exit(1)
   try:
     result = json.loads(res.content)
   except ValueError:
-   #decoding failed
+    #decoding failed
     print "Exception -- Decoding of result from checkdb failed. Exiting"
     exit(1)
+
   if("db_status" in result and "message" in result):
-   if(result['db_status']==200):
-    print ("[%s] Database consistent-DB record count okay." % (time.strftime("%d-%m-%Y %H:%M:%S")))
-    checkdb_dict["message"] = result["message"]
-   else:
-    print ("[%s] Database inconsistent. DB record count mismatch." % (time.strftime("%d-%m-%Y %H:%M:%S")))
-    checkdb_dict["message"] = result["message"]
+    if(result['db_status']==200):
+      print ("[%s] Database check successful." % (getCurrentTime()))
+      checkdb_dict["message"] = result["message"]
+    else:
+      print ("[%s] Error: Database check failed." % (getCurrentTime()))
+      checkdb_dict["message"] = result["message"]
+
   return checkdb_dict
 
-
-#build the url list based on get, post and delete ratios and on ID, last name and zipcode ratios
-#the urls are selected randomly so that there is a good mix of all types of URLS
 def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_matches, zip_number,post_urlcount,delete_urlcount):
-  print ("[%s] Building list of Urls" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  """
+  # Desc  :Function build list of URLs with enough randomness for realistic 
+  #        behavior
+  # Input :global list array,..... 
+  # Output:Return current date and time in specific format for all log messages
+  """
+  print ("[%s] Building list of Urls" % (getCurrentTime()))
   id_usedlist = []
   global id_count
   global name_count
@@ -491,6 +582,7 @@ def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_mat
   global count
   global post_count
   global delete_count
+
   while(True):
       random_id = random.randint(0,len(employee_idlist)-1)
       random_name = random.randint(0,len(name_matches)-1)
@@ -528,21 +620,26 @@ def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_mat
         break
   seed(iseed)
   shuffle(urllist)
-  print ("[%s] Building list of Urls done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Building list of Urls done." % (getCurrentTime()))
+  return
 
-#prints rampup rampdown information and the progress of requests 
 def print_ramp(request_index):
+  """
+  # Desc  : Function to print live progress status
+  # Input : None
+  # Output: None
+  """
   global phase
   if request_index <= int(rampup_rampdown):
     phase = "RU"
     if request_index == 1:
-       print ("[%s] Entering Rampup window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Entering Rampup window" % (getCurrentTime()))
     if request_index == int(rampup_rampdown):
-      print ("[%s] Exiting Rampup window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Exiting Rampup window" % (getCurrentTime()))
   elif (request_index - int(rampup_rampdown)) <= int(request):
     phase = "MT"
     if (request_index - int(rampup_rampdown)) == 1:
-      print ("[%s] Entering Measuring time window" % (time.strftime("%d-%m-%Y %H:%M:%S"))) 
+      print ("[%s] Entering Measuring time window" % (getCurrentTime()))
       print "In progress..."  
     if(request_index - int(rampup_rampdown)== 0.1*int(request)):
       print "10% of requests done"
@@ -563,16 +660,21 @@ def print_ramp(request_index):
     if(request_index - int(rampup_rampdown)== 0.9*int(request)):
       print "90% of requests done"
     if (request_index - int(rampup_rampdown)) == int(request):
-      print ("[%s] Exiting Measuring time window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Exiting Measuring time window" % (getCurrentTime()))
   elif request_index - (int(rampup_rampdown)+int(request)) <= int(rampup_rampdown):
     phase = "RD"
     if request_index - (int(rampup_rampdown)+int(request)) == 1:
-      print ("[%s] Entering Rampdown window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Entering Rampdown window" % (getCurrentTime()))
     if request_index - (int(rampup_rampdown)+int(request)) == int(rampup_rampdown):
-      print ("[%s] Exiting Rampdown window" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+      print ("[%s] Exiting Rampdown window" % (getCurrentTime()))
+  return
 
-#get employee ID to make get or delete requests
 def getNextEmployeeId(employee_idlist):
+  """
+  # Desc  : Function returns next employee id from the global list
+  # Input : Global employee list
+  # Output: Return employeeId
+  """
   global idmatches_index
   global postid_index
   if len(employee_idlist) > 0:
@@ -585,24 +687,35 @@ def getNextEmployeeId(employee_idlist):
     exit(1)
   return return_id
 
-# function to delete IDs when a DELETE request is performed
 def removeEmployeeId(ids,employee_idlist):
-    id_found = False
-    if len(employee_idlist) > 0:
-        if ids in employee_idlist:
-            employee_idlist.remove(ids)
-            id_found = True
-    if not id_found:
-        print "Fatal error-No more IDs available. Aborting"
-        exit(1)
+  """
+  # Desc  : Function deletes employeeid from global list after successful 
+  #         DELETE request
+  # Input : input employeeid and global list
+  # Output: None
+  """
+  id_found = False
+  if len(employee_idlist) > 0:
+    if ids in employee_idlist:
+      employee_idlist.remove(ids)
+      id_found = True
+  if not id_found:
+    print "Fatal error-No more IDs available. Aborting"
+    exit(1)
+  return
 
-#get memory information from the server
-def print_meminfo():
+def collect_meminfo():
+  """
+  # Desc  : Function to collect server memory usage stats by periodic server
+  #         requests
+  # Input : None.
+  # Output: Collects data in dictionary, which will be process later.
+  """
   global requests_done
   rss_list =[]
   heapTotlist =[]
   heapUsedlist = []
-  
+
   start_time = time.time()
   while True:
     if requests_done:
@@ -611,15 +724,16 @@ def print_meminfo():
       r = requests.get(meminfo_url)
     except requests.exceptions.RequestException as e:
       #catastrophic error. bail.
+      print("[%s] Call to get server memory data failed." % (getCurrentTime()))
       print e
-      print("Meminfo call failed.Exiting")
       sys.exit(1) 
     try:
       result = json.loads(r.content)
     except ValueError:
-    #decoding failed
+      #decoding failed
       print "Exception -- Decoding of result from meminfo failed. Exiting"
       exit(1)
+
     if result and result["memoryInfo"]:
       if result["memoryInfo"]["rss"]:
         rss_list.append(result["memoryInfo"]["rss"])
@@ -631,41 +745,69 @@ def print_meminfo():
   elapsed_time = time.time() - start_time
   with open(os.path.join(os.path.join(results_dir,directory),directory+"-"+memlogfile+".csv"), 'wb') as f:
     writer = csv.writer(f)
-    writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))    
+    writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))
+  return
 
-#send concurrent requests to the server using the urls generated 
-# decides the type of the url depending on the method GET, POST or DELETE.
 def send_request(employee_idlist):
-  global after_run
-  global phase
+  """
+  # Desc  : Main function initiates requests to server
+  # Input : List of EmployeeId
+  # Output: Generates per request details in a templog file
+  """
+  print ("[%s] Creating temperory log file" % (getCurrentTime()))
+  try:
+    log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
+  except IOError as e:
+    print("Error: %s Log file not found." % temp_log)
+    return None
+
+  #Print environment 
+  run_printenv(log)
+  print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
+
+  ## Start requests based run
+  requestBasedRun(log, employee_idlist)
+  return
+
+def requestBasedRun(log, employee_idlist):
+  """
+  # Desc  : Function to start Requests based run
+  #         Creates threadpool for concurrency, and sends concurrent requests
+  #         to server for the input #requests.
+  #         Dynamically generates URL with employeeid, zipcode, name for GET
+  #         requests
+  # Input : templog, List of EmployeeId
+  # Output: Generates per request details in a templog file
+  """
   global requests_done
   global tot_get
   global tot_post
   global tot_del
-  print ("[%s] Sending requests" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  global phase
+  global after_run
+
+  print ("[%s] Starting request based run." % (getCurrentTime()))
+  print ("[%s] Requests:[%d], Concurrency:[%d]" % (getCurrentTime(), int(request), int(concurrency)))
+
+  #Create a pool with input concurrency
   pool = eventlet.GreenPool(int(concurrency))
-  try:
-    log = open(os.path.join(os.path.join(results_dir,directory),temp_log), "w")
-  except IOError as e:
-    print("Error: %s File not found." % temp_log)
-    return None
-  #Print environment 
-  run_printenv(log)
-  print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
+
+  #Start a thread to collection memory usage
+  thread = Thread(target = collect_meminfo)
+  thread.start()
+
   url_index = 0
   if ramp:
     loop = int(request)+(2*int(rampup_rampdown))
   else:
     loop = int(request)
-  thread = Thread(target = print_meminfo)
-  thread.start()
-  print ("[%s] Started processing of [%d] total requests with concurrency of [%d]" % (time.strftime("%d-%m-%Y %H:%M:%S"), int(request), int(concurrency)))
+
   for request_index in range(1, (loop+1)):
     try:
       if(url_index >= len(urllist)):
          url_index = 0  
       url = urllist[url_index]['url']
-      
+
       parsed = urlparse(url)
       #check for rampup and rampdown requests
       if ramp:
@@ -676,7 +818,7 @@ def send_request(employee_idlist):
           print "Entering Measuring time window"
         if request_index == int(request):
           print "Exiting Measuring time window"
-        
+
       if(urllist[url_index]['method']== 'GET'):
         url_type = 1
         tot_get = tot_get +1
@@ -692,7 +834,7 @@ def send_request(employee_idlist):
         ids = getNextEmployeeId(employee_idlist)
         removeEmployeeId(ids,employee_idlist)
         url = url+ids
-        
+
       #call main function with type and url
       if(int(concurrency) == 1):
         main_entry(url,request_index,url_type,log,phase)
@@ -703,16 +845,29 @@ def send_request(employee_idlist):
       print Exception, err
       exit(1)
   requests_done = True
-  pool.waitall()
-  thread.join()
-  print ("[%s] All requests done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
-  after_run = check_db()
-  log.close()
 
-#post processing of log file to summarize the results. 
-#Generates a summary output file which contains hardware,software OS and Client details
-#Also gives MIN, MAX,MEAN response time, throughput, 99 percentile and error details of each run
-def post_process(temp_log,output_file):
+  #Wait for request threads to finish
+  pool.waitall()
+
+  print ("[%s] All requests done." % (getCurrentTime()))
+
+  #Wait for memory collection thread to join
+  thread.join()
+  log.close()
+  after_run = check_db()
+  post_process_request_based_data(temp_log,output_file)
+  return
+
+def post_process_request_based_data(temp_log,output_file):
+  """
+  # Desc  : Post processing of log file
+  # Input : Input templog and output filename
+  # Output: Generates a summary output with,
+  #         hardware, Server Software OS and Client input details
+  #         In addition it calculates,
+  #         MIN, MAX, MEAN response time, 
+  #         throughput, 99 percentile and error details of each run
+  """
   abs_start = 0;
   col_st = 3; #column number of start time
   col_et = 4
@@ -721,7 +876,7 @@ def post_process(temp_log,output_file):
   read_time = [] #list with elapsed time
   response_array = []
   url_array = []
-  print ("[%s] Post_process phase." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Post_process phase." % (getCurrentTime()))
   try:
     logfile = open(os.path.join(os.path.join(results_dir,directory),temp_log), "r")
   except IOError as e:
@@ -738,8 +893,8 @@ def post_process(temp_log,output_file):
     r = requests.get(cpuinfo_url)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
+    print("Remote call to [%s] failed. Exiting" % (cpuinfo_url))
     print e
-    print("CPU call failed.Exiting")
     sys.exit(1)
   if(r.content):
     try:
@@ -838,7 +993,7 @@ def post_process(temp_log,output_file):
           continue    
     if ("Mode" not in row and "RU" not in row and "RD" not in row and "MT" not in row):
       print >> processed_file, row
-  
+
   tot_lapsedtime = max(read_time) - abs_start
   if not tot_lapsedtime:
     throughput = 1
@@ -896,10 +1051,15 @@ def post_process(temp_log,output_file):
   print processed_file.read()
   processed_file.close() 
   plot_graph(output_file)
-  print ("[%s] Post processing is done.\n" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Post processing is done.\n" % (getCurrentTime()))
+  return
 
-# Function to plot graphs. Plots three graphs, latency graph, throughput graph and a memory usage graph. These files are stored in the result directory
 def plot_graph(output_file):
+  """
+  # Desc  : Function create static graph for latency, throughput and memory usage
+  # Input : Output file
+  # Output: All resulted files will be stored in the result directory
+  """
   start_time = []
   response_time = []
   rps = []
@@ -913,7 +1073,7 @@ def plot_graph(output_file):
     print("Error: %s File not found." % temp_log)
     exit(1)
 
-  print ("[%s] Plotting graphs." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Plotting graphs." % (getCurrentTime()))
   csvReader = csv.reader(filehl)
   for row in csvReader:
     if len(row) == 6 and row[1].isdigit():
@@ -962,11 +1122,15 @@ def plot_graph(output_file):
       plt.tight_layout(pad=3)
       plt.savefig(os.path.join(os.path.join(results_dir,directory), directory+'-memory_usage.png'))
       print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-memory_usage.png')))
-  print ("[%s] Plotting graphs done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Plotting graphs done." % (getCurrentTime()))
   #zip the temp_log file
   temp_zip = zipfile.ZipFile(os.path.join(os.path.join(results_dir,directory),'temp_log.zip') , mode='w')
   temp_zip.write(os.path.join(os.path.join(results_dir,directory),temp_log))
   temp_zip.close()
   os.remove(os.path.join(os.path.join(results_dir,directory),temp_log))
+  return
 
+"""
+# Desc  : This the main entry call.
+"""
 arg_parse()
