@@ -1,11 +1,10 @@
 #!/bin/bash
-#provide the path to Node dircetory before starting the run
+#provide the path to Node directory before starting the run
 #NODE_PATH=
 if [ "x$NODE_PATH" == "x" ]; then
 	echo "Node path is not set"
 	exit 1
 fi
-export PATH=$NODE_PATH/bin:$PATH
 echo "Hello from start server script"
 #set proxy if it's not been set. 
 if [ -f server-input.txt ]; then
@@ -19,7 +18,7 @@ else
 	echo "Expected - mongodb to be running at the port specified in server config"
 fi
 echo "Installing npm modules"
-npm install
+$NODE_PATH/bin/npm install
 echo "Starting server"
-node server-cluster.js &
+$NODE_PATH/bin/node server-cluster.js &
 exit 0
