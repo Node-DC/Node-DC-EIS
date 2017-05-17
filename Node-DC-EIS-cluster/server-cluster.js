@@ -49,7 +49,7 @@ function startSingleNodeInstance() {
   app.use(bodyParser.json());
 
   app.get('/', function homeRoot(req, res) {
-    res.json({message: 'Hello from node.js worker of node-dc-eis at /'});
+    res.status(200).send("OK");
   });
 
   //loads database
@@ -95,6 +95,7 @@ function startSingleNodeInstance() {
   //get system info(hardware,software and version details)
   app.get('/getcpuinfo', function collectCpuInfo(req, res) {
     var appName = appConfig.app_mode;
+    var cpuCount = appConfig.cpu_count;
     var hwInfo = {};
     var swInfo = {};
     var versionInfo = {};
@@ -119,6 +120,7 @@ function startSingleNodeInstance() {
     systemInfo.hw = hwInfo;
     systemInfo.sw = swInfo;
     systemInfo.appName = appName;
+    systemInfo.cpuCount = cpuCount;
     systemInfo.version = versionInfo;
     res.json(systemInfo);     
   });

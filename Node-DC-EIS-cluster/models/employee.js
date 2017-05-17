@@ -59,7 +59,8 @@ var EmployeeSchema = new mongoose.Schema({
    },
    zipcode: {
     type: Number,
-    trim: true
+    trim: true,
+    index: true
    }
   },
   compensation : {
