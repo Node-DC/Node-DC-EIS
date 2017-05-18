@@ -29,10 +29,16 @@ var cache_options = {
 };
 var employeeCache = employeeCacheLRU(cache_options);
 
+// Setting up IPC for cache resets
+if (appConfig.cpu_count != 0 && process.send) {
+  process.on('message', function(msg) {
+    if (msg.event && msg.event === 'reset_cache') {
+      console.log('Resetting cache');
+      employeeCache.reset();
+    }
+  });
+}
 
-/************************************************************
-Local helper functions to populate database with random data
-************************************************************/
 function sendJSONResponse(res, status, content) {
   res.status(status);
   res.json(content);
@@ -41,6 +47,23 @@ function sendJSONResponse(res, status, content) {
 /******************************************************
  API interface
 ******************************************************/
+
+function resetCache() {
+  if(!enable_caching){
+    return;
+  }
+
+  if (appConfig.cpu_count != 0 && process.send) {
+    console.log('Sending reset to parent');
+    process.send({event: 'reset_cache'});
+  } else {
+    console.log('Resetting cache');
+    employeeCache.reset();
+  }
+}
+
+exports.resetCache = resetCache;
+
 exports.addNewEmployee = function addNewEmployee(req, res) {
   var missing_field_flag = false;
   var warning_msg;
@@ -53,7 +76,7 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   var healthObj = req.body.health;
   var photoObj = req.body.photo;
   if (enable_caching) {
-    employeeCache.reset();
+    resetCache();
   }
 
   //zipcode and last_name are required fields
@@ -232,7 +255,7 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
 
 exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
   if (enable_caching) {
-    employeeCache.reset();
+    resetCache();
   }
 
   var employee_id = req.params.id;
@@ -259,7 +282,8 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
 
 exports.findAll = function findAll(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
       sendJSONResponse(res, 200, cachedRes);
       return;
@@ -276,15 +300,22 @@ exports.findAll = function findAll(req, res) {
       return;
     }
 
-    if (enable_caching) {
-      employeeCache.set(req, employees);
-    }
-
     if (!employees) {
-      sendJSONResponse(res, 200, { 
-        message: 'No records found'});
+      var response = { 
+        message: 'No records found'};
+
+      sendJSONResponse(res, 200, response);
+
+      if(enable_caching) {
+        employeeCache.set(cacheKey, response);
+      }
       return;
     }
+
+    if (enable_caching) {
+      employeeCache.set(cacheKey, employees);
+    }
+
     sendJSONResponse(res, 200, employees);
   });
 };
@@ -301,7 +332,8 @@ function collectEmployeeIds(data) {
 
 exports.getAllIds = function getAllIds(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
       sendJSONResponse(res, 200, cachedRes);
       return;
@@ -321,7 +353,7 @@ exports.getAllIds = function getAllIds(req, res) {
     var ids = collectEmployeeIds(data);
 
     if (enable_caching) {
-      employeeCache.set(req, ids);
+      employeeCache.set(cacheKey, ids);
     }
     sendJSONResponse(res, 200, ids);
   });
@@ -339,7 +371,8 @@ function collectZipCodes(data) {
 
 exports.findByZipcode = function findByZipcode(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
       sendJSONResponse(res, 200, cachedRes);
       return;
@@ -359,7 +392,7 @@ exports.findByZipcode = function findByZipcode(req, res) {
       var zipCodeArr = collectZipCodes(data);
 
       if (enable_caching) {
-        employeeCache.set(req, zipCodeArr);
+        employeeCache.set(cacheKey, zipCodeArr);
       }
       sendJSONResponse(res, 200, zipCodeArr);
     });
@@ -374,7 +407,7 @@ exports.findByZipcode = function findByZipcode(req, res) {
       }
 
       if (enable_caching) {
-        employeeCache.set(req, addresses);
+        employeeCache.set(cacheKey, addresses);
       }
       sendJSONResponse(res, 200, addresses);
     });
@@ -400,7 +433,8 @@ function collectLastNames(data) {
 
 exports.findByName = function findByName(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
       sendJSONResponse(res, 200, cachedRes);
       return;
@@ -424,7 +458,7 @@ exports.findByName = function findByName(req, res) {
       var lastNameArr = collectLastNames(data);
 
       if (enable_caching) {
-        employeeCache.set(req, lastNameArr);
+        employeeCache.set(cacheKey, lastNameArr);
       }
       sendJSONResponse(res, 200, lastNameArr);
       return;
@@ -441,13 +475,18 @@ exports.findByName = function findByName(req, res) {
         return;
       }
 
-      if (enable_caching) {
-        employeeCache.set(req, employees);
-      }
       if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
+        var response = {message: 'No records found'};
+        sendJSONResponse(res, 200, response);
+        if (enable_caching) {
+          employeeCache.set(cacheKey, response);
         return;
       }
+
+      if (enable_caching) {
+        employeeCache.set(cacheKey, employees);
+      }
+      
       sendJSONResponse(res, 200, employees);
     }); 
   } else if (first_name && !last_name) {
@@ -460,13 +499,18 @@ exports.findByName = function findByName(req, res) {
         return;
       }
 
-      if (enable_caching) {
-        employeeCache.set(req, employees);
-      }
       if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
+        var response = {message: 'No records found'};
+        sendJSONResponse(res, 200, response);
+        if (enable_caching) {
+          employeeCache.set(cacheKey, response);
         return;
       }
+
+      if (enable_caching) {
+        employeeCache.set(cacheKey, employees);
+      }
+      
       sendJSONResponse(res, 200, employees);
     }); 
 
@@ -480,13 +524,18 @@ exports.findByName = function findByName(req, res) {
         return;
       }
 
-      if (enable_caching) {
-        employeeCache.set(req, employees);
-      }
       if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
+        var response = {message: 'No records found'};
+        sendJSONResponse(res, 200, response);
+        if (enable_caching) {
+          employeeCache.set(cacheKey, response);
         return;
       }
+
+      if (enable_caching) {
+        employeeCache.set(cacheKey, employees);
+      }
+      
       sendJSONResponse(res, 200, employees);
     }); 
 
@@ -495,7 +544,8 @@ exports.findByName = function findByName(req, res) {
 
 exports.findById = function findById(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
       sendJSONResponse(res, 200, cachedRes);
       return;
@@ -536,7 +586,7 @@ exports.findById = function findById(req, res) {
     result.photo = employee.photo;
 
     if (enable_caching) {
-      employeeCache.set(req, result);
+      employeeCache.set(cacheKey, result);
     }
     sendJSONResponse(res, 200, result);
     return;

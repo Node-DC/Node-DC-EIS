@@ -151,8 +151,19 @@ function startCluster(cpus) {
     printHostInfo();
     console.log('Setting up cluster with 1 Master (pid: ' + process.pid + ') and ' + cpuCount + ' workers..');
 
+    var workers = [];
     for (var i=0 ;i < cpuCount; i++) {
-      cluster.fork();
+      let worker = cluster.fork();
+      workers.push(worker);
+
+      worker.on('message', function(msg) {
+        if(msg.event) {
+          console.log('Broadcasting message');
+          for(let wrk in workers) {
+            workers[wrk].send(msg);
+          }
+        }
+      });
     }
 
     cluster.on('online', function(worker) {
