@@ -24,7 +24,7 @@ module.exports = {
   'zipcount': 25,
   'lastnamecount': 25,
   'mongodb_timeout' : 30000,
-  'enable_caching' : true,
+  'enable_caching' : false,
   'cache_max_size' : 100000,
   'cache_expiration' : 1200000
 };

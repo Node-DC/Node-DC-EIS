@@ -20,6 +20,7 @@ var appConfig = require('./config/configuration');
 var app_host = appConfig.app_host;
 var port = appConfig.app_port;
 const os = require('os');
+var cpuCount = appConfig.cpu_count;
 
 function printHostInfo() {
   console.log('********************************');
@@ -49,7 +50,7 @@ function startSingleNodeInstance() {
   app.use(bodyParser.json());
 
   app.get('/', function homeRoot(req, res) {
-    res.json({message: 'Hello from node.js worker of node-dc-eis at /'});
+    res.status(200).send("OK");
   });
 
   //loads database
@@ -120,6 +121,11 @@ function startSingleNodeInstance() {
     systemInfo.sw = swInfo;
     systemInfo.appName = appName;
     systemInfo.version = versionInfo;
+    var cpu_count = appConfig.cpu_count;
+    if ((cpu_count === undefined) || (cpu_count < 0)) {
+      cpu_count = os.cpus().length;
+    }
+    systemInfo.cpuCount = cpu_count;
     res.json(systemInfo);     
   });
 
@@ -138,15 +144,14 @@ function startSingleNodeInstance() {
 function startCluster(cpus) {
   const cluster = require('cluster');
   if (cluster.isMaster) {
-    let cpu_count = cpus;
-    if ((cpu_count === undefined) || (cpu_count < 0)) {
-      cpu_count = os.cpus().length;
+    if ((cpus === undefined) || (cpus < 0)) {
+      cpuCount = os.cpus().length;
     }
 
     printHostInfo();
-    console.log('Setting up cluster with 1 Master (pid: ' + process.pid + ') and ' + cpu_count + ' workers..');
+    console.log('Setting up cluster with 1 Master (pid: ' + process.pid + ') and ' + cpuCount + ' workers..');
 
-    for (var i=0 ;i < cpu_count; i++) {
+    for (var i=0 ;i < cpuCount; i++) {
       cluster.fork();
     }
 
@@ -163,7 +168,6 @@ function startCluster(cpus) {
   }
 } 
 
-const cpuCount = appConfig.cpu_count; 
 if (cpuCount === 0) {
   console.log('Starting a single instance of Node.js process with (pid: ' + process.pid + ')');
   printHostInfo();
