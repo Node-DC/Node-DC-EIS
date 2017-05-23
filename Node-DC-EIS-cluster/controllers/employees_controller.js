@@ -39,6 +39,18 @@ if (appConfig.cpu_count != 0 && process.send) {
   });
 }
 
+function sendImageResponse(res, status, content) {
+  res.status(status);
+  if(status != 200) {
+        res.json(content);
+  } else {
+    // We assume that all images in DB are JPEGs
+    res.set('Content-Type', 'image/jpeg');
+    res.send(content);
+  }
+
+}
+
 function sendJSONResponse(res, status, content) {
   res.status(status);
   res.json(content);
@@ -542,3 +554,47 @@ exports.findById = function findById(req, res) {
   ); 
 };
 
+exports.findPhotoById = function findPhotoById(req, res) {
+  var eid = req.params.id || req.query.id || "";
+  let cacheKey = req.originalUrl;
+
+  if (enable_caching) {
+    var cachedRes = employeeCache.get(cacheKey);
+
+    if (cachedRes) {
+      sendImageResponse(res, 200, cachedRes);
+      return;
+    }
+  }
+
+  try {
+    eid = new ObjectId(eid);
+  } catch(e) {
+    sendImageResponse(res, 404, {message: 'No photo found'});
+    return;
+  }
+
+
+  Employee.findOne({'_id': eid}, {
+    "photo.image": 1
+  }, function findOnePhoto(err, result) {
+    if (err) {
+      console.log(err);
+      sendImageResponse(res, 500, {
+        message: 'findPhotoById failed. Internal Server Error' });
+      return;
+    }
+
+    if (!result) {
+      sendJSONResponse(res, 404, {message: 'No photo found'});
+      return;
+    }
+
+    var data = new Buffer(result.photo.image, 'base64');
+
+    if (enable_caching) {
+      employeeCache.set(cacheKey, data);
+    }
+    sendImageResponse(res, 200, data);
+  });
+};

@@ -76,6 +76,9 @@ function startSingleNodeInstance() {
   //get employee by ID
   app.get('/employees/id/:id', employeesCtrl.findById);
 
+  //get employee's photo by ID
+  app.get('/employees/id/:id/photo.jpg', employeesCtrl.findPhotoById);
+
   //delete employee by ID
   app.delete('/employees/id/:id', employeesCtrl.deleteByEmployeeId);
 
