@@ -1,0 +1,40 @@
+extends template.pug
+
+include employee_mixins.pug
+
+block title
+	if !title
+		|Employee List
+	else if content && content.length > 0 && '_id' in Object(content[0])
+		|Employees by #{title}
+	else
+		|Employee #{title}s
+
+
+block body
+	if !content
+		p No results
+	else if 'message' in content
+		p=content.message
+	else if content.length == 0
+		p No records found
+	else if '_id' in Object(content[0])
+		table
+			thead
+				tr
+					th
+					+address_th(content[0])
+					+employee_th
+
+
+			tbody
+				each data, idx in content
+					tr
+						td=idx + 1
+						+address_td(data)
+						+employee_td(data)
+
+	else
+		each record in content
+			.record=record
+

@@ -1,0 +1,38 @@
+mixin employee_th()
+	th Photo
+	th Name
+	th Role
+	th E-Mail
+	th Phone
+	th Create
+	th Updated
+
+
+mixin employee_td(record)
+	- let data = record
+	if 'employee' in record
+		- data = record.employee
+	td: img(style='heigth: 40px; width: 40px' src=`/employees/id/${data._id}/photo.jpg`)
+	td: a(href=`/employees/id/${data._id}`) #{data.last_name}, #{data.first_name}
+	td=data.role
+	td: a(href=`mailto:${data.email}`)=data.email
+	td=data.phone
+	td=data.created_at
+	td=data.updated_at
+
+mixin has_address(record)
+	if record.address != "undefined"
+		block
+
+mixin address_th(record)
+	+has_address(record)
+		th Address
+
+mixin address_td(record)
+	+has_address(record)
+		- let address = record.address
+		td=address.street
+			br
+			|#{address.state} #{address.zipcode}
+			br
+			|#{address.country}

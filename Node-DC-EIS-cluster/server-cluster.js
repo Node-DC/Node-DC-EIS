@@ -49,14 +49,19 @@ function startSingleNodeInstance() {
   app.use(bodyParser.urlencoded({extended: true}));
   app.use(bodyParser.json());
 
+  // Enable pug templating
+  app.set('views', './views');
+  app.set('view engine', 'pug');
+
+  // Used to enable and browser-sync on developement
+  app.locals.mode = app.get('env');
+
   app.get('/', function homeRoot(req, res) {
     res.status(200).send("OK");
   });
 
   //loads database
-  app.get('/loaddb', function foo(req, res) {
-    loaderCtrl.initDb(req, res);
-  });
+  app.get('/loaddb', loaderCtrl.initDb);
 
   //check the number of records in the DB
   app.get('/checkdb',loaderCtrl.isDBSet);
