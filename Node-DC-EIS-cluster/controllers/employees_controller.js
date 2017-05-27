@@ -29,10 +29,44 @@ var cache_options = {
 };
 var employeeCache = employeeCacheLRU(cache_options);
 
+// Setting up IPC for cache resets
+if (appConfig.cpu_count != 0 && process.send) {
+  process.on('message', function(msg) {
+    if (msg.event && msg.event === 'reset_cache') {
+      console.log('Resetting cache');
+      employeeCache.reset();
+    }
+  });
+}
 
-/************************************************************
-Local helper functions to populate database with random data
-************************************************************/
+function sendResponse(res, status, content, view) {
+  view = view || 'employees';
+  res.format({
+    'json': function() {
+      sendJSONResponse(res, status, content);
+    },
+    'html': function() {
+      res.status(status);
+      res.render(view, {content: content});
+    },
+    'default': function() {
+      res.status(406).send('Not Acceptable');
+    }
+  });
+}
+
+function sendImageResponse(res, status, content) {
+  res.status(status);
+  if(status != 200) {
+        res.json(content);
+  } else {
+    // We assume that all images in DB are JPEGs
+    res.set('Content-Type', 'image/jpeg');
+    res.send(content);
+  }
+
+}
+
 function sendJSONResponse(res, status, content) {
   res.status(status);
   res.json(content);
@@ -41,6 +75,23 @@ function sendJSONResponse(res, status, content) {
 /******************************************************
  API interface
 ******************************************************/
+
+function resetCache() {
+  if(!enable_caching){
+    return;
+  }
+
+  if (appConfig.cpu_count != 0 && process.send) {
+    console.log('Sending reset to parent');
+    process.send({event: 'reset_cache'});
+  } else {
+    console.log('Resetting cache');
+    employeeCache.reset();
+  }
+}
+
+exports.resetCache = resetCache;
+
 exports.addNewEmployee = function addNewEmployee(req, res) {
   var missing_field_flag = false;
   var warning_msg;
@@ -53,7 +104,7 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   var healthObj = req.body.health;
   var photoObj = req.body.photo;
   if (enable_caching) {
-    employeeCache.reset();
+    resetCache();
   }
 
   //zipcode and last_name are required fields
@@ -221,10 +272,10 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
     var returned_obj = {};
       returned_obj.employee_id = employee_id;
       if (warning_msg) {
-        returned_obj.warning_msg = warning_msg;  
+        returned_obj.warning_msg = warning_msg;
       }
       
-      sendJSONResponse(res, 200, { 
+      sendJSONResponse(res, 200, {
         result: returned_obj
       });
   }); //End of Employee.save()
@@ -232,7 +283,7 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
 
 exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
   if (enable_caching) {
-    employeeCache.reset();
+    resetCache();
   }
 
   var employee_id = req.params.id;
@@ -259,33 +310,47 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
 
 exports.findAll = function findAll(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
-      sendJSONResponse(res, 200, cachedRes);
+      sendResponse(res, 200, cachedRes);
       return;
     }
   }
 
-  Employee.find({})
+  Employee.find({}, {
+    address: 0,
+    compensation: 0,
+    family: 0,
+    health: 0,
+    photo: 0
+  })
   .exec(function(err, employees) {
     if (err) {
       console.log('*** Internal Error while retrieving employee records.');
       console.log(err);
-      sendJSONResponse(res, 500, { 
+      sendResponse(res, 500, {
         message: 'findAll query failed. Internal Server Error'});
       return;
     }
 
-    if (enable_caching) {
-      employeeCache.set(req, employees);
-    }
-
     if (!employees) {
-      sendJSONResponse(res, 200, { 
-        message: 'No records found'});
+      var response = {
+        message: 'No records found'};
+
+      sendResponse(res, 200, response);
+
+      if(enable_caching) {
+        employeeCache.set(cacheKey, response);
+      }
       return;
     }
-    sendJSONResponse(res, 200, employees);
+
+    if (enable_caching) {
+      employeeCache.set(cacheKey, employees);
+    }
+
+    sendResponse(res, 200, employees);
   });
 };
 
@@ -301,108 +366,87 @@ function collectEmployeeIds(data) {
 
 exports.getAllIds = function getAllIds(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
-      sendJSONResponse(res, 200, cachedRes);
+      sendResponse(res, 200, cachedRes);
       return;
     }
   }
 
-  var query = Employee.find();
-  query.select('_id');
+  var query = Employee.aggregate({ $project: { _id: 1} });
   query.exec(function callJSON(err, data) {
     if (err) {
       console.log(err);
-      sendJSONResponse(res, 500, { 
+      sendResponse(res, 500, {
         message: 'getAllIds query failed. Internal Server Error'});
       return;
     }
-
     var ids = collectEmployeeIds(data);
 
     if (enable_caching) {
-      employeeCache.set(req, ids);
+      employeeCache.set(cacheKey, ids);
     }
-    sendJSONResponse(res, 200, ids);
+    sendResponse(res, 200, ids);
   });
 };
 
-function collectZipCodes(data) {
-  var zipCodeArr = new Array(data.length);
-  var idx = 0;
-  for (var i of data) {
-    zipCodeArr[idx] = i.address.zipcode;
-    idx++;
-  }
-  return(zipCodeArr);
-}
-
 exports.findByZipcode = function findByZipcode(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
-      sendJSONResponse(res, 200, cachedRes);
+      sendResponse(res, 200, cachedRes);
       return;
     }
   }
   var zipcode=req.query.zipcode;
   
   if (!zipcode) {
-    Employee.find(function findAddress(err, data) {
+    Employee.distinct("address.zipcode").exec(function findAddress(err, data) {
       if (err) {
         console.log(err);
-        sendJSONResponse(res, 500, { 
+        sendResponse(res, 500, {
           message: 'getAllZipcodes query failed. Internal Server Error'});
         return;
       }
       
-      var zipCodeArr = collectZipCodes(data);
+      var zipCodeArr = data;
 
       if (enable_caching) {
-        employeeCache.set(req, zipCodeArr);
+        employeeCache.set(cacheKey, zipCodeArr);
       }
-      sendJSONResponse(res, 200, zipCodeArr);
+      sendResponse(res, 200, zipCodeArr);
     });
   } else {
-    Employee.find({'address.zipcode' : zipcode})
-      .exec(function(err, addresses) {
+    Employee.find({'address.zipcode' : zipcode}, {
+      compensation: 0,
+      family: 0,
+      health: 0,
+      photo: 0
+    }).exec(function(err, addresses) {
       if (err) {
         console.log(err);
-        sendJSONResponse(res, 500, { 
+        sendResponse(res, 500, {
           message: 'findByZipcode query failed. Internal Server Error'});
         return;
       }
 
       if (enable_caching) {
-        employeeCache.set(req, addresses);
+        employeeCache.set(cacheKey, addresses);
       }
-      sendJSONResponse(res, 200, addresses);
+      sendResponse(res, 200, addresses);
     });
   }
 };
 
-function collectLastNames(data) {
-  var lastNameSet = new Set();
-  for (var i of data) {
-    var a_name = i.last_name;
-    lastNameSet.add(a_name);
-  }
-
-  var idx = 0;
-  var lastNameArr = new Array(lastNameSet.length);
-  for (let newname of lastNameSet) { 
-    lastNameArr[idx] = newname;
-    idx++;
-  }
-
-  return(lastNameArr);
-}
 
 exports.findByName = function findByName(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
-      sendJSONResponse(res, 200, cachedRes);
+      sendResponse(res, 200, cachedRes);
       return;
     }
   }
@@ -411,93 +455,75 @@ exports.findByName = function findByName(req, res) {
   var last_name=req.query.last_name;
 
   if (!first_name && !last_name) {
-    var query = Employee.find();
-    query.select('last_name');
+    var query = Employee.distinct('last_name');
     query.exec(function(err, data) {
       if (err) {
         console.log(err);
-        sendJSONResponse(res, 500, { 
+        sendResponse(res, 500, {
           message: 'findAll by Lastname query failed. Internal Server Error'});
         return;
       }
 
-      var lastNameArr = collectLastNames(data);
+      var lastNameArr = data;
 
       if (enable_caching) {
-        employeeCache.set(req, lastNameArr);
+        employeeCache.set(cacheKey, lastNameArr);
       }
-      sendJSONResponse(res, 200, lastNameArr);
+      sendResponse(res, 200, lastNameArr);
       return;
     });
+    return;
   }
   
-  if (first_name && last_name) {
-    Employee.find({'first_name': first_name, 'last_name': last_name}, function findEmployee(err, employees) {
-      if (err) {
-        console.log('*** Internal Error while retrieving an employee record:');
-        console.log(err);
-        sendJSONResponse(res, 500, { 
-          message: 'findBy first and last name failed. Internal Server Error' });
-        return;
-      }
-
-      if (enable_caching) {
-        employeeCache.set(req, employees);
-      }
-      if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
-        return;
-      }
-      sendJSONResponse(res, 200, employees);
-    }); 
-  } else if (first_name && !last_name) {
-    Employee.find({'first_name': first_name}, function(err, employees) {
-      if (err) {
-        console.log('*** Internal Error while retrieving an employee record:');
-        console.log(err);
-        sendJSONResponse(res, 500, { 
-          message: 'findBy first name failed. Internal Server Error' });
-        return;
-      }
-
-      if (enable_caching) {
-        employeeCache.set(req, employees);
-      }
-      if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
-        return;
-      }
-      sendJSONResponse(res, 200, employees);
-    }); 
-
-  } else if (last_name && !first_name) {
-    Employee.find({'last_name': last_name}, function(err, employees) {
-      if (err) {
-        console.log('*** Internal Error while retrieving an employee record:');
-        console.log(err);
-        sendJSONResponse(res, 500, { 
-          message: 'findBy last name failed. Internal Server Error' });
-        return;
-      }
-
-      if (enable_caching) {
-        employeeCache.set(req, employees);
-      }
-      if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
-        return;
-      }
-      sendJSONResponse(res, 200, employees);
-    }); 
-
+  var query = {};
+  if (first_name) {
+    query.first_name = first_name;
   }
+
+  if (last_name) {
+    query.last_name = last_name;
+  }
+
+  Employee.find(query, {
+    address: 0,
+    compensation: 0,
+    family: 0,
+    health: 0,
+    photo: 0
+  }, function(err, employees) {
+    if (err) {
+      console.log('*** Internal Error while retrieving an employee record:');
+      console.log(err);
+      sendResponse(res, 500, {
+        message: 'findBy last name failed. Internal Server Error' });
+      return;
+    }
+
+    if (!employees) {
+      var response = {message: 'No records found'};
+      if (enable_caching) {
+        employeeCache.set(cacheKey, response);
+      }
+      sendResponse(res, 200, response);
+      return;
+    }
+
+    if (enable_caching) {
+      employeeCache.set(cacheKey, employees);
+    }
+
+    sendResponse(res, 200, employees);
+  }); 
+
+
 };
 
 exports.findById = function findById(req, res) {
   if (enable_caching) {
-    var cachedRes = employeeCache.get(req);
+    var cacheKey = req.originalUrl;
+    var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
-      sendJSONResponse(res, 200, cachedRes);
+      sendResponse(res, 200, cachedRes, 'employee');
       return;
     }
   }
@@ -508,15 +534,16 @@ exports.findById = function findById(req, res) {
     if (err) {
       console.log('*** Internal Error while retrieving an employee record:');
       console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'findById failed. Internal Server Error' });
+      sendResponse(res, 500, {
+        message: 'findById failed. Internal Server Error' },
+        'employee');
       return;
     }
 
     if (!employee) {
-      sendJSONResponse(res, 200, {
+      sendResponse(res, 200, {
         message: 'No records found'
-      });
+      }, 'employee');
       return;
     }
 
@@ -536,11 +563,55 @@ exports.findById = function findById(req, res) {
     result.photo = employee.photo;
 
     if (enable_caching) {
-      employeeCache.set(req, result);
+      employeeCache.set(cacheKey, result);
     }
-    sendJSONResponse(res, 200, result);
+    sendResponse(res, 200, result, 'employee');
     return;
     }
   ); 
 };
 
+exports.findPhotoById = function findPhotoById(req, res) {
+  var eid = req.params.id || req.query.id || "";
+  let cacheKey = req.originalUrl;
+
+  if (enable_caching) {
+    var cachedRes = employeeCache.get(cacheKey);
+
+    if (cachedRes) {
+      sendImageResponse(res, 200, cachedRes);
+      return;
+    }
+  }
+
+  try {
+    eid = new ObjectId(eid);
+  } catch(e) {
+    sendImageResponse(res, 404, {message: 'No photo found'});
+    return;
+  }
+
+
+  Employee.findOne({'_id': eid}, {
+    "photo.image": 1
+  }, function findOnePhoto(err, result) {
+    if (err) {
+      console.log(err);
+      sendImageResponse(res, 500, {
+        message: 'findPhotoById failed. Internal Server Error' });
+      return;
+    }
+
+    if (!result) {
+      sendResponse(res, 404, {message: 'No photo found'});
+      return;
+    }
+
+    var data = new Buffer(result.photo.image, 'base64');
+
+    if (enable_caching) {
+      employeeCache.set(cacheKey, data);
+    }
+    sendImageResponse(res, 200, data);
+  });
+};

@@ -19,6 +19,7 @@ var appConfig = require('../config/configuration');
 var fs = require('fs');
 var readline = require('readline');
 var async = require('async');
+var resetCache = require('./employees_controller').resetCache;
 
 var fnames = [];
 var lnames = [];
@@ -156,6 +157,7 @@ exports.initDb = function initDB(req, res) {
 
   //Cleanup the database
   Employee.remove().exec();
+  resetCache();
 
   var zipCodeArr = generateZipCodes(zipcount);
 
