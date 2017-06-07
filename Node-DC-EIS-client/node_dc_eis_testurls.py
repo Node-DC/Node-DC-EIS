@@ -16,16 +16,23 @@
 #!/usr/bin/python
 
 import json, time
+import os
+import urlparse
+import re
 from functools import partial
 from eventlet.green import urllib2
+from eventlet.green import socket
+import eventlet
 requests = eventlet.import_patched('requests.__init__')
 import requests
 from collections import OrderedDict 
+import util as util
 
 headers = {'content-type': 'application/json'}
 post_datalist = []
 employee_idlist = []
 front_oflist = 0
+init = False
 
 ##setup data for post request
 static_postdata = {"employee" :   
@@ -51,38 +58,89 @@ b = requests.adapters.HTTPAdapter(max_retries=20)
 s.mount('http://', a)
 s.mount('https://', b)
 
-#sends GET requests to the server. Type 1 is GET requests.
-# handles 3 types of GET requests based on ID, last_name and zipcode.
-def get_url(url,request_num,log,phase): 
+#globals to implement file optimization
+start_time = 0
+file_cnt = 0
+log=""
+
+ip_cache = {}
+def get_ip(hostname):
+  """
+  # Desc  : Function to send get IP address.
+  # Input : hostname of each request
+  # Output: Returns IP for each address
+  """
+  if hostname in ip_cache:
+    return ip_cache[hostname]
+
+  try:
+    ip = socket.gethostbyname(hostname)
+  except socket.herror as e:
+    print e
+    sys.exit(1)
+  ip_cache[hostname] = ip
+  return ip
+
+def get_url(url, request_num, log, phase):
+  """
+  # Desc  : Function to send get requests to the server. Type 1 is get requests
+  #         handles 3 types of GET requests based on ID, last_name and zipcode.
+  # Input : Get request URL, Request Number, log file to collect per request data
+  #          phase of each request(ramp-up, ramp-down, measuring-time)
+  # Output: Generates per request (get) details in a log file
+  """
   global timeout_err
   global conn_err
   global http_err
   global bad_url 
-  global post_data
+
+  urlo = urlparse.urlparse(url)
+  ip = get_ip(urlo.hostname)
   start = time.time()
+
+  query = ''
+  if urlo.query != '':
+    query = '?{}'.format(urlo.query)
+
+  req_path = '{}{}'.format(urlo.path, query)
+
+  req = '''GET {} HTTP/1.1
+Host: {}
+User-Agent: runspec/0.9
+Accept: */*
+
+'''.format(req_path, urlo.netloc)
+
   try:
-    r = s.get(url, headers=headers)
-  except requests.exceptions.Timeout as e:
-    timeout_err = timeout_err + 1 
-  except requests.exceptions.ConnectionError as e:
-    conn_err = conn_err + 1
-  except requests.exceptions.HTTPError as e:
-    http_err = http_err + 1
-  except requests.exceptions.TooManyRedirects as e:
-    bad_url = bad_url + 1 
-  except requests.exceptions.RequestException as e:
-    #catastrophic error. bail.
-    print e
-    sys.exit(1)
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(30)
+    sock.connect((ip, urlo.port))
+    sock.sendall(req)
+    data = sock.recv(15)
+    http_status = data[9:12]
+    if http_status[0] != '3' or http_status[0] != '2':
+      http_err += 1
+
+  except socket.timeout:
+    timeout_err += 1 
+  except socket.error as e:
+    conn_err += 1
   finally:
+    sock.close()
     end = time.time()
-    response_time = end-start
-  print >> log, phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
+    response_time = end - start
+  util.printlog(log,phase,request_num,url,start,end,response_time)
   return 
 
-#sends POST requests to the server. Type 2 is POST requests.
-#also captures the ID that was posted and saves it in a list(employee_idlist) which is used in the ID list to send requests
 def post_url(url,request_num,log,phase): 
+  """
+  # Desc  : Function to send post requests to the server. Type 2 is post requests
+  #         also captures the ID that was posted and saves it in a list(employee_idlist)
+  #         which is used in the ID list to send requests
+  # Input : Post request URL, Request Number, log file to collect per request data
+  #         phase of each request(ramp-up, ramp-down, measuring-time)
+  # Output: Generates per request (post) details in a log file
+  """
   global timeout_err
   global conn_err
   global http_err
@@ -125,12 +183,18 @@ def post_url(url,request_num,log,phase):
       print("Exception -- Post did not return a valid employee_id")
       print post_data
       exit(1)
-  print >> log, phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
+  util.printlog(log,phase,request_num,url,start,end,response_time)
   return 
 
-#sends delete requests to the server. Type 3 is delete requests.
-#also captures the data record being deleted and saves it in a list(post/_datalist) which is used for new post requests
 def delete_url(url,request_num,log,phase): 
+  """
+  # Desc  : Function to send delete requests to the server. Type 3 is delete requests
+  #         also captures the data record being deleted and saves it in a list(post/_datalist)
+  #         which is used for new post requests
+  # Input : Delete request URL, Request Number, log file to collect per request data
+  #         phase of each request(ramp-up, ramp-down, measuring-time)
+  # Output: Generates per request (delete) details in a log file
+  """
   global timeout_err
   global conn_err
   global http_err
@@ -175,11 +239,46 @@ def delete_url(url,request_num,log,phase):
     end = time.time()
     response_time = end-start
 
-  print >> log, phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
-  return url
+  util.printlog(log,phase,request_num,url,start,end,response_time)
+  return
 
 # main entry funtion to determine the type of url - GET,POST or DELETE 
-def main_entry(url,request_num, url_type,log,phase):
+def main_entry(url,request_num, url_type,log_dir,phase,interval,run_mode,temp_log):
+  """
+  # Desc  : main entry funtion to determine the type of url - GET,POST or DELETE
+  #         creates log file which captures per request data depending on the type of run.
+  # Input : Get/post/delete request URL, Request Number, type of URL
+  #         log directory, log file to collect per request data,
+  #         phase of each request(ramp-up, ramp-down, measuring-time),
+  #         the type of run (request-based ot time-based)
+  # Output: None
+  """
+  global start_time
+  global file_cnt
+  global log
+  global init
+  if run_mode == 1:
+    if not init:
+      start_time=time.time();
+      try:
+          log = open(os.path.join(log_dir,"tempfile_"+str(file_cnt)),"w")
+          init = True 
+      except IOError:
+          print("Couldnot Open the file for writing")
+    if(time.time()-start_time > float(interval)):
+      file_cnt +=1   
+      start_time = time.time()
+      try:
+          log = open(os.path.join(log_dir,"tempfile_"+str(file_cnt)),"w") 
+      except IOError:
+          print("Couldnot Open the file for writing") 
+  else:
+    try:
+      log = open(os.path.join(log_dir,temp_log), "a")
+    except IOError as e:
+      print("Error: %s File not found." % temp_log)
+      return None
+
   if url_type == 1:
     get_url(url,request_num,log,phase)
   if url_type == 2:
