@@ -17,6 +17,15 @@ start_MT = 0
 end_MT = 0
 MT_req = 0
 
+def getCurrentTime():
+  """
+  #  Desc  : Function returns current date and time
+  #  Input : None
+  #  Output: Return current date and time in specific format for all log messages
+  """
+  currentTime=time.strftime("%d-%m-%Y %H:%M:%S")
+  return currentTime
+  
 def record_start_time():
   """
   # Desc  : Function to record start time
