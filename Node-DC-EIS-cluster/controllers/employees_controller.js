@@ -47,7 +47,7 @@ function sendResponse(res, status, content, view) {
     },
     'html': function() {
       res.status(status);
-      res.render(view, {content: content});
+      res.render(view, {content: content, reqPath: res.req.path});
     },
     'default': function() {
       res.status(406).send('Not Acceptable');
@@ -419,12 +419,8 @@ exports.findByZipcode = function findByZipcode(req, res) {
       sendResponse(res, 200, zipCodeArr);
     });
   } else {
-    Employee.find({'address.zipcode' : zipcode}, {
-      compensation: 0,
-      family: 0,
-      health: 0,
-      photo: 0
-    }).exec(function(err, addresses) {
+    Employee.find({'address.zipcode' : zipcode})
+    .exec(function(err, addresses) {
       if (err) {
         console.log(err);
         sendResponse(res, 500, {
@@ -484,13 +480,7 @@ exports.findByName = function findByName(req, res) {
     query.last_name = last_name;
   }
 
-  Employee.find(query, {
-    address: 0,
-    compensation: 0,
-    family: 0,
-    health: 0,
-    photo: 0
-  }, function(err, employees) {
+  Employee.find(query, function(err, employees) {
     if (err) {
       console.log('*** Internal Error while retrieving an employee record:');
       console.log(err);

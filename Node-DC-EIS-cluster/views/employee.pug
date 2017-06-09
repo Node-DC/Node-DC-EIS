@@ -1,5 +1,7 @@
 extends template.pug
 
+include employee_mixins.pug
+
 mixin employee_name()
 	if !content
 		|Invalid Record
@@ -16,23 +18,10 @@ block title
 
 append head
 	style.
-		ul, li
-		{
-			margin-top: 0;
-		}
-		ul
-		{
-			padding-left: 1em;
-		}
 		h3
 		{
 			margin-bottom: 0
 		}
-
-mixin list_item(key, value)
-	li
-		strong #{key}: 
-		|#{value}
 
 block body
 	if !content
@@ -48,35 +37,19 @@ block body
 		- const family = content.family
 
 		.left
-			ul
-				+list_item('First Name', employee.first_name)
-				+list_item('Last Name', employee.last_name)
-				+list_item('Phone', employee.phone)
-				+list_item('Email', employee.email)
-				+list_item('Role', employee.role)
+			+employee_list(employee)
 
 			h3 Address
-			ul
-				+list_item('Street', address.street)
-				+list_item('State', address.state)
-				+list_item('Country', address.country)
-				+list_item('Zip-code', address.zipcode)
+			+address_list(address)
 
 			h3 Family
-			ul
-				+list_item('Marital Status', address.marital_status ? 'Married' : 'Not Married')
-				+list_item('Children', address.childrens ? address.childrens : 0)
+			+family_list(family)
 
 			h3 Compensation
-			ul
-				+list_item('Pay', '$' + compensation.pay)
-				+list_item('Stock', compensation.stock)
+			+compensation_list(compensation)
 
 			h3 Health
-			ul
-				+list_item('Short-term Disability Plan', health.shortterm_disability_plan ? 'Yes' : 'No')
-				+list_item('Long-term Disability Plan', health.longterm_disability_plan ? 'Yes' : 'No')
-				+list_item('Paid Family Leave', health.paid_family_leave ? 'Yes' : 'No')
+			+health_list(health)
 
-		.right: img(src=`data:image/jpeg;base64,${photo.image}`)
-		//- .right: img(src=`/employees/id/${photo.employee._id}/photo.jpg`)
+		.right: +photo(photo)
+		
