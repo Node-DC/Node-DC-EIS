@@ -26,7 +26,7 @@ import eventlet
 requests = eventlet.import_patched('requests.__init__')
 import requests
 from collections import OrderedDict 
-import util as util
+import util
 
 headers = {'content-type': 'application/json'}
 post_datalist = []
@@ -175,14 +175,14 @@ def post_url(url,request_num,log,phase):
   except ValueError:
     # decoding failed
     print "Exception -- Decoding of result from posturl failed. Exiting"
-    exit(1)
+    sys.exit(1)
   if result:
     if 'result' in result:
       employee_idlist.append(result['result']['employee_id'])
     else:
       print("Exception -- Post did not return a valid employee_id")
       print post_data
-      exit(1)
+      sys.exit(1)
   util.printlog(log,phase,request_num,url,start,end,response_time)
   return 
 
@@ -215,7 +215,7 @@ def delete_url(url,request_num,log,phase):
     except ValueError:
     # decoding failed
       print "Exception -- Decoding of result from getid for delete failed. Exiting"
-      exit(1)
+      sys.exit(1)(1)
     if response:
       if 'employee' in response:
         post_datalist.insert(front_oflist,response)
@@ -242,10 +242,9 @@ def delete_url(url,request_num,log,phase):
   util.printlog(log,phase,request_num,url,start,end,response_time)
   return
 
-# main entry funtion to determine the type of url - GET,POST or DELETE 
 def main_entry(url,request_num, url_type,log_dir,phase,interval,run_mode,temp_log):
   """
-  # Desc  : main entry funtion to determine the type of url - GET,POST or DELETE
+  # Desc  : main entry function to determine the type of url - GET,POST or DELETE
   #         creates log file which captures per request data depending on the type of run.
   # Input : Get/post/delete request URL, Request Number, type of URL
   #         log directory, log file to collect per request data,
@@ -264,20 +263,22 @@ def main_entry(url,request_num, url_type,log_dir,phase,interval,run_mode,temp_lo
           log = open(os.path.join(log_dir,"tempfile_"+str(file_cnt)),"w")
           init = True 
       except IOError:
-          print("Couldnot Open the file for writing")
+          print ("[%s] Could not open templog file for writing." % (util.get_current_time()))
+          sys.exit(1)
     if(time.time()-start_time > float(interval)):
       file_cnt +=1   
       start_time = time.time()
       try:
           log = open(os.path.join(log_dir,"tempfile_"+str(file_cnt)),"w") 
       except IOError:
-          print("Couldnot Open the file for writing") 
+          print ("[%s] Could not open templog file for writing." % (util.get_current_time())) 
+          sys.exit(1)
   else:
     try:
       log = open(os.path.join(log_dir,temp_log), "a")
     except IOError as e:
       print("Error: %s File not found." % temp_log)
-      return None
+      sys.exit(1)
 
   if url_type == 1:
     get_url(url,request_num,log,phase)

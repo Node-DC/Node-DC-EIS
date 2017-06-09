@@ -17,7 +17,7 @@ start_MT = 0
 end_MT = 0
 MT_req = 0
 
-def getCurrentTime():
+def get_current_time():
   """
   #  Desc  : Function returns current date and time
   #  Input : None
@@ -25,7 +25,7 @@ def getCurrentTime():
   """
   currentTime=time.strftime("%d-%m-%Y %H:%M:%S")
   return currentTime
-  
+
 def record_start_time():
   """
   # Desc  : Function to record start time
@@ -59,14 +59,12 @@ def printlog(log,phase,request_num,url,start,end,response_time):
   """
   global MT_req
   if phase =="MT":
-    MT_req = MT_req + 1
-    if ((start >= start_MT and end_MT == 0) or (end_MT > start_MT and end <= end_MT)):
-      print >> log, phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
-    else:
+    if not ((start >= start_MT and end_MT == 0) or (end_MT > start_MT and end <= end_MT)):
       phase = "RD"
-      print >> log, phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
-  else:
-    print >> log, phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
+    else:
+      MT_req = MT_req + 1
+  log_str = phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
+  print >> log, log_str
   log.flush()
 
 def check_startfile(rundir):
@@ -86,7 +84,7 @@ def create_indicator_file(rundir,file_name,instance_id,string_towrite):
   #         string to be written in the new file created
   # Output: creates a new indicator file
   """
-  print ("[%s] Creating indicator file." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Creating indicator file." % (util.get_current_time()))
   ind_file = open(os.path.join(rundir,file_name+str(instance_id)+".syncpt"),'w')
   if string_towrite:
       ind_file.write(string_towrite)
@@ -113,4 +111,5 @@ def calculate_throughput(log_dir,concurrency,cpuCount):
   print >> log,"Total measuring time requests:"+str(MT_req)
   print >> log,"Throughput is:"+str(throughput)
   log.close()
+
   

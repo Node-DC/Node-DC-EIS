@@ -52,7 +52,7 @@ from process_time_based_output import process_time_based_output
 import signal   
 import traceback    
 import urllib   
-import util as util
+import util
 
 """
 #  All globals
@@ -76,7 +76,6 @@ output_file = str(directory + 'summary-report.txt')
 
 idmatches_index = 0
 postid_index = 0
-requests_done = False
 
 keep_on_running = True # Initializing keep_on_running to True
 #default set to 1. Set it to 0 if ramp up rampdown phase is not required
@@ -229,7 +228,7 @@ def arg_parse():
   global multiple_instance
   global run_mode
 
-  print ("[%s] Parsing arguments." % (util.getCurrentTime()))
+  print ("[%s] Parsing arguments." % (util.get_current_time()))
   parser = argparse.ArgumentParser()
   parser.add_argument('-id', '--instanceID', dest="id",
                   help='Instance ID')
@@ -366,7 +365,7 @@ def arg_parse():
           if "root_endpoint" in json_data["client_params"]:
             server_root_endpoint = json_data["client_params"]["root_endpoint"]
 
-          #client config paramaters
+          #client config parameters
           if "idurl_ratio" in json_data["client_params"]:
             idurl_ratio = json_data["client_params"]["idurl_ratio"]
 
@@ -396,7 +395,7 @@ def arg_parse():
           if "zip_ratio" in json_data["db_params"]:
             zip_dbratio = json_data["db_params"]["zip_ratio"]
 
-        #URL setup paramaters
+        #URL setup parameters
         if "url_params" in json_data:
           if "get_ratio" in json_data["url_params"]:
             get_ratio = json_data["url_params"]["get_ratio"]
@@ -407,7 +406,7 @@ def arg_parse():
           if "delete_ratio" in json_data["url_params"]:
             delete_ratio = json_data["url_params"]["delete_ratio"]
 
-        #memory stat paramaters
+        #memory stat parameters
         if "memory_params" in json_data:
           if "memstat_interval" in json_data["memory_params"]:
             memstat_interval = json_data["memory_params"]["memstat_interval"]
@@ -505,7 +504,7 @@ def get_data():
   #Populate database
   run_loaddb()
 
-  print ("[%s] Build list of employee IDs." % (util.getCurrentTime()))
+  print ("[%s] Build list of employee IDs." % (util.get_current_time()))
   try:
     ids_get = requests.get(id_url)
   except requests.exceptions.RequestException as e:
@@ -514,29 +513,29 @@ def get_data():
     print e
     sys.exit(1)
   ids = ids_get.content
-  print ("[%s] Build list of employee IDs done." % (util.getCurrentTime()))
+  print ("[%s] Build list of employee IDs done." % (util.get_current_time()))
 
-  print ("[%s] Build list of employee last names." % (util.getCurrentTime()))
+  print ("[%s] Build list of employee last names." % (util.get_current_time()))
   try:
     names_get = requests.get(name_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee names failed.Exiting")
-    exit(1)
+    sys.exit(1)
   names = names_get.content
-  print ("[%s] Build list of employee last names done." % (util.getCurrentTime()))
+  print ("[%s] Build list of employee last names done." % (util.get_current_time()))
 
-  print ("[%s] Build list of address zipcodes." % (util.getCurrentTime()))
+  print ("[%s] Build list of address zipcodes." % (util.get_current_time()))
   try:
     zipcode_get = requests.get(zipcode_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee address zipcodes failed.Exiting")
-    exit(1)
+    sys.exit(1)
   zipcode= zipcode_get.content
-  print ("[%s] Build list of address zipcode done." % (util.getCurrentTime()))
+  print ("[%s] Build list of address zipcode done." % (util.get_current_time()))
 
   if not ids and names and zipcode:
     print "Exception -- IDs or names or zipcodes not returned.Make sure application server is up and running.\n Make sure Database Server is up and running and \n Make sure client can communicate with server"
-    exit(1)
+    sys.exit(1)
   
   eidlist = re.findall(r'"([^"]*)"', ids)
   employee_idlist.extend(eidlist)
@@ -546,10 +545,10 @@ def get_data():
   
   if not (int(get_ratio) + int(post_ratio) + int(delete_ratio) == 100) :
     print "Warning -- The get post and delete ratios don't add up to 100.Aborting the run"
-    exit(1)
+    sys.exit(1)
   
   if not(int(post_ratio) == int(delete_ratio)):
-    print "Warning -- The post and delete ratios shoould be equal to maintain database consistency Aborting the run"
+    print "Warning -- The post and delete ratios should be equal to maintain database consistency Aborting the run"
 
   #formula to find number of get post and delete urls
   get_urlcount = int(math.ceil((int(total_urls)*float(float(get_ratio)/100))))
@@ -576,21 +575,21 @@ def run_loaddb():
   # Output: None
   """
   global after_dbload
-  print ("[%s] Loading database with %d records." % (util.getCurrentTime(), int(dbrecord_count)))
+  print ("[%s] Loading database with %d records." % (util.get_current_time(), int(dbrecord_count)))
   print "In progress..."  
   loaddbparams = {'count': int(dbrecord_count), 'zipcode': int(zip_dbratio), 'lastname' : int(name_dbratio) }
   try:
     res = requests.get(loaddb_url, params=loaddbparams, timeout=300)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
-    print("[%s] Loading database failed. Exiting" % (util.getCurrentTime()))
+    print("[%s] Loading database failed. Exiting" % (util.get_current_time()))
     print e
     sys.exit(1)
   if ( res.status_code == requests.codes.ok ):
-    print ("[%s] Loading database done." % (util.getCurrentTime()))
+    print ("[%s] Loading database done." % (util.get_current_time()))
     after_dbload = check_db()
   else:
-    print("[%s] Loading database failed:[%d]. Exiting" % (util.getCurrentTime(), +str(res.status_code)))
+    print("[%s] Loading database failed:[%d]. Exiting" % (util.get_current_time(), +str(res.status_code)))
     sys.exit(1) 
   return
 
@@ -601,7 +600,7 @@ def check_db():
   # Output: None
   """
   checkdb_dict = {}
-  print ("[%s] Checking database consistancy." % (util.getCurrentTime()))
+  print ("[%s] Checking database consistency." % (util.get_current_time()))
   checkdbparams = {'count': int(dbrecord_count)}
 
   try:
@@ -616,14 +615,14 @@ def check_db():
   except ValueError:
     #decoding failed
     print "Exception -- Decoding of result from checkdb failed. Exiting"
-    exit(1)
+    sys.exit(1)
 
   if("db_status" in result and "message" in result):
     if(result['db_status']==200):
-      print ("[%s] Database check successful." % (util.getCurrentTime()))
+      print ("[%s] Database check successful." % (util.get_current_time()))
       checkdb_dict["message"] = result["message"]
     else:
-      print ("[%s] Error: Database check failed." % (util.getCurrentTime()))
+      print ("[%s] Error: Database check failed." % (util.get_current_time()))
       checkdb_dict["message"] = result["message"]
 
   return checkdb_dict
@@ -635,7 +634,7 @@ def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_mat
   # Input :global list array,..... 
   # Output:Return current date and time in specific format for all log messages
   """
-  print ("[%s] Building list of Urls" % (util.getCurrentTime()))
+  print ("[%s] Building list of Urls" % (util.get_current_time()))
   id_usedlist = []
   global id_count
   global name_count
@@ -679,7 +678,7 @@ def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_mat
       count = id_count + name_count + zip_count + post_count + delete_count 
       if(count == int(total_urls)):
         break
-  print ("[%s] Building list of Urls done." % (util.getCurrentTime()))
+  print ("[%s] Building list of Urls done." % (util.get_current_time()))
   return
 
 def print_ramp(request_index):
@@ -692,13 +691,13 @@ def print_ramp(request_index):
   if request_index <= int(rampup_rampdown):
     phase = "RU"
     if request_index == 1:
-      print ("[%s] Entering Rampup window" % (util.getCurrentTime()))
+      print ("[%s] Entering Rampup window" % (util.get_current_time()))
     if request_index == int(rampup_rampdown):
-      print ("[%s] Exiting Rampup window" % (util.getCurrentTime()))
+      print ("[%s] Exiting Rampup window" % (util.get_current_time()))
   elif (request_index - int(rampup_rampdown)) <= int(request):
     phase = "MT"
     if (request_index - int(rampup_rampdown)) == 1:
-      print ("[%s] Entering Measuring time window" % (util.getCurrentTime()))
+      print ("[%s] Entering Measuring time window" % (util.get_current_time()))
       print "In progress..."  
     if(request_index - int(rampup_rampdown)== 0.1*int(request)):
       print "10% of requests done"
@@ -719,13 +718,13 @@ def print_ramp(request_index):
     if(request_index - int(rampup_rampdown)== 0.9*int(request)):
       print "90% of requests done"
     if (request_index - int(rampup_rampdown)) == int(request):
-      print ("[%s] Exiting Measuring time window" % (util.getCurrentTime()))
+      print ("[%s] Exiting Measuring time window" % (util.get_current_time()))
   elif request_index - (int(rampup_rampdown)+int(request)) <= int(rampup_rampdown):
     phase = "RD"
     if request_index - (int(rampup_rampdown)+int(request)) == 1:
-      print ("[%s] Entering Rampdown window" % (util.getCurrentTime()))
+      print ("[%s] Entering Rampdown window" % (util.get_current_time()))
     if request_index - (int(rampup_rampdown)+int(request)) == int(rampup_rampdown):
-      print ("[%s] Exiting Rampdown window" % (util.getCurrentTime()))
+      print ("[%s] Exiting Rampdown window" % (util.get_current_time()))
   return
 
 def getNextEmployeeId():
@@ -744,7 +743,7 @@ def getNextEmployeeId():
     idmatches_index = idmatches_index + 1
   else:
     print "Fatal error-No more IDs available. Aborting"
-    exit(1)
+    sys.exit(1)
   return return_id
 
 def removeEmployeeId(ids):
@@ -762,10 +761,10 @@ def removeEmployeeId(ids):
       id_found = True
     else:
       print "Id not found. Aborting"
-      exit(1)
+      sys.exit(1)
   else:
     print "Fatal error-No more IDs available. Aborting"
-    exit(1)
+    sys.exit(1)
   return
 
 def collect_meminfo():
@@ -775,26 +774,26 @@ def collect_meminfo():
   # Input : None.
   # Output: Collects data in dictionary, which will be process later.
   """
-  global requests_done
   rss_list =[]
   heapTotlist =[]
   heapUsedlist = []
-  print ("[%s] Starting meminfo collection process " % (util.getCurrentTime()))
+  print ("[%s] Starting meminfo collection process " % (util.get_current_time()))
   start_time = time.time()
   while True:
     if os.path.exists(os.path.join(log_dir,memlogind)):
+      print ""
       os.remove(os.path.join(log_dir,memlogind))
       elapsed_time = time.time() - start_time
       with open(os.path.join(log_dir,memlogfile+".csv"), 'wb') as f:
         writer = csv.writer(f)
         writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))  
-        print ("[%s] Exiting meminfo collection process" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+        print ("[%s] Exiting meminfo collection process" % (util.get_current_time()))
         sys.exit(0)
     try:
       r = requests.get(meminfo_url)
     except requests.exceptions.RequestException as e:
       #catastrophic error. bail.
-      print("[%s] Call to get server memory data failed." % (util.getCurrentTime()))
+      print("[%s] Call to get server memory data failed." % (util.get_current_time()))
       print e
       sys.exit(1) 
     try:
@@ -830,7 +829,7 @@ def send_request(employee_idlist):
   #Create a pool with input concurrency
   pool = eventlet.GreenPool(int(concurrency))
 
-  print ("[%s] Creating temperory log file" % (util.getCurrentTime()))
+  print ("[%s] Creating temporary log file" % (util.get_current_time()))
   if(rundir):
     log_dir = os.path.join(rundir,os.path.join(results_dir,directory))
   else:
@@ -870,14 +869,13 @@ def execute_request(pool):
     #         to server for the input #requests or based on time interval.
     #         Dynamically generates URL with employeeid, zipcode, name for GET
     #         requests
-    # Input : threadpool with concurrency nymber of threads
+    # Input : threadpool with concurrency number of threads
     # Output: Generates per request details in a templog file
     """
     global after_run
     global phase
     global MT_interval
     global rampup_rampdown
-    global requests_done
     global tot_get
     global tot_post
     global tot_del
@@ -913,7 +911,7 @@ def execute_request(pool):
     except Exception, err:
       traceback.print_exc()
       print Exception, err
-      exit(1)
+      sys.exit(1)
 
 # Initializing the Static Variables of the Function , which are used as counter
 execute_request.request_index = 1 
@@ -933,7 +931,6 @@ def timebased_run(pool):
   global phase
   global MT_interval
   global rampup_rampdown
-  global requests_done
   global tot_get
   global tot_post
   global tot_del
@@ -949,18 +946,17 @@ def timebased_run(pool):
   #Spin Another Process to do processing of Data
   post_processing = Process(target=process_time_based_output,args=(log_dir,interval,rampup_rampdown,MT_interval,temp_log,output_file,memlogfile,instance_id,multiple_instance))
   post_processing.start()
-  print ("[%s] Starting time based run." % (util.getCurrentTime()))
+  print ("[%s] Starting time based run." % (util.get_current_time()))
   if ramp:
     phase = "RU"
     start = time.time()
-    print("[%s] Entering RampUp time window." % (util.getCurrentTime()))
+    print("[%s] Entering RampUp time window." % (util.get_current_time()))
   else:
     phase = "MT"
     start = time.time()
-    print("Entering Measuring time window : [%s]" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+    print("Entering Measuring time window : [%s]" % (util.get_current_time()))
     util.record_start_time()
-  print ("[%s] Started processing of requests with concurrency of [%d] for [%d] seconds" % (time.strftime("%d-%m-%Y %H:%M:%S"), int(concurrency), int(MT_interval)))
-  #print ("[%s] Started processing of [%d] total requests with concurrency of [%d]" % (time.strftime("%d-%m-%Y %H:%M:%S"), int(request), int(concurrency)))
+  print ("[%s] Started processing of requests with concurrency of [%d] for [%d] seconds" % (util.get_current_time(), int(concurrency), int(MT_interval)))
   if sys.platform != "win32":
       def _change_phase(signal, frame):
            next_phase()
@@ -972,31 +968,29 @@ def timebased_run(pool):
            if ramp:
               try:
                  if phase=="RU":
-                     print ("[%s] Exiting RampUp time window." %(util.getCurrentTime()))
-                     print ("[%s] Entering Measuring time window." %(util.getCurrentTime()))
+                     print ("[%s] Exiting RampUp time window." %(util.get_current_time()))
+                     print ("[%s] Entering Measuring time window." %(util.get_current_time()))
                      phase="MT"
                      util.record_start_time()
                      signal.alarm(int(MT_interval))
                      # Set next Alarm
                  elif phase=="MT":
                      util.record_end_time()
-                     print ("[%s] Exiting Measuring time window." % (util.getCurrentTime()))
-                     print ("[%s] Entering RampDown time window." % (util.getCurrentTime()))
+                     print ("[%s] Exiting Measuring time window." % (util.get_current_time()))
+                     print ("[%s] Entering RampDown time window." % (util.get_current_time()))
                      util.calculate_throughput(log_dir,concurrency,cpuCount)
                      phase="RD"
                      signal.alarm(int(rampup_rampdown))
                      # Set next Alarm
                  elif phase=="RD":
-                     print ("[%s] Exiting RampDown time window." % (util.getCurrentTime()))
+                     print ("[%s] Exiting RampDown time window." % (util.get_current_time()))
                      keep_on_running=False
-                     phase="SD"
-                     # What to do in Shutdown Phase? Sleep for some seconds then exit?
               except ValueError:
                  print "Unexpected Value of phase"
            else:
               try:
                   if phase=="MT":     
-                     print ("[%s] Exiting Measuring time window." % (util.getCurrentTime()))
+                     print ("[%s] Exiting Measuring time window." % (util.get_current_time()))
                      util.record_end_time()
                      util.calculate_throughput(log_dir,concurrency,cpuCount)
                      phase="SD"
@@ -1010,41 +1004,39 @@ def timebased_run(pool):
           signal.alarm(int(MT_interval))
       while keep_on_running:
           execute_request(pool)
-      print("[%s] All requests done." % (util.getCurrentTime()))
+      print("[%s] All requests done." % (util.get_current_time()))
   else:
       print("Windows Platform :")
       if ramp:
           while(time.time()-start < int(rampup_rampdown)):
               execute_request(pool)
-          print ("[%s] Exiting RampUp time window." %(util.getCurrentTime()))
+          print ("[%s] Exiting RampUp time window." %(util.get_current_time()))
           phase = "MT"
           util.record_start_time()
           start=time.time()
-          print ("[%s] Entering Measuring time window." %(util.getCurrentTime()))
+          print ("[%s] Entering Measuring time window." %(util.get_current_time()))
           while(time.time()-start < int(MT_interval)):
               execute_request(pool)
-          print ("[%s] Exiting Measuring time window." %(util.getCurrentTime()))
+          print ("[%s] Exiting Measuring time window." %(util.get_current_time()))
           util.record_end_time()
           phase = "RD"
           util.calculate_throughput(log_dir,concurrency,cpuCount)
           start=time.time()
-          print ("[%s] Entering RampDown time window." %(util.getCurrentTime()))
+          print ("[%s] Entering RampDown time window." %(util.get_current_time()))
           while(time.time()-start < int(rampup_rampdown)):
               execute_request(pool)
-          print ("[%s] Exiting RampDown time window." %(util.getCurrentTime()))
+          print ("[%s] Exiting RampDown time window." %(util.get_current_time()))
           phase = "SD"
-          print ("[%s] Entering ShutDown time window." %(util.getCurrentTime()))
+          print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
       else:
           while(time.time()-start < int(MT_interval)):
               execute_request(pool)
-          print ("[%s] Exiting Measuring time window." %(util.getCurrentTime()))
+          print ("[%s] Exiting Measuring time window." %(util.get_current_time()))
           phase = "SD"
-          print ("[%s] Entering ShutDown time window." %(util.getCurrentTime()))
-      print("[%s] All requests done." % (util.getCurrentTime()))
-  requests_done = True
-  if(requests_done):
-     file = open(os.path.join(log_dir,memlogind),"w") 
-     file.close() 
+          print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
+      print("[%s] All requests done." % (util.get_current_time()))
+  file = open(os.path.join(log_dir,memlogind),"w") 
+  file.close() 
   processing_complete = True
   post_processing.join()
 
@@ -1055,18 +1047,17 @@ def requestBasedRun(pool):
   #         to server for the input #requests.
   #         Dynamically generates URL with employeeid, zipcode, name for GET
   #         requests
-  # Input : threadpool with concurrency nymber of threads
+  # Input : threadpool with concurrency number of threads
   # Output: Generates per request details in a templog file
   """
-  global requests_done
   global tot_get
   global tot_post
   global tot_del
   global phase
   global after_run
 
-  print ("[%s] Starting request based run." % (util.getCurrentTime()))
-  print ("[%s] Requests:[%d], Concurrency:[%d]" % (util.getCurrentTime(), int(request), int(concurrency)))
+  print ("[%s] Starting request based run." % (util.get_current_time()))
+  print ("[%s] Requests:[%d], Concurrency:[%d]" % (util.get_current_time(), int(request), int(concurrency)))
 
   url_index = 0
   if ramp:
@@ -1085,15 +1076,12 @@ def requestBasedRun(pool):
         if request_index == int(request):
           print "Exiting Measuring time window"
       execute_request(pool)
-  requests_done = True
-  if(requests_done):
-     file = open(os.path.join(log_dir,memlogind),"w") 
-     file.close() 
   #Wait for request threads to finish
+  file = open(os.path.join(log_dir,memlogind),"w") 
+  file.close() 
   pool.waitall()
 
-  print ("[%s] All requests done." % (util.getCurrentTime()))
-
+  print ("[%s] All requests done." % (util.get_current_time()))
   post_process_request_based_data(temp_log,output_file)
   return
 
@@ -1113,7 +1101,7 @@ def post_process_request_based_data(temp_log,output_file):
   read_time = [] #list with elapsed time
   response_array = []
   url_array = []
-  print ("[%s] Post_process phase." % (util.getCurrentTime()))
+  print ("[%s] Post_process phase." % (util.get_current_time()))
   try:
     logfile = open(os.path.join(os.path.join(results_dir,directory),temp_log), "r")
   except IOError as e:
@@ -1136,8 +1124,6 @@ def post_process_request_based_data(temp_log,output_file):
         if(abs_start == 0):
           abs_start = float(sortedlist[0][col_st])
           continue    
-    if ("Mode" not in row and "RU" not in row and "RD" not in row and "MT" not in row):
-      print >> processed_file, row
   tot_lapsedtime = max(read_time) - abs_start
   if not tot_lapsedtime:
     throughput = 1
@@ -1167,7 +1153,7 @@ def post_process_request_based_data(temp_log,output_file):
   processed_file.flush() 
   processed_file.close()
   plot_graph_request_based_run(output_file)
-  print ("[%s] Post processing is done.\n" % (util.getCurrentTime()))
+  print ("[%s] Post processing is done.\n" % (util.get_current_time()))
   return
 
 #Generates a summary output file which contains hardware,software OS and Client details
@@ -1179,7 +1165,7 @@ def print_summary():
   #         hardware, Server Software OS and Client input details 
   #         for each run
   """
-  print ("[%s] Printing Summary." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Printing Summary." % (util.get_current_time()))
   try: 
      processed_filename = os.path.join(log_dir,output_file)
      processed_file = open(processed_filename, 'a')
@@ -1202,7 +1188,7 @@ def print_summary():
     except ValueError:
     # decoding failed
       print "Exception -- Decoding of result from cpuinfo failed. Exiting"
-      exit(1)
+      sys.exit(1)
   if result:
     #hardware details 
     if 'hw' in result:
@@ -1311,7 +1297,7 @@ def print_summary():
   processed_file = open(processed_filename, "r")
   print processed_file.read()
   processed_file.close() 
-  print ("[%s] Printing Summary done.\n" % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print ("[%s] Printing Summary done.\n" % (util.get_current_time()))
   if multiple_instance:
     util.create_indicator_file(rundir,"run_completed", instance_id, "")
 
@@ -1332,9 +1318,9 @@ def plot_graph_request_based_run(output_file):
     filehl = open(os.path.join(os.path.join(results_dir,directory),temp_log), "r")
   except IOError as e:
     print("Error: %s File not found." % temp_log)
-    exit(1)
+    sys.exit(1)
 
-  print ("[%s] Plotting graphs." % (util.getCurrentTime()))
+  print ("[%s] Plotting graphs." % (util.get_current_time()))
   csvReader = csv.reader(filehl)
   for row in csvReader:
     if len(row) == 6 and row[1].isdigit():
@@ -1367,8 +1353,8 @@ def plot_graph_request_based_run(output_file):
   plt.savefig(os.path.join(os.path.join(results_dir,directory), directory+'-rps_time.png'))
   print("\nThe throughput graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-rps_time.png')))
 
-  if os.path.exists(os.path.join(os.path.join(results_dir,directory),directory+"-"+memlogfile+".csv")):
-    with open(os.path.join(os.path.join(results_dir,directory),directory+"-"+memlogfile+".csv")) as f:
+  if os.path.exists(os.path.abspath(os.path.join(log_dir,memlogfile+".csv"))):
+    with open(os.path.join(log_dir,memlogfile+".csv")) as f:
       reader=csv.reader(f, delimiter=',')
       time_axis, rss_values, heapTotal_values, heapUsed_values = zip(*reader)
       plt.figure("Memory usage")
@@ -1383,9 +1369,9 @@ def plot_graph_request_based_run(output_file):
       plt.tight_layout(pad=3)
       plt.savefig(os.path.join(os.path.join(results_dir,directory), directory+'-memory_usage.png'))
       print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-memory_usage.png')))
-  print ("[%s] Plotting graphs done." % (util.getCurrentTime()))
+  print ("[%s] Plotting graphs done." % (util.get_current_time()))
   #zip the temp_log file
-  temp_zip = zipfile.ZipFile(os.path.join(os.path.join(results_dir,directory),'temp_log.zip') , mode='w')
+  temp_zip = zipfile.ZipFile(os.path.join(log_dir,'temp_log.zip') , mode='w')
   temp_zip.write(os.path.join(os.path.join(results_dir,directory),temp_log))
   temp_zip.close()
   os.remove(os.path.join(os.path.join(results_dir,directory),temp_log))
