@@ -3,6 +3,8 @@ extends template.pug
 include employee_mixins.pug
 
 block title
+	- var matches = reqPath.match(/\/((?:name)|(?:zipcode))\/?$/)
+	- if(matches) var title = matches[1][0].toUpperCase() + matches[1].slice(1)
 	if !title
 		|Employee List
 	else if content && content.length > 0 && '_id' in Object(content[0])
@@ -10,6 +12,12 @@ block title
 	else
 		|Employee #{title}s
 
+append head
+	style.
+		ul, li
+		{
+			margin-bottom: 0;
+		}
 
 block body
 	if !content
@@ -23,17 +31,23 @@ block body
 			thead
 				tr
 					th
-					+address_th(content[0])
-					+employee_th
-
+					th Employee
+					th Address
+					th Compensation
+					th Family
+					th Health
+					th Photo
 
 			tbody
 				each data, idx in content
 					tr
 						td=idx + 1
-						+address_td(data)
-						+employee_td(data)
-
+						td: +employee_list(data)
+						td: +address_list(data.address)
+						td: +family_list(data.family)
+						td: +compensation_list(data.compensation)
+						td: +health_list(data.health)
+						td: +photo(data.photo, true)
 	else
 		each record in content
 			.record=record

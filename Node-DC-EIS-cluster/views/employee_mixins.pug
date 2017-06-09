@@ -1,38 +1,53 @@
-mixin employee_th()
-	th Photo
-	th Name
-	th Role
-	th E-Mail
-	th Phone
-	th Create
-	th Updated
 
-
-mixin employee_td(record)
-	- let data = record
-	if 'employee' in record
-		- data = record.employee
-	td: img(style='heigth: 40px; width: 40px' src=`/employees/id/${data._id}/photo.jpg`)
-	td: a(href=`/employees/id/${data._id}`) #{data.last_name}, #{data.first_name}
-	td=data.role
-	td: a(href=`mailto:${data.email}`)=data.email
-	td=data.phone
-	td=data.created_at
-	td=data.updated_at
-
-mixin has_address(record)
-	if record.address != "undefined"
+mixin list_item(key, value)
+	li
+		strong #{key}: 
 		block
 
-mixin address_th(record)
-	+has_address(record)
-		th Address
+mixin employee_list(employee)
+	ul
+		+list_item('ID')
+			a(href=`/employees/id/${employee._id}`)=employee._id
+		+list_item('First Name')
+			a(href=`/employees/name/?first_name=${employee.first_name}`)=employee.first_name
+		+list_item('Last Name')
+			a(href=`/employees/name/?last_name=${employee.last_name}`)=employee.last_name
+		+list_item('Phone')
+			a(href=`tel:${employee.phone}`)=employee.phone
+		+list_item('Email')
+			a(href=`mailto:${employee.email}`)=employee.email
+		+list_item('Role')=employee.role
 
-mixin address_td(record)
-	+has_address(record)
-		- let address = record.address
-		td=address.street
-			br
-			|#{address.state} #{address.zipcode}
-			br
-			|#{address.country}
+mixin address_list(address)
+	ul
+		+list_item('Street')=address.street
+		+list_item('State')=address.state
+		+list_item('Country')=address.country
+		+list_item('ZIP Code')
+			a(href=`/employees/zipcode?zipcode=${address.zipcode}`)=address.zipcode
+
+mixin family_list(family)
+	ul
+		+list_item('Marital Status')=family.marital_status ? 'Married' : 'Not Married'
+		+list_item('Children')=family.childrens ? family.childrens : 0
+
+mixin compensation_list(compensation)
+	ul
+		+list_item('Pay')='$' + compensation.pay
+		+list_item('Stock')=compensation.stock
+
+mixin health_list(health)
+	ul
+		+list_item('Short-term Disability Plan')=health.shortterm_disability_plan ? 'Yes' : 'No'
+		+list_item('Long-term Disability Plan')=health.longterm_disability_plan ? 'Yes' : 'No'
+		+list_item('Paid Family Leave')=health.paid_family_leave ? 'Yes' : 'No'
+
+mixin photo(photo, tiny)
+	- const attribs = {}
+	if tiny
+		- attribs.style='heigth: 80px; width: 80px'
+
+	img(src=`data:image/jpeg;base64,${photo.image}`)&attributes(attribs)
+
+	//- using endpoint instead of data URI
+	//- img(src=`/employees/id/${_id}/photo.jpg`)&attributes(attribs)
