@@ -84,7 +84,7 @@ def create_indicator_file(rundir,file_name,instance_id,string_towrite):
   #         string to be written in the new file created
   # Output: creates a new indicator file
   """
-  print ("[%s] Creating indicator file." % (util.get_current_time()))
+  print ("[%s] Creating indicator file." % (get_current_time()))
   ind_file = open(os.path.join(rundir,file_name+str(instance_id)+".syncpt"),'w')
   if string_towrite:
       ind_file.write(string_towrite)

@@ -48,8 +48,7 @@ from multiprocessing import Process
 from multiprocessing import Pool
 import node_dc_eis_testurls
 from node_dc_eis_testurls import *    
-from process_time_based_output import process_time_based_output     
-import signal   
+from process_time_based_output import process_time_based_output       
 import traceback    
 import urllib   
 import util
@@ -177,6 +176,7 @@ def setup():
   global appName
   global cpuCount
   global directory
+  global memlogind
   try:
     r = requests.get(cpuinfo_url)
   except requests.exceptions.RequestException as e:
@@ -957,57 +957,7 @@ def timebased_run(pool):
     print("Entering Measuring time window : [%s]" % (util.get_current_time()))
     util.record_start_time()
   print ("[%s] Started processing of requests with concurrency of [%d] for [%d] seconds" % (util.get_current_time(), int(concurrency), int(MT_interval)))
-  if sys.platform != "win32":
-      def _change_phase(signal, frame):
-           next_phase()
-      def next_phase():     
-           global phase
-           global MT_interval
-           global rampup_rampdown
-           global keep_on_running 
-           if ramp:
-              try:
-                 if phase=="RU":
-                     print ("[%s] Exiting RampUp time window." %(util.get_current_time()))
-                     print ("[%s] Entering Measuring time window." %(util.get_current_time()))
-                     phase="MT"
-                     util.record_start_time()
-                     signal.alarm(int(MT_interval))
-                     # Set next Alarm
-                 elif phase=="MT":
-                     util.record_end_time()
-                     print ("[%s] Exiting Measuring time window." % (util.get_current_time()))
-                     print ("[%s] Entering RampDown time window." % (util.get_current_time()))
-                     util.calculate_throughput(log_dir,concurrency,cpuCount)
-                     phase="RD"
-                     signal.alarm(int(rampup_rampdown))
-                     # Set next Alarm
-                 elif phase=="RD":
-                     print ("[%s] Exiting RampDown time window." % (util.get_current_time()))
-                     keep_on_running=False
-              except ValueError:
-                 print "Unexpected Value of phase"
-           else:
-              try:
-                  if phase=="MT":     
-                     print ("[%s] Exiting Measuring time window." % (util.get_current_time()))
-                     util.record_end_time()
-                     util.calculate_throughput(log_dir,concurrency,cpuCount)
-                     phase="SD"
-                     keep_on_running=False
-              except ValueError:
-                 print "Unexpected Value of phase"
-      prev_alarm = signal.signal(signal.SIGALRM, _change_phase)
-      if ramp:
-          signal.alarm(int(rampup_rampdown))
-      else:
-          signal.alarm(int(MT_interval))
-      while keep_on_running:
-          execute_request(pool)
-      print("[%s] All requests done." % (util.get_current_time()))
-  else:
-      print("Windows Platform :")
-      if ramp:
+  if ramp:
           while(time.time()-start < int(rampup_rampdown)):
               execute_request(pool)
           print ("[%s] Exiting RampUp time window." %(util.get_current_time()))
@@ -1028,13 +978,13 @@ def timebased_run(pool):
           print ("[%s] Exiting RampDown time window." %(util.get_current_time()))
           phase = "SD"
           print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
-      else:
+  else:
           while(time.time()-start < int(MT_interval)):
               execute_request(pool)
           print ("[%s] Exiting Measuring time window." %(util.get_current_time()))
           phase = "SD"
           print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
-      print("[%s] All requests done." % (util.get_current_time()))
+  print("[%s] All requests done." % (util.get_current_time()))
   file = open(os.path.join(log_dir,memlogind),"w") 
   file.close() 
   processing_complete = True
