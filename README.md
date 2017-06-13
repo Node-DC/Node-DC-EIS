@@ -66,13 +66,16 @@ Report also contains detailed response time data like minimum, maximum, average 
 Post-processing also produces response time graph as well as other histograms like memory utilization over the run length of the workload.  
 
 # Node-DC-EIS default and configurable options for research and testing  
-Node-DC-EIS sets all parameters by default to model typical Node.js server deployment. Many important parameters have been defined in the configuration files to make it easy to be able to evluate, test and validate wide variety of deployments. 
+Node-DC-EIS sets all parameters by default to model typical Node.js server deployment. Many important parameters have been defined in the configuration files to make it easy to be able to evaluate, test and validate wide variety of deployments. 
 
 Most parameters can be set in the client configuration file and these are passed to Node.js server and DB. But some parameters must be set at the start of Node.js server and DB. Such parameters must be defined in configuration files for respective components. 
 
 ## Parameters in client configuration file ( Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json ) :
+  - "MT_interval" : "100" // Total time for measuring time requests
 	- "request" : "10000",  // Total number of requests to be issued
 	- "concurrency" : "200", // That many requests can be issued in parallel
+  - "run_mode" : "1",  // The type of run. 1 for time-based, 2 for request-based
+  - "interval" : "15", // Data collection happens every interval specified in seconds
 	- "rampup_rampdown": "100", // After this many requests, execution will enter measurement phase
 	- "tempfile":"temp_log", // Default name of the log file
 	- "total_urls":"100", // Number of urls which will be used to issue requests 
@@ -269,7 +272,8 @@ driver program and other supporting files.
 - config.json: 
   The input configuration file to set default parameters such as, 
 	- Client parameters,
-	  - numbers of total_requests to issue,
+    - total time interval for each run/ numbers of total_requests to issue,
+	  - time interval for data collection
 	  - number of concurrent requests,
 	  - total number of dynamic urls to use,
 

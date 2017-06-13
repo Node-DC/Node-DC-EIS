@@ -1,2 +1,4 @@
 node_modules
 results_node_DC_EIS
+results
+*.pyc
