@@ -278,6 +278,9 @@ def arg_parse():
   parser.add_argument('-zr','--zip_dbratio',dest="zip_dbratio",
                   action="store",
                   help='The zip ratio')
+  parser.add_argument('-H', '--html', dest='html',
+                      default=False, action='store_true',
+                      help='Request HTML instead of JSON from server')
   options = parser.parse_args()
 
   print('Input options config files: %s' % options.config)
@@ -333,6 +336,9 @@ def arg_parse():
         global meminfo_url
         global cpuinfo_url
         global checkdb_url
+        global use_html
+
+        use_html = False
 
         #parse config file to replace global variables with values in the file
         if "client_params" in json_data:
@@ -383,6 +389,9 @@ def arg_parse():
 
           if "total_urls" in json_data["client_params"]:
             total_urls = json_data["client_params"]["total_urls"]
+
+          if "html" in json_data["client_params"]:
+            use_html = json_data["client_params"]["html"]
 
         #database setup parameters
         if "db_params" in json_data:
@@ -445,6 +454,9 @@ def arg_parse():
     name_dbratio = options.name_dbratio
   if(options.zip_dbratio) :
     zip_dbratio = options.zip_dbratio
+  if options.html:
+    use_html = options.html
+
   server_url = "http://" + server_ipaddress + ":" + server_port + server_root_endpoint
   loaddb_url = server_url + loaddb_endpoint
   id_url = server_url + id_endpoint
@@ -901,10 +913,23 @@ def execute_request(pool):
           ids = getNextEmployeeId()
           removeEmployeeId(ids)
           url = url+ids
+
+        main_entry_args = [
+            url,
+            execute_request.request_index,
+            url_type,
+            log_dir,
+            phase,
+            interval,
+            run_mode,
+            temp_log,
+            'text/html' if use_html else 'application/json'
+          ]
+
         if(int(concurrency) == 1):
-          main_entry(url,execute_request.request_index,url_type,log_dir,phase,interval,run_mode,temp_log)
+          main_entry(*main_entry_args)
         else:
-          pool.spawn_n(main_entry,url,execute_request.request_index,url_type,log_dir,phase,interval,run_mode,temp_log)
+          pool.spawn_n(main_entry, *main_entry_args)
         execute_request.request_index += 1
         execute_request.url_index += 1
          

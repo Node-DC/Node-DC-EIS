@@ -14,7 +14,8 @@
     "root_endpoint": "/",
     "nameurl_count":"25", 
     "zipurl_count":"25",
-    "idurl_ratio":"50"
+    "idurl_ratio":"50",
+    "html": false
   },
 "db_params": 
   { 
