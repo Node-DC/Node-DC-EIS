@@ -1,0 +1,12 @@
+[submodule "Node-DC-EIS-client"]
+	path = Node-DC-EIS-client
+	url = https://github.com/Node-DC/Node-DC-EIS-client.git
+	branch = master
+[submodule "Node-DC-EIS-cluster"]
+	path = Node-DC-EIS-cluster
+	url = https://github.com/Node-DC/Node-DC-EIS-cluster.git
+	branch = master
+[submodule "Node-DC-EIS-microservices"]
+	path = Node-DC-EIS-microservices
+	url = https://github.com/Node-DC/Node-DC-EIS-microservices.git
+	branch = master
