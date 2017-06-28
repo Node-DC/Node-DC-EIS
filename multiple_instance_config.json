@@ -1,0 +1,17 @@
+[
+ {
+  "server_ip":"127.0.0.1",
+  "server_port":"9001",
+  "db_name":"node-els-db1",
+  "db_ip":"127.0.0.1",
+  "db_port":"27018"
+ }
+ ,
+ {
+  "server_ip":"127.0.0.1",
+  "server_port":"9002",
+  "db_name":"node-els-db2",
+  "db_ip":"127.0.0.1",
+  "db_port":"27019"
+ }
+]
