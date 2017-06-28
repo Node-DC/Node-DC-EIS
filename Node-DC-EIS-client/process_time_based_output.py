@@ -51,7 +51,6 @@ def process_tempfile(results_dir,interval,rampup_rampdown,request,temp_log,insta
         temp_log = open(os.path.join(results_dir,temp_log),"a")
     except IOError:
         print ("[%s] Could not open templog file for writing." % (util.get_current_time()))
-    print >> temp_log, "File#,MinResp,MaxResp,MeanResp,95percentile,99percentile,Startime,Endtime,#RUReq,#MTReq,#RDReq,TotalReq,Throughput"
     temp_log.flush()
     time.sleep(60)
     while file_cnt < number_of_files:

@@ -855,7 +855,7 @@ def send_request(employee_idlist):
   #Print environment 
   run_printenv(log)
   if run_mode == 1:
-    print >> log, "File#,MinResp,MaxResp,MeanResp,95percentile,99percentile,Startime,Endtime,#RUReq,#MTReq,#RDReq,TotalReq,Throughput"
+    print >> log, "File#,MinResp,MeanResp,95percentile,99percentile,MaxResp,Startime,Endtime,#RUReq,#MTReq,#RDReq,TotalReq,Throughput"
   else:
     print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
   log.flush()
