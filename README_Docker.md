@@ -13,6 +13,11 @@ For proxy users, please also make the following change
 https://docs.docker.com/engine/admin/systemd/#http-proxy (HTTP proxy section)
 Create a common network for the containers
 
+Docker image storage options
+----------------------------
+When you have a lot of images/containers running on your system, it easily eats up a lot of your disk space. As a solution to this, docker offers an option to store your images in a location of your choice. Please read the --graph or -g option from the official documentation to implement the same
+https://docs.docker.com/v1.11/engine/reference/commandline/daemon/#daemon-configuration-file
+
 Create a common network for the containers
 ------------------------------------------
 $docker network create node-dc-net
@@ -27,6 +32,13 @@ $docker build -t imongo -f Dockerfile-mongo --build-arg http_proxy=http://proxy_
 #Now create the mongo container in the background
 $docker run -it -d -p 27017 --net node-dc-net --name cmongo imongo
 
+You can also choose to deploy mongodb database on bare-metal, but be sure to provide the right mongodb address to your node server configuration
+An alternate way to start mongodb on your host would be to simply run
+$mkdir mongodb.$DB_PORT
+$mongod --quiet --dbpath ./mongodb.$DB_PORT --bind_ip ${db_ip} --port $DB_PORT > /dev/null &
+where DB_PORT is the database port that you choose for this mongodb instance( default being 27017) and mongodb.$DB_PORT is the database directory path for this instance
+While providing the dbpath is purely optional, it gives you a way to gracefully shutdown the mongodb instance using this path when you need to end the instances
+
 Building and running the node container (example, cluster)
 ---------------------------------------------------------
 #Build a node image
@@ -34,23 +46,24 @@ $docker build -t inode -f Dockerfile-node-cluster .
 (If using proxy, please use
 $docker build -t inode -f Dockerfile-node-cluster --build-arg http_proxy=http://proxy_addr:port . )
 
-#Now create the node-cluster container in the background
-$docker run -it -d -p 9000-9090:9000-9090 --net node-dc-net --name cnode inode
+$docker run -itd -p $NODE_SERVER_PORT:9000 --net node-dc-net -e CPU_COUNT=${cpu_count} -e DB_URL=mongodb://${db_ip}:$DB_PORT/node-dc-eis-db-$NODE_SERVER_PORT --name cnodemongo-$NODE_SERVER_PORT inode
+where NODE_SERVER_PORT and DB_PORT are any available ports for the node server and mongo database that you choose to publish respectively. Be sure to set these values in your environment in your preferred way(a script or export commands)
+Note the environment variables, CPU_COUNT and DB_URL passed as parameters here, and you are free to configure it to the mode you want. The default CPU_COUNT is set to 0 for monolithic mode, and DB_URL is set to the localhost database in Node-DC-EIS-cluster/config/configuration.js
+-p NODE_SERVER_PORT:9000 here maps the NODE_SERVER_PORT of your container to 9000 on localhost making the container accessible to host for communication
 
-(If you get an error about ports on host being used, please use the below command and let the machine assign the available ports
-$docker run -it -d -p 9000-9090 --net node-dc-net --name cnode inode)
+Alternately, you could also pin the containers to specific cores you want. As an example,
+$docker run -itd --cpuset-cpus 0,1,2,3 -p $NODE_SERVER_PORT:9000 --net node-dc-net -e DB_URL=mongodb://${db_ip}:$DB_PORT/node-dc-eis-db-$NODE_SERVER_PORT --name cnodemongo-$NODE_SERVER_PORT inode
 
 #Execute the node-cluster container bash
 $docker exec -it cnode bash
-Go to Node-DC-EIS-cluster/config/configuration.js and change db_url from 127.0.0.1 to mongo container's IP
-You can retrieve the mongo container's IP by doing "$docker network inspect node-dc-net
-Look for cmongo's IPv4 address and put the same in your config file
+You're now inside the node server container
+For simple sanity checks, do a "ps -aux | grep node" and see that the number of node servers are indeed the same as you set
+$exit
 
-#Now start the server in cluster mode when still within the container
-$cd /home/nodeuser/Node-DC-EIS-cluster 
-$npm install (Please use the proxy accordingly)
-$node server-cluster.js (You can still run it in monolithic mode by changing the cpu_count to 1 in the config/configuration.js file)
-#Server should now be running
+#Check for your node-database connection
+It's a good idea to ensure that you're able to reach the database through your container
+$curl --noproxy ${db_ip} --silent http://${db_ip}:$NODE_SERVER_PORT/
+Should return OK
 
 Building and running the node container (microservices mode)
 ------------------------------------------------------------
@@ -60,28 +73,16 @@ $docker build -t inodemicroservice -f Dockerfile-node-microservices .
 (If using proxy, please use $docker build -t inodemicroservice -f Dockerfile-node-microservices --build-arg http_proxy=http://proxy_addr:port . )
 
 #Now create the node-microservice container in the background
-$docker run -it -d -p 3000-3090 --net node-dc-net --name cnodemicroservice inodemicroservice
+$docker run -it -d -p 3000 --net node-dc-net --name cnodemicroservice inodemicroservice
 
 #Execute the node-microservice container bash for each of the services
 $docker exec -it cnodemicroservice bash 
-Go to Node-DC-EIS-microservices/employee_service/config/configuration.js and change db_url from 127.0.0.1 to mongo container's IP.
-
 Also change the IPs for other services from localhost to node container's IP within the config file
-
-You can retrieve the mongo container's IP by doing "$docker network inspect node-dc-net Look for cmongo's IPv4 address and put the same in your config file
-Similarly, retrieve the node microservice's IP by doing "$docker network inspect node-dc-net Look for cnodemicroservice's IPv4 address and put the same in your config file
-
-$npm install (Please use the proxy accordingly) 
-$node server.js (You can still run it in monolithic mode by changing the cpu_count to 1 in the config/configuration.js file)
 
 #Now, spawn a microservice container for each other service and reflect the change in mongo IP
 $docker exec -it cnodemicroservice bash
-$cd Node-DC-EIS-microservices/address_service
-Edit config/configuration.js (from localhost/127.0.0.1 to mongo IP)
-$npm install
-$node server.js (default port: 3001)
 
-#Repeat the container creation and mongo IP editing for the rest of the services 
+#Repeat the container creation for the rest of the services 
 family_service, health_service, comp_service,photo_service,db_loader_service
 
 Building and running the client container
@@ -107,3 +108,8 @@ Look for cnode's IPv4 address and put the same in your config file
 $python runspec.py -f config.json 
 
 Please note that these are docker specific instructions and you are free to play with the configuration parameters within the containers just as you would on your host.
+
+Known facts about the configurations
+--------------------------------------
+1. We have seen that hosting mongodb on a different host than the node server shows a dip in the cpu-utilization as the workload is memory-bound. Whether hosted on bare-metal or in a container, its preferred to keep the database on the same host as the node server.
+2. We have seen a significant performance improvement using overlay2 as the storage driver for docker instead of aufs. Please keep this in mind while measuring the performance of the workload inside container("$docker info" provides you the information on the default storage driver in your system. Please refer to "https://docs.docker.com/engine/userguide/storagedriver/overlayfs-driver/#configure-docker-with-the-overlay-or-overlay2-storage-driver" to change your driver to overlay2.
