@@ -21,11 +21,13 @@ export DB_PORT=$4
 export DB_NAME=$5
 export CPU_COUNT=$6
 
+
+#requires mongodb to be running at the specified DB_SERVER_IP and DB_PORT
 DB_URL=mongodb://${DB_SERVER_IP}:$DB_PORT/$DB_NAME
-echo "$NODE_SERVER_PORT:`date +"%T.%3N"`"
+echo "$SERVER_PORT:`date +"%T.%3N"`"
 
 if [ CPU_COUNT -eq 0 ]; then
-	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e $DB_URL --name cnodemongo-$NODE_SERVER_PORT inode-npm
+	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e $DB_URL --name cnodemongo-$SERVER_PORT inode-npm
 else 
 	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e $DB_URL -e CPU_COUNT=$CPU_COUNT --name cnodemongo-$SERVER_PORT inode-npm
 fi
