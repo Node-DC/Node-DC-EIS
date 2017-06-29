@@ -92,9 +92,9 @@ Most parameters can be set in the client configuration file and these are passed
 	- "zip_ratio":"25" // DB is created such that each last zipcode search will find ~this many employee records 
 	
 	- "url_params": // Parameters set the ratio for type of requests. total below must be 100 and post and delete must be equal to maintain approximately same number of empoyee records during a run
-	- "get_ratio": "100", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
-	- "post_ratio":"0", // Out of total requests this many requests are of post type
-	- "delete_ratio":"0" // Out of total requests this many requests are of delete type
+	- "get_ratio": "90", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
+	- "post_ratio":"5", // Out of total requests this many requests are of post type
+	- "delete_ratio":"5" // Out of total requests this many requests are of delete type
 	
 	- "memory_params": // Parameters below helps in profiling memory usages by Node.js server
 	- "memstat_interval": "1", 
@@ -102,9 +102,9 @@ Most parameters can be set in the client configuration file and these are passed
 
 ## Parameters in Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js"
 
-	- 'cpu_count' : -1, // default -1 means set to total number of CPUs available, 1 means monolithic mode 
+	- 'cpu_count' : 0, // default 0 means monolithic mode, -1 means total number of CPUs available
 
-  	- 'enable_caching' : true, // Caching of MongoDB in Node.js
+  	- 'enable_caching' : false, // Caching of MongoDB in Node.js
   	- 'cache_max_size' : 100000,
   	- 'cache_expiration' : 1200000
 
@@ -113,7 +113,7 @@ Most parameters can be set in the client configuration file and these are passed
 
 This workload has two modes 
 
-  - Cluster mode (includes a monolithic mode when setting CPU count by cpu_count = 1 in Node.js server configuration file)
+  - Cluster mode (includes a monolithic mode when setting CPU count by cpu_count = 0 in Node.js server configuration file)
 
   - Microservices mode
 
@@ -127,6 +127,9 @@ Server Codebase:
 
 Client driver codebase
   - Node-DC-EIS-client
+
+Multiple instance scripts
+  - 
 
 #### NOTE : 
 If proxy needs to be set up, make sure the it has been properly set.

@@ -12,4 +12,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 
-This cluster directory contains code which can also run as monolithic when set CPU count = 1. By default CPU count is set to number of CPU available which is total number of logical CPU threads.
+This cluster directory contains code which can also run as monolithic when set CPU count = 0. By default CPU count is set to 0. If it is set to -1 it uses the total number of CPU's available which is total number of logical CPU threads.
