@@ -264,7 +264,7 @@ def calculate_95percentileresp(RTdata_dict,min_samplelogs):
 	for i in range(0,min_samplelogs):
 		percentile95_avg = 0
 		local_instances = 0
-		ignore_percentile95 == False
+		ignore_percentile95 = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
@@ -285,7 +285,7 @@ def calculate_99percentileresp(RTdata_dict,min_samplelogs):
 	for i in range(0,min_samplelogs):
 		percentile99_avg = 0
 		local_instances = 0
-		ignore_percentile99 == False
+		ignore_percentile99 = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
@@ -306,7 +306,7 @@ def calculate_throughput(RTdata_dict,min_samplelogs):
 	for i in range(0,min_samplelogs):
 		throughput_avg = 0
 		local_instances = 0
-		ignore_throughput == False
+		ignore_throughput = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
@@ -314,7 +314,7 @@ def calculate_throughput(RTdata_dict,min_samplelogs):
 			else:
 				ignore_throughput = True
 		if ignore_throughput == False:
-		throughput_avglist.append(throughput_avg)
+			throughput_avglist.append(throughput_avg)
 	return throughput_avglist
 
 def print_throughput_summary(RTdatafile_list):

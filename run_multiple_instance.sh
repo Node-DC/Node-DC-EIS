@@ -306,7 +306,7 @@ create_clientconfig(){
   db_port=$6
   db_url=0
 
-  print_master_log "Creating client copy for instance $instance_id" >> "$master_log"
+  print_master_log "Creating client copy for instance $instance_id"
   template_file="$client_dir"/config.json
   
   new_config_file="$temp_clientdir"/config${instance_id}.json
@@ -465,8 +465,8 @@ execute_remote_cmd() {
 print_master_log() {
   text="`date`: $1"
 
-  echo "$text"
-  echo $text >> master_log
+  echo "$text" 
+  echo "$text" >> $master_log
 
 }
 #starts each server instance
@@ -640,7 +640,7 @@ start_postprocess(){
       break
     fi
   done
-  python -u multiple_instance_post_process.py "$instances" "$run_dir"
+  python -u ${client_workdir}/multiple_instance_post_process.py "$instances" "$run_dir"
 }
 
 #stops server and mongodb instances
