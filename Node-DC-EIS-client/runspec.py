@@ -115,7 +115,7 @@ tot_del = 0
 #  Application specific globals
 #  Needs to be refactored to workload specific script
 """
-version = "NODE-DC-EISv0.1.0"
+version = "NODE-DC-EISv1.0"
 appName = "cluster"
 """
 #  Results directory - defaults

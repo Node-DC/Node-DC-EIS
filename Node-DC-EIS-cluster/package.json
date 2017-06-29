@@ -1,6 +1,6 @@
 {
   "name": "Node-DC-EIS-cluster",
-  "version": "0.0.9",
+  "version": "1.0",
   "description": "Employee Information Services",
   "main": "server-cluster.js",
   "repository": {
