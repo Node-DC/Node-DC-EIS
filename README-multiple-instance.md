@@ -12,9 +12,10 @@ Copyright (c) 2016 Intel Corporation
 
 Multi node run allows distributed testing. You can run multiple applications on the same machine or on a pool of machines. This run typically uses 3 scripts:
  - run_multiple_instance.sh  - Runs multiple instances of the server client and mongodb on the same machine or across different machines.
-   	 -2 run modes - bare metal run (default run mode 0) and container run (run mode 1)
+   	 - 2 run modes - bare metal run (default run mode 0) and container run (run mode 1)
 
  - multiple_instance_config.json - The input configuration file for multiple instances. Each instance requires these parameters:
+ 	  ````
  	  {
   		"server_ip":"127.0.0.1", //IP address where the server runs
   		"server_port":"9001",  // Port the server listens to
@@ -22,6 +23,7 @@ Multi node run allows distributed testing. You can run multiple applications on 
   		"db_ip":"127.0.0.1", // Database IP address
   		"db_port":"27018" // Port database listens to
  	  }
+ 	  ````
  - multiple_instance_post_process.py - Script to post process and summarize data from all the instances
     -  Post processes data from each instance to generate a summary data file.
     -  Generates live throughput and response time graphs.
@@ -50,7 +52,8 @@ Steps in a typical run:
 Setup instructions:
 Auto-login setup between the client and the server
     - SSH auto login needs to be set up between the client and the server.RSH and RCP uses this auto login to remote into the server and start the server.
-      -Steps for auto login setup
+      - Steps for auto login setup
+        ````
 		-$ ssh-keygen -t rsa -b 2048
 		Generating public/private rsa key pair.
 		Enter file in which to save the key (/home/username/.ssh/id_rsa):
@@ -65,7 +68,7 @@ Auto-login setup between the client and the server
 
 		Finally check logging in…
 		$ ssh userid@server
-
+		````
 	- Update multiple_instance_config.json file with server and DB configuration parameters
 
 	- Run the main driver script (run_multiple_instance.sh)
