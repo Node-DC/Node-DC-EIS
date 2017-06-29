@@ -12,9 +12,9 @@ Copyright (c) 2016 Intel Corporation
 
 This client directory contains,
  - runspec.py- A toplevel runspec script; the main script to launch workload.
-     -2 modes: time based run which is the default(mode-1) and request based run (mode-2)
+     -2 modes: time based run which is the default(1) and request based run (2)
  - node_els-testurls.py - The benchmark driver file which sends actual requests using python's requests module.
- - config.json - The input configuration file.
+ - config.json - The input client configuration file. This file is used by runspec.py when run with -f option
  - process_time_based_output.py - Script to post process and summarize time based run data
      - Creates temporary log files for every given interval which is post processed to create a summary.
  - summary_file_sample.txt - Sample file of the summary file that is generated after a run.
