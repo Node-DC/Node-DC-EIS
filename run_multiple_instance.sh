@@ -411,7 +411,8 @@ create_serverconfig(){
     fi
     p=$(echo "$w"| grep "app_port")
     d=$(echo "$w"| grep "db_url" )
-    if [ "x$p" == "x" -a "x$d" == "x" ]; then 
+    ip=$(echo "$w"| grep "app_host" )
+    if [ "x$p" == "x" -a "x$d" == "x" -a "x$ip" == "x" ]; then 
       if [ -f "$new_server_config" ]; then
         echo "$w" >> $new_server_config
       else
@@ -433,6 +434,15 @@ create_serverconfig(){
           echo "'$tagname'"":""'$db_url'" >> $new_server_config
         else
           echo "'$tagname'"":""'$db_url'" > $new_server_config
+        fi
+        added_newline=1
+      fi 
+      if [ "x$ip" != "x" ]; then
+        tagname=`echo "$ip" | cut -d ':' -f1 | xargs`
+        if [ -f "$new_server_config" ]; then
+          echo "'$tagname'"":""'$server_ip'" >> $new_server_config
+        else
+          echo "'$tagname'"":""'$server_ip'" > $new_server_config
         fi
         added_newline=1
       fi 
