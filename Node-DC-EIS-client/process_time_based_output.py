@@ -25,6 +25,7 @@ import matplotlib
 matplotlib.use(matplotlib.get_backend())
 import matplotlib.pyplot as plt
 import util
+import math
 
 #globals
 min_resp =0
@@ -42,23 +43,23 @@ def process_tempfile(results_dir,interval,rampup_rampdown,request,temp_log,insta
     #         total time for the measurement, instance ID, flag to check multiple insatnce run 
     # Output: None
     """
+    number_of_files = int(math.ceil((2.0 * rampup_rampdown + request) / interval))
 
     file_cnt=0
     try:
         temp_log = open(os.path.join(results_dir,temp_log),"a")
     except IOError:
         print ("[%s] Could not open templog file for writing." % (util.get_current_time()))
-    print >> temp_log, "File#,MinResp,MaxResp,MeanResp,95percentile,99percentile,Startime,Endtime,#RUReq,#MTReq,#RDReq,TotalReq,Throughput"
     temp_log.flush()
     time.sleep(60)
-    while True:
+    while file_cnt < number_of_files:
         tempfile = os.path.join(results_dir,"tempfile_"+str(file_cnt))
         if(os.path.exists(tempfile)): 
           time.sleep(interval)
           try:
             temp_file = open(tempfile,"r")
             print ("[%s] Processing Output File tempfile_[%d]." % (util.get_current_time(),file_cnt))
-            process_data(temp_file,temp_log,results_dir,file_cnt)
+            process_data(temp_file,temp_log,results_dir,file_cnt,interval)
             temp_file.close()
             if(file_cnt == 0 and multiple_instance):
               util.create_indicator_file(os.path.dirname(os.path.dirname(results_dir)),"start_processing", instance_id, temp_log.name)
@@ -68,12 +69,12 @@ def process_tempfile(results_dir,interval,rampup_rampdown,request,temp_log,insta
             print ("[%s] Could not open templog file for reading." % (util.get_current_time()))
             sys.exit(1)
         else:
-          break
+          time.sleep(interval)
 
     print ("[%s] Closing main templog file." % (util.get_current_time()))
     temp_log.close()    
 
-def process_data(temp_file,temp_log,results_dir,file_cnt):
+def process_data(temp_file,temp_log,results_dir,file_cnt,interval):
     """
     # Desc  : Function which opens temporary files one by one and process 
     #         them for intermediate results
@@ -109,7 +110,7 @@ def process_data(temp_file,temp_log,results_dir,file_cnt):
       calculate(res_arr) 
       print >> temp_log,str(file_cnt)+","+str(min_resp)+","+str(mean_resp)+","+str(percent95)+","+str(percent99)+","\
       +str(max_resp)+","+str(abs_start)+","+str(max(read_time))+","+str(RUreq)+","+str(MTreq)+","+str(RDreq)+","+str(len(res_arr))+","+\
-      str(len(res_arr)/(max(read_time)-abs_start))
+      str(len(res_arr)/int(interval))
     print ("[%s] Writing tempfile_[%d] data to summary file." % (util.get_current_time(), file_cnt))
     temp_log.flush()
 

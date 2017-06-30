@@ -93,6 +93,7 @@ def get_url(url, request_num, log, phase, accept_header):
   global conn_err
   global http_err
   global bad_url 
+  data = ""
 
   urlo = urlparse.urlparse(url)
   ip = get_ip(urlo.hostname)
@@ -116,7 +117,8 @@ Accept: {}
     sock.settimeout(30)
     sock.connect((ip, urlo.port))
     sock.sendall(req)
-    data = sock.recv(15)
+    while len(data) < 15:
+      data += sock.recv(15)
     http_status = data[9:12]
     if http_status[0] != '3' or http_status[0] != '2':
       http_err += 1
@@ -132,7 +134,7 @@ Accept: {}
   util.printlog(log,phase,request_num,url,start,end,response_time)
   return 
 
-def post_url(url,request_num,log,phase): 
+def post_function(url, post_data):
   """
   # Desc  : Function to send post requests to the server. Type 2 is post requests
   #         also captures the ID that was posted and saves it in a list(employee_idlist)
@@ -141,50 +143,86 @@ def post_url(url,request_num,log,phase):
   #         phase of each request(ramp-up, ramp-down, measuring-time)
   # Output: Generates per request (post) details in a log file
   """
+  global employee_idlist
   global timeout_err
   global conn_err
   global http_err
-  global bad_url 
-  global employee_idlist
-  global post_datalist
+  global bad_url
 
-  if post_datalist:
-    post_data = post_datalist[0]
-  else:
-    post_data = static_postdata
+  r = None
   try:
-    start = time.time()
     r = s.post(url, headers=headers, data = json.dumps(post_data))
+    r.raise_for_status()
   except requests.exceptions.Timeout as e:
-    timeout_err = timeout_err + 1 
+    timeout_err = timeout_err + 1
+    print "Time out error occured"
+    print e
   except requests.exceptions.ConnectionError as e:
     conn_err = conn_err + 1
+    print "connection error occured"
+    print e
   except requests.exceptions.HTTPError as e:
     http_err = http_err + 1
+    print "HTTP error occured"
+    print e
   except requests.exceptions.TooManyRedirects as e:
-    bad_url = bad_url + 1 
+    bad_url = bad_url + 1
+    print "Too many redirects error occured"
+    print e
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
+    print "Catastrophic exception"
     print e
-    sys.exit(1)
-  finally:
-    end = time.time()
-    response_time = end-start
+  return r
+
+def post_url(url,request_num,log,phase): 
+  """
+  # Desc  : Function to send post requests to the server. Type 2 is post requests
+  #         Retries if the post request fails
+  # Input : Post request URL, Request Number, log file to collect per request data
+  #         phase of each request(ramp-up, ramp-down, measuring-time)
+  # Output: Generates per request (post) details in a log file
+  """
+  global start_time
+  global file_cnt
+  global employee_idlist
+  global timeout_err
+  global conn_err
+  global http_err
+  global bad_url
+  global post_datalist
+  r = None
+  post_data = static_postdata
+  if post_datalist:
+    post_data = post_datalist[0]
+  start = time.time()
+  end = start
+  for i in range(100):
+    r =  post_function(url, post_data)
+    if r:
+      end = time.time()
+      break
+  if not r:
+    print "Post request failed. Received null response.Exiting run"
+    print request_num, url
+    print post_data
+    return
+  response_time = end-start
   try:
-    result = json.loads(r.content) 
+    result = json.loads(r.content)
   except ValueError:
     # decoding failed
     print "Exception -- Decoding of result from posturl failed. Exiting"
-    sys.exit(1)
+    exit(1)
   if result:
     if 'result' in result:
       employee_idlist.append(result['result']['employee_id'])
     else:
       print("Exception -- Post did not return a valid employee_id")
       print post_data
-      sys.exit(1)
+      exit(1)
   util.printlog(log,phase,request_num,url,start,end,response_time)
-  return 
+  return
 
 def delete_url(url,request_num,log,phase): 
   """

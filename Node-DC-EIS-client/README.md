@@ -12,9 +12,11 @@ Copyright (c) 2016 Intel Corporation
 
 This client directory contains,
  - runspec.py- A toplevel runspec script; the main script to launch workload.
+     -2 modes: time based run which is the default(1) and request based run (2)
  - node_els-testurls.py - The benchmark driver file which sends actual requests using python's requests module.
- - config.json - The input configuration file.
+ - config.json - The input client configuration file. This file is used by runspec.py when run with -f option
  - process_time_based_output.py - Script to post process and summarize time based run data
+     - Creates temporary log files for every given interval which is post processed to create a summary.
  - summary_file_sample.txt - Sample file of the summary file that is generated after a run.
  - a results sub directory will be created after the run which contains all the result directories which are designated by the date and timestamp.
  
@@ -30,7 +32,7 @@ This client directory contains,
  
  
 ## Client result files
-   - A temporary log file which contains details like request-number,write-time, read-time, response-time for every request.
-   - A summary file which has client information, database information and a summary of the run (throughput, min max,average response time).
+   - A temporary log file (request-based-run) which contains details like request-number,write-time, read-time, response-time for every request.
+   - A summary file (RTdata) which has client information, database information and a summary of the run (throughput, min max,average response time).
    - Two output graphs; one is the throughput graph and the second is the latency graph.
 
