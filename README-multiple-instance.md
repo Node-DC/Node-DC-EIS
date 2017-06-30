@@ -10,9 +10,10 @@ Copyright (c) 2016 Intel Corporation
  See the License for the specific language governing permissions and
  limitations under the License.
 
-Multi node run allows distributed testing. You can run multiple applications on the same machine or on a pool of machines. This run typically uses 3 scripts:
- - run_multiple_instance.sh  - Runs multiple instances of the server client and mongodb on the same machine or across different machines.
-     - 2 run modes - bare metal run (default run mode 0) and container run (run mode 1)
+Multi node run allows distributed testing/benchmarking. You can run multiple applications on the same machine or on a pool of machines. This run requires following three(3) scripts:
+ - run_multiple_instance.sh 
+   - Runs multiple instances of server application, client and mongodb.
+   - It supports two modes of operations, a bare metal (default run mode 0) and a container (run mode 1)
 
  - multiple_instance_config.json - The input configuration file for multiple instances. Each instance requires these parameters:
     ```
@@ -30,24 +31,29 @@ Multi node run allows distributed testing. You can run multiple applications on 
 
  - a results_multiple_instance will be created after the run which contains all the result directories for which are designated by the date and time stamp.
   - log directory with individual instance logs and master log designated by the date and time stamp.
-  - Master RTdata file - summarizes data (min,mean max, 95 and 99 percentile response time and Throughput) from all the instances for every given interval.
-  - Summary Throughput and response time graphs.
+  - Master RTdata file - summarizes data (min, mean, max, 95 and 99 percentile Response time and Throughput) from all the instances for an interval given in the client config file.
+  - Summary Throughput and Response time graphs.
   - Master summary file - Provides the combined throughput of all the instances, 99 percentile response time, the number of instances, concurrency used, a detailed summary of response times and each instance summary.
 
-In addition there are 3 supporting scripts:
+In addition there are three more supporting scripts (for remote execution):
  - start-server.sh - Used to start server and mongodb during a bare metal run.
    - requires NODE_PATH (path to node binary) to be set before the run.
  - stop-server.sh - Used to stop server and mongodb during a bare metal run
- -container-startup.sh - Used to start containers.
+ - container-startup.sh - Used to start containers.
+   - Currently uses Nodejs v6.10.0. Check the docker file.
 
 Steps in a typical run:
+ - Create local clone of the workload
+ - Prepare multiple_instance_config.json file with appropriate information.
+   - Hint: Number of server instances (number of blocks in a file) you want to run.
+   - Update mater.sh script to with number of server instances as well (double check)
  - The multiple_instance_config.json file is processed to create server and client config files for each instance.
- - The server code is copied to a remote server (IP provided in the config file) and each instance server is started.
+ - The server code is copied to a remote server (IP provided in the config file) and each server instance is started.
  - A curl command is issued to check if every server instance is up and running.
- - Each instance client is started once all the servers are up.
+ - Each client instance is started once all the servers are up. This also makes a server request to populate database.
  - Each client waits till all the instances have finished loading database.
  - The post processing script starts in the background once all the clients have their first summary data available.
- - The server and mongodb stops once post processing is completed.
+ - The server application(s) and mongodb stops once post processing is completed.
 
 Setup instructions:
 Auto-login setup between the client and the server
