@@ -15,13 +15,19 @@
 # limitations under the License.
 
 #provide the path to Node directory before starting the run
-#NODE_PATH=
+#NODE_PATH=/opt/local/node-v6.10.0-linux-x64/
 if [ "x$NODE_PATH" == "x" ]; then
 	echo "Node path is not set"
 	exit 1
 fi
+
 echo "Hello from start server script"
-#set proxy if it's not been set. 
+export PATH=$NODE_PATH/bin:$PATH
+
+# Set proxy if needed
+# export http_proxy
+# export https_proxy
+
 if [ -f server-input.txt ]; then
 	port=`grep db_port server-input.txt | cut -d':' -f2`
 	if [ "x$port" == "x" ]; then
@@ -33,7 +39,8 @@ else
 	echo "Expected - mongodb to be running at the port specified in server config"
 fi
 echo "Installing npm modules"
-$NODE_PATH/bin/npm install
+npm install
 echo "Starting server"
-$NODE_PATH/bin/node server-cluster.js &
+node server-cluster.js &
+sleep 5
 exit 0
