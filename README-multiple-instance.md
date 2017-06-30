@@ -47,6 +47,8 @@ Steps in a typical run:
  - Prepare multiple_instance_config.json file with appropriate information.
    - Hint: Number of server instances (number of blocks in a file) you want to run.
    - Update mater.sh script to with number of server instances as well (double check)
+ - Make sure NODE_PATH is set to Node.js install. e.g. NODE_PATH=/opt/local/node-v6.10.0-linux-x64
+ - Execute run_multiple_instance.sh script
  - The multiple_instance_config.json file is processed to create server and client config files for each instance.
  - The server code is copied to a remote server (IP provided in the config file) and each server instance is started.
  - A curl command is issued to check if every server instance is up and running.
