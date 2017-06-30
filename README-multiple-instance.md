@@ -83,3 +83,4 @@ Auto-login setup between the client and the server
     ```
       bash run_multiple_instance.sh 0
     ```
+  - Note that it is preferred to run the mongodb instance on the same host as your node server for a better memory bandwidth utilization
