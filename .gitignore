@@ -3,3 +3,4 @@ results_node_DC_EIS
 results
 npm-debug.log
 *.pyc
+*.swp
