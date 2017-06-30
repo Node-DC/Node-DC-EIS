@@ -29,10 +29,15 @@ fi
 DB_URL=mongodb://${DB_SERVER_IP}:$DB_PORT/$DB_NAME
 echo "$SERVER_PORT:`date +"%T.%3N"`"
 
-if [ CPU_COUNT -eq 0 ]; then
-	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e $DB_URL --name cnodemongo-$SERVER_PORT inode-npm
+mkdir ./mongodb$DB_PORT.template
+mongod --bind_ip $SERVER_IP --dbpath ./mongodb$DB_PORT.template --port $DB_PORT  > /dev/null & 
+
+sleep 5
+
+if [ $CPU_COUNT -eq 0 ]; then
+	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e DB_URL=$DB_URL --name cnodemongo-$SERVER_PORT inode-npm
 else 
-	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e $DB_URL -e CPU_COUNT=$CPU_COUNT --name cnodemongo-$SERVER_PORT inode-npm
+	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e DB_URL=$DB_URL -e CPU_COUNT=$CPU_COUNT --name cnodemongo-$SERVER_PORT inode-npm
 fi
 
 while true
