@@ -351,6 +351,9 @@ Windows Server 2012 R2
   - Following issues are observed while installing python and related dependencies
   	- Tool "pip" is not installed by default with Python
 	- Proxy errors while using pip and npm 
+	- Proxy errors while using request module in python.
+	  - Here is stackoverflow thread for various proxy setting issue and solutions
+		- https://stackoverflow.com/questions/28521535/requests-how-to-disable-bypass-proxy
 	- NPM is not build if use your own build of Node.js
 
   - If you try to populate with very high number of DB records, you may encounter following issues,
