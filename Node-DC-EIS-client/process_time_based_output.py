@@ -25,6 +25,7 @@ import matplotlib
 matplotlib.use(matplotlib.get_backend())
 import matplotlib.pyplot as plt
 import util
+import math
 
 #globals
 min_resp =0
@@ -42,9 +43,7 @@ def process_tempfile(results_dir,interval,rampup_rampdown,request,temp_log,insta
     #         total time for the measurement, instance ID, flag to check multiple insatnce run 
     # Output: None
     """
-    number_of_files = (2*rampup_rampdown + request)/interval
-    if(((2*rampup_rampdown + request)%interval)!=0):
-       number_of_files +=1
+    number_of_files = int(math.ceil((2.0 * rampup_rampdown + request) / interval))
 
     file_cnt=0
     try:
