@@ -21,7 +21,10 @@ export DB_PORT=$4
 export DB_NAME=$5
 export CPU_COUNT=$6
 
-
+if [ "x$SERVER_IP" = "x" ] || [ "x$SERVER_PORT" = "x" ] || [ "x$DB_SERVER_IP" = "x" ] || [ "x$DB_PORT" = "x" ] || [ "x$DB_NAME" = "x" ] || [ "x$CPU_COUNT" = "x" ] ; then
+    echo "Argument(s) passed to container-startup script missing. Aborting the run"
+    exit 1
+fi
 #requires mongodb to be running at the specified DB_SERVER_IP and DB_PORT
 DB_URL=mongodb://${DB_SERVER_IP}:$DB_PORT/$DB_NAME
 echo "$SERVER_PORT:`date +"%T.%3N"`"
