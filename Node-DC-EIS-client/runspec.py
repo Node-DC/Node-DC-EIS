@@ -823,6 +823,11 @@ def collect_meminfo():
       if result["memoryInfo"]["heapUsed"]:
         heapUsedlist.append(result["memoryInfo"]["heapUsed"])
     time.sleep(float(memstat_interval))
+  #making sure the lists are of the same length to avoid writing errors because Chakra core does not report heap used info
+  while len(heapUsedlist) < len(rss_list):
+    heapUsedlist.append(0)
+  while len(heapTotlist) < len(rss_list):
+    heapTotlist.append(0)
   return
 
 def send_request(employee_idlist):
@@ -1242,6 +1247,10 @@ def print_summary():
       if 'icu' in result['version']:
         icu_ver = result['version']['icu'] 
         print >> processed_file, "ICU version: " +str(icu_ver)
+      if 'chakracore' in result['version']:
+        chakracore_ver = result['version']['chakracore'] 
+        print >> processed_file, "Chakracore version: " +str(chakracore_ver)
+
   print >> processed_file, "\n====Validation and Error Summary===="
   print >> processed_file, "Timeout Error = " + str(timeout_err)
   print >> processed_file, "Connection Error = " + str(conn_err)
