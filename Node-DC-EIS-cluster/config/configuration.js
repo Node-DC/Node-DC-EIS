@@ -24,7 +24,7 @@ module.exports = {
   'count': 10000, 
   'zipcount': 5,
   'lastnamecount': 5,
-  'image_name' : 'image.jpeg',
+  'image_name' : process.env.IMAGE_NAME || 'image.jpeg',
   'mongodb_timeout' : 30000,
   'enable_caching' : false,
   'cache_max_size' : 100000,
