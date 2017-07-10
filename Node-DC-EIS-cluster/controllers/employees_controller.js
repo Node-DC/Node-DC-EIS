@@ -236,7 +236,8 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   if(!image){
   try {
       var fileContents;
-      fileContents = fs.readFileSync(__dirname + '/../data/image.jpeg');
+      var image_filename = appConfig.image_name;
+      fileContents = fs.readFileSync(__dirname + '/../data/' + image_filename);
       image = fileContents.toString('base64');
     } catch (err) {
       console.log(err);

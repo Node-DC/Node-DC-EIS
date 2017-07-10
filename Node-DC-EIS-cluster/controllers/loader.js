@@ -236,7 +236,8 @@ exports.initDb = function initDB(req, res) {
     var imageStr = null;
     try {
       var fileContents;
-      fileContents = fs.readFileSync(__dirname + '/../data/image.jpeg');
+      var image_filename = appConfig.image_name;
+      fileContents = fs.readFileSync(__dirname + '/../data/' + image_filename);
       imageStr = fileContents.toString('base64');
     } catch (err) {
       console.log(err);
