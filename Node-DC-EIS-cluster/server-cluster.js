@@ -20,7 +20,7 @@ var appConfig = require('./config/configuration');
 var app_host = appConfig.app_host;
 var port = appConfig.app_port;
 const os = require('os');
-var cpuCount = appConfig.cpu_count;
+var cpuCount = Number(appConfig.cpu_count;);
 
 function printHostInfo() {
   console.log('********************************');
@@ -187,10 +187,10 @@ function startCluster(cpus) {
   }
 } 
 
-if (cpuCount === 0) {
+if (cpuCount === undefined || isNaN(cpuCount) || cpuCount === 0) {
   console.log('Starting a single instance of Node.js process with (pid: ' + process.pid + ')');
   printHostInfo();
   startSingleNodeInstance();
-} else if (cpuCount === undefined || cpuCount !== 0) {
+} else if (cpuCount !== 0) {
   startCluster(cpuCount); 
 };
