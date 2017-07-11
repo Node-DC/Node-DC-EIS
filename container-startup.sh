@@ -52,7 +52,7 @@ if [ -n "${CPU_COUNT}" ] && [ ${CPU_COUNT} -ne 0 ]; then
 fi
 
 if [ -n "${IMAGE_NAME}" ]; then
-  DOCKER_ARGS="$DOCKER_ARGS -e IMAGE_NAME=${IMAGE_NAME}"
+  DOCKER_ARGS="$DOCKER_ARGS -e IMAGE_NAME=\"${IMAGE_NAME}\""
 fi
 
 ###################################################################################
