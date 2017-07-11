@@ -11,7 +11,7 @@ If you want to contribute code to a project, first you need to fork the project.
 ## Contribution to use cases: 
 We are constantly evaluating the relevant use cases. The list below includes the current status and is evolving based on the continuous feedback we are receiving from the community and major datacenter deployments for Node.js: 
 
-  - Node-DC-EIS (Node.js - Data Center - Employee Information Services): Current status at v0.9 with v1.0 by Q1 2017
+  - Node-DC-EIS (Node.js - Data Center - Employee Information Services): Current release is at v1.0.0.
     
   - Node-DC-SSR (Node.js - Data Center - Server Side Rendering): Under consideration as next candidate
 
@@ -23,9 +23,7 @@ Feedback can be sent either by creating issues or sending e-mail listed at https
  
 This is first in a series of upcoming workloads for modelling use cases of Node.js in Data Center (Node-DC). This workload is modelling various functionalities of Employee Information Services implemented in Node.js in Data Center.
 
-# Open for contributions to take from v0.9 to v1.0  
- 
-Following changes are being worked on from v0.9 to v1.0
+# Open for contributions  
   - Feedback from community
   - Change from Mongoose to MongoDB driver
   - Enable DB caching in microservices 
@@ -45,14 +43,15 @@ Following changes are being considered as optional:
 Node-DC-EIS follows a 3-tier model and consists of three components client, Node.js server and DB.
 
 ## Client 
-Client controls various phases like ramp-up, measurement and ramp-down as well as issues requests, tracks response time and errors. At the end of run, it validates the runs and post-processes the transactions log producing final metrics and graphs.
+Client controls various phases like ramp-up, measurement and ramp-down as well as issuing requests, tracks response time and errors. At the end of run, it validates the runs and post-processes the transactions log producing final metrics and graphs.
 
 ## Node.js server 
 Node.js server accepts all requests from client and responds back after retrieving employee information from the DB. Node.js cluster code is architected to scale by default. 
 
 In Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js", parameter 'cpu_count' can be used to scale to various number of CPUs. 
-  - Default value is '-1' which will use all available CPUs. 
-  - Monolithic mode can be set by 'cpu_count' to 1. 
+  - Default value is '0' which will use single CPU core or called monolithic mode.
+  - With the value of '-1', it will use all available CPUs. 
+  - It will use number of processes as specified by any other positive value 
 
 ## DB 
 Employee Information is stored in DB (current implementation using MongoDB). For each run, DB is populated based on configuration parameters set in the "Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json".     
@@ -62,7 +61,7 @@ Node-DC-EIS produces two primary metrics:
   - Throughput ( n Node-DC-EIS requests / second ): It is calculated by "requests in measurement phase / measurement time" 
   - p99 Response Time: It is 99 percentile of response time. 
 	
-Report also contains detailed response time data like minimum, maximum, average and p99 (99 percentile) of response time. 
+Report also contains detailed response time data like minimum, maximum, average, p95 and p99 (99 percentile) of response time. 
 Post-processing also produces response time graph as well as other histograms like memory utilization over the run length of the workload.  
 
 # Node-DC-EIS default and configurable options for research and testing  
@@ -75,7 +74,7 @@ Most parameters can be set in the client configuration file and these are passed
 	- "request" : "10000",  // Total number of requests to be issued
 	- "concurrency" : "200", // That many requests can be issued in parallel
   - "run_mode" : "1",  // The type of run. 1 for time-based, 2 for request-based
-  - "interval" : "15", // Data collection happens every interval specified in seconds
+  - "interval" : "10", // Data collection happens every interval specified in seconds
 	- "rampup_rampdown": "100", // After this many requests, execution will enter measurement phase
 	- "tempfile":"temp_log", // Default name of the log file
 	- "total_urls":"100", // Number of urls which will be used to issue requests 
@@ -88,8 +87,8 @@ Most parameters can be set in the client configuration file and these are passed
 	
 	- "db_params":  // Parameters below are related to DB
 	- "dbrecord_count": "10000", // DB is created with this many number of employee records
-	- "name_ratio":"25", // DB is created such that each last name search will find ~this many employee records  
-	- "zip_ratio":"25" // DB is created such that each last zipcode search will find ~this many employee records 
+	- "name_ratio":"5", // DB is created such that each last name search will find ~this many employee records  
+	- "zip_ratio":"5" // DB is created such that each last zipcode search will find ~this many employee records 
 	
 	- "url_params": // Parameters set the ratio for type of requests. total below must be 100 and post and delete must be equal to maintain approximately same number of empoyee records during a run
 	- "get_ratio": "90", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
@@ -103,7 +102,6 @@ Most parameters can be set in the client configuration file and these are passed
 ## Parameters in Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js"
 
 	- 'cpu_count' : 0, // default 0 means monolithic mode, -1 means total number of CPUs available
-
   	- 'enable_caching' : false, // Caching of MongoDB in Node.js
   	- 'cache_max_size' : 100000,
   	- 'cache_expiration' : 1200000
@@ -129,8 +127,9 @@ Client driver codebase
   - Node-DC-EIS-client
 
 Multiple instance scripts
-  - 
-
+  - multiple_instance_config.json // Contains configuration
+  - run_multiple_instance.sh      // Main driver script
+ 
 #### NOTE : 
 If proxy needs to be set up, make sure the it has been properly set.
   - (npm config set proxy http://proxy.example.com:8080)
