@@ -20,7 +20,7 @@ var appConfig = require('./config/configuration');
 var app_host = appConfig.app_host;
 var port = appConfig.app_port;
 const os = require('os');
-var cpuCount = Number(appConfig.cpu_count;);
+var cpuCount = Number(appConfig.cpu_count);
 
 function printHostInfo() {
   console.log('********************************');
