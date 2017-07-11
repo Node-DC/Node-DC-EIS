@@ -14,32 +14,56 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-export SERVER_IP=$1
-export SERVER_PORT=$2
-export DB_SERVER_IP=$3
-export DB_PORT=$4
-export DB_NAME=$5
-export CPU_COUNT=$6
+SERVER_IP=$1
+SERVER_PORT=$2
+DB_SERVER_IP=$3
+DB_PORT=$4
+DB_NAME=$5
+CPU_COUNT=$6
+IMAGE_NAME=""  #if not set, workload uses image.jpeg by default
 
+###################################################################################
+# Check input arguments
+###################################################################################
 if [ "x$SERVER_IP" = "x" ] || [ "x$SERVER_PORT" = "x" ] || [ "x$DB_SERVER_IP" = "x" ] || [ "x$DB_PORT" = "x" ] || [ "x$DB_NAME" = "x" ] || [ "x$CPU_COUNT" = "x" ] ; then
     echo "Argument(s) passed to container-startup script missing. Aborting the run"
     exit 1
 fi
-#requires mongodb to be running at the specified DB_SERVER_IP and DB_PORT
+###################################################################################
+# Note: Requires mongodb to be running at the specified DB_SERVER_IP and DB_PORT ##
 DB_URL=mongodb://${DB_SERVER_IP}:$DB_PORT/$DB_NAME
 echo "$SERVER_PORT:`date +"%T.%3N"`"
 
 mkdir ./mongodb$DB_PORT.template
 mongod --bind_ip $SERVER_IP --dbpath ./mongodb$DB_PORT.template --port $DB_PORT  > /dev/null & 
-
 sleep 5
 
-if [ $CPU_COUNT -eq 0 ]; then
-	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e DB_URL=$DB_URL --name cnodemongo-$SERVER_PORT inode-npm
-else 
-	docker run -itd -p $SERVER_PORT:9000 --net node-dc-net -e DB_URL=$DB_URL -e CPU_COUNT=$CPU_COUNT --name cnodemongo-$SERVER_PORT inode-npm
+###################################################################################
+# Build list of docker aruments
+###################################################################################
+DOCKER_ARGS=" -p ${SERVER_PORT}:9000 --name cnodemongo-${SERVER_PORT} "
+
+if [ "x${DB_URL}" != "x" ]; then
+  DOCKER_ARGS="$DOCKER_ARGS -e DB_URL=${DB_URL}"
 fi
 
+if [ "x${CPU_COUNT}" != "x" ] && [ ${CPU_COUNT} -ne 0 ]; then
+  DOCKER_ARGS="$DOCKER_ARGS -e CPU_COUNT=${CPU_COUNT}"
+fi
+
+if [ "x${IMAGE_NAME}" != "x" ]; then
+  DOCKER_ARGS="$DOCKER_ARGS -e IMAGE_NAME=${IMAGE_NAME}"
+fi
+
+###################################################################################
+# Start the container
+###################################################################################
+echo "`date`:docker run -itd ${DOCKER_ARGS} inode-npm"
+docker run -itd ${DOCKER_ARGS} inode-npm
+
+###################################################################################
+# Check if the node application server is up and responding
+###################################################################################
 while true
 do
   curl --noproxy ${SERVER_IP} --silent http://${SERVER_IP}:$SERVER_PORT/
@@ -49,3 +73,4 @@ do
     break
   fi
 done
+
