@@ -25,7 +25,7 @@ IMAGE_NAME=""  #if not set, workload uses image.jpeg by default
 ###################################################################################
 # Check input arguments
 ###################################################################################
-if [ "x$SERVER_IP" = "x" ] || [ "x$SERVER_PORT" = "x" ] || [ "x$DB_SERVER_IP" = "x" ] || [ "x$DB_PORT" = "x" ] || [ "x$DB_NAME" = "x" ] || [ "x$CPU_COUNT" = "x" ] ; then
+if [ ! -n "$SERVER_IP" ] || [ ! -n "$SERVER_PORT" ] || [ ! -n "$DB_SERVER_IP" ] || [ ! -n "$DB_PORT" ] || [ ! "$DB_NAME" ] || [ ! -n "$CPU_COUNT" ] ; then
     echo "Argument(s) passed to container-startup script missing. Aborting the run"
     exit 1
 fi
@@ -43,15 +43,15 @@ sleep 5
 ###################################################################################
 DOCKER_ARGS=" -p ${SERVER_PORT}:9000 --name cnodemongo-${SERVER_PORT} "
 
-if [ "x${DB_URL}" != "x" ]; then
+if [ -n "${DB_URL}" ]; then
   DOCKER_ARGS="$DOCKER_ARGS -e DB_URL=${DB_URL}"
 fi
 
-if [ "x${CPU_COUNT}" != "x" ] && [ ${CPU_COUNT} -ne 0 ]; then
+if [ -n "${CPU_COUNT}" ] && [ ${CPU_COUNT} -ne 0 ]; then
   DOCKER_ARGS="$DOCKER_ARGS -e CPU_COUNT=${CPU_COUNT}"
 fi
 
-if [ "x${IMAGE_NAME}" != "x" ]; then
+if [ -n "${IMAGE_NAME}" ]; then
   DOCKER_ARGS="$DOCKER_ARGS -e IMAGE_NAME=${IMAGE_NAME}"
 fi
 
