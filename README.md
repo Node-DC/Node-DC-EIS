@@ -51,7 +51,7 @@ Node.js server accepts all requests from client and responds back after retrievi
 In Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js", parameter 'cpu_count' can be used to scale to various number of CPUs. 
   - Default value is '0' which will use single CPU core or called monolithic mode.
   - With the value of '-1', it will use all available CPUs. 
-  - It will use number of processes as specified by any other positive value 
+  - It will use number of processes as specified by any positive number 
 
 ## DB 
 Employee Information is stored in DB (current implementation using MongoDB). For each run, DB is populated based on configuration parameters set in the "Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json".     
