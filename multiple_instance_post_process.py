@@ -262,16 +262,17 @@ def calculate_95percentileresp(RTdata_dict,min_samplelogs):
   	"""
 	percentile95_avglist = []
 	for i in range(0,min_samplelogs):
-		percentile95_avg = 0
+		percentile95_total = 0
 		local_instances = 0
 		ignore_percentile95 = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
-				percentile95_avg = (percentile95_avg + float(RTdata_dict[key][i][2]))/local_instances
+				percentile95_total = percentile95_total + float(RTdata_dict[key][i][2])
 			else:
 				ignore_percentile95 = True
 		if ignore_percentile95 == False:
+			percentile95_avg = percentile95_total/local_instances
 			percentile95_avglist.append(percentile95_avg)
 	return percentile95_avglist
 
@@ -283,16 +284,17 @@ def calculate_99percentileresp(RTdata_dict,min_samplelogs):
   	"""
 	percentile99_avglist = []
 	for i in range(0,min_samplelogs):
-		percentile99_avg = 0
+		percentile99_total = 0
 		local_instances = 0
 		ignore_percentile99 = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
-				percentile99_avg = (percentile99_avg + float(RTdata_dict[key][i][3]))/local_instances
+				percentile99_total = percentile99_total + float(RTdata_dict[key][i][3])
 			else:
 				ignore_percentile99 = True
 		if ignore_percentile99 == False:
+			percentile99_avg = percentile99_total/local_instances
 			percentile99_avglist.append(percentile99_avg)
 	return percentile99_avglist
 
@@ -304,16 +306,17 @@ def calculate_throughput(RTdata_dict,min_samplelogs):
   	"""
 	throughput_avglist = []
 	for i in range(0,min_samplelogs):
-		throughput_avg = 0
+		throughput_total = 0
 		local_instances = 0
 		ignore_throughput = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
-				throughput_avg = (throughput_avg + float(RTdata_dict[key][i][11]))/local_instances
+				throughput_total = throughput_total + float(RTdata_dict[key][i][11])
 			else:
 				ignore_throughput = True
 		if ignore_throughput == False:
+			throughput_avg = throughput_total/local_instances
 			throughput_avglist.append(throughput_avg)
 	return throughput_avglist
 
