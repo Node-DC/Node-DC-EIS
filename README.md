@@ -60,7 +60,7 @@ Employee Information is stored in DB (current implementation using MongoDB). For
 Node-DC-EIS produces two primary metrics:
   - Throughput ( n Node-DC-EIS requests / second ): It is calculated by "requests in measurement phase / measurement time" 
   - p99 Response Time: It is 99 percentile of response time. 
-	
+
 Report also contains detailed response time data like minimum, maximum, average, p95 and p99 (99 percentile) of response time. 
 Post-processing also produces response time graph as well as other histograms like memory utilization over the run length of the workload.  
 
@@ -71,41 +71,40 @@ Most parameters can be set in the client configuration file and these are passed
 
 ## Parameters in client configuration file ( Node-DC-EIS/blob/master/Node-DC-EIS-client/config.json ) :
   - "MT_interval" : "100" // Total time for measuring time requests
-	- "request" : "10000",  // Total number of requests to be issued
-	- "concurrency" : "200", // That many requests can be issued in parallel
+  - "request" : "10000",  // Total number of requests to be issued
+  - "concurrency" : "200", // That many requests can be issued in parallel
   - "run_mode" : "1",  // The type of run. 1 for time-based, 2 for request-based
   - "interval" : "10", // Data collection happens every interval specified in seconds
-	- "rampup_rampdown": "100", // After this many requests, execution will enter measurement phase
-	- "tempfile":"temp_log", // Default name of the log file
-	- "total_urls":"100", // Number of urls which will be used to issue requests 
-	- "server_ipaddress":"localhost", // Server IP address
-	- "server_port":"9000",
-	- "root_endpoint": "/",
-	- "nameurl_count":"25", // 25 % of get_ratio type of requests are nameurl_count
-	- "zipurl_count":"25", // 25 % of get_ratio type of requests are zipurl_count
-	- "idurl_ratio":"50" // 50 % of get_ratio type of requests are idurl_count
-	
-	- "db_params":  // Parameters below are related to DB
-	- "dbrecord_count": "10000", // DB is created with this many number of employee records
-	- "name_ratio":"5", // DB is created such that each last name search will find ~this many employee records  
-	- "zip_ratio":"5" // DB is created such that each last zipcode search will find ~this many employee records 
-	
-	- "url_params": // Parameters set the ratio for type of requests. total below must be 100 and post and delete must be equal to maintain approximately same number of empoyee records during a run
-	- "get_ratio": "90", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
-	- "post_ratio":"5", // Out of total requests this many requests are of post type
-	- "delete_ratio":"5" // Out of total requests this many requests are of delete type
-	
-	- "memory_params": // Parameters below helps in profiling memory usages by Node.js server
-	- "memstat_interval": "1", 
-	- "memlogfile": "memlog_file"
+  - "rampup_rampdown": "100", // After this many requests, execution will enter measurement phase
+  - "tempfile":"temp_log", // Default name of the log file
+  - "total_urls":"100", // Number of urls which will be used to issue requests 
+  - "server_ipaddress":"localhost", // Server IP address
+  - "server_port":"9000",
+  - "root_endpoint": "/",
+  - "nameurl_count":"25", // 25 % of get_ratio type of requests are nameurl_count
+  - "zipurl_count":"25", // 25 % of get_ratio type of requests are zipurl_count
+  - "idurl_ratio":"50" // 50 % of get_ratio type of requests are idurl_count
+
+  - "db_params":  // Parameters below are related to DB
+  - "dbrecord_count": "10000", // DB is created with this many number of employee records
+  - "name_ratio":"5", // DB is created such that each last name search will find ~this many employee records  
+  - "zip_ratio":"5" // DB is created such that each last zipcode search will find ~this many employee records 
+
+  - "url_params": // Parameters set the ratio for type of requests. total below must be 100 and post and delete must be equal to maintain approximately same number of empoyee records during a run
+  - "get_ratio": "90", // Out of total requests this many requests are of getID type which has sub-breakup into name, zip and id urls
+  - "post_ratio":"5", // Out of total requests this many requests are of post type
+  - "delete_ratio":"5" // Out of total requests this many requests are of delete type
+
+  - "memory_params": // Parameters below helps in profiling memory usages by Node.js server
+  - "memstat_interval": "1", 
+  - "memlogfile": "memlog_file"
 
 ## Parameters in Node.js server configuration file "Node-DC-EIS-cluster/config/configuration.js"
 
-	- 'cpu_count' : 0, // default 0 means monolithic mode, -1 means total number of CPUs available
-  	- 'enable_caching' : false, // Caching of MongoDB in Node.js
-  	- 'cache_max_size' : 100000,
-  	- 'cache_expiration' : 1200000
-
+  - 'cpu_count' : 0, // default 0 means monolithic mode, -1 means total number of CPUs available
+  - 'enable_caching' : false, // Caching of MongoDB in Node.js
+  - 'cache_max_size' : 100000,
+  - 'cache_expiration' : 1200000
 
 # Node-DC-EIS Workload Modes  
 
@@ -114,7 +113,6 @@ This workload has two modes
   - Cluster mode (includes a monolithic mode when setting CPU count by cpu_count = 0 in Node.js server configuration file)
 
   - Microservices mode
-
 
 # Content  
 
@@ -129,7 +127,7 @@ Client driver codebase
 Multiple instance scripts
   - multiple_instance_config.json // Contains configuration
   - run_multiple_instance.sh      // Main driver script
- 
+
 #### NOTE : 
 If proxy needs to be set up, make sure the it has been properly set.
   - (npm config set proxy http://proxy.example.com:8080)
@@ -143,7 +141,7 @@ Install Python '2.7.10'   (command: sudo apt-get python2.7-dev)
 
 Install Pip for Python    (command: sudo apt-get python-pip)
   - Pip 1.5.4
-  
+
 Install the following modules  
   - NumPy version '1.8.2'     (command: pip install numpy)
   - Matplotlib '1.4.2'        (command: sudo apt-get install python-matplotlib)
@@ -191,28 +189,28 @@ Install the following:
   - Make sure mongodb is running or start mongod server manually listening at default port (27017).
 
   - Windows Server Specific
-  	- Make Directory - C:\data\db.
+    - Make Directory - C:\data\db.
     - Make Directory - C:\data\log.
     - Create/edit mongod.cfg in your MongoDB install location (for example C:\MongoDB) with the following contents:
     ```
-	systemLog:
-		destination: file
-		path: C:\data\log\mongod.log
-	storage:
-		dbpath: C:\data\log
+systemLog:
+  destination: file
+  path: C:\data\log\mongod.log
+  storage:
+    dbpath: C:\data\log
     ```
     - Set up MongoDB            (command: "C:\MongoDB\bin\mongod.exe" --config "C:\MongoDB\mongod.cfg" --install)
     - Start the MongoDB service (command: net start MongoDB)
 
   - Linux Server Specific
-  	- Make Directory – ~/data/db
+    - Make Directory – ~/data/db
     - Navigate to data/db or data\db.
-  	- Run “mongod”, leave this terminal open to maintain the process.
-  	- (Optional)In a separate terminal run “mongo” to confirm database is active.
+    - Run “mongod”, leave this terminal open to maintain the process.
+    - (Optional)In a separate terminal run “mongo” to confirm database is active.
 
   - Both ( This may or may not be required as per your mongodb setting)
-  	- Set PATH pointing to node.js binary you installed.
-  	- Make sure npm is in your PATH.
+    - Set PATH pointing to node.js binary you installed.
+    - Make sure npm is in your PATH.
  
 ### Starting server in various modes
 
@@ -221,7 +219,7 @@ Each server mode starts at different default port.
 
 Running application server in Cluster mode (default port: 9000): 
   - Change directory to cluster,
-	- run “npm install” to install all dependencies (don't use sudo). 
+  - run “npm install” to install all dependencies (don't use sudo). 
   - Run “node server-cluster.js”
 
 #### NOTE: 
@@ -232,39 +230,37 @@ In cluster mode you can control the number CPU's by changing the configuration f
 Running application server in microservices mode (default port: 3000):
   - run “npm install” to install all dependencies for each service directory (don't use sudo), and start each service separately
   - To auto run npm install run the script 
-	python npm_install_all.py
-  - Start each service in separate terminal window.
-  	
-	$ cd <topdir>/Node-DC-EIS-microservices/employee_service;   
-		$ node server.js (default port: 3000)
-	
-	$ cd <topdir>/Node-DC-EIS-microservices/address_service;
-		$ node server.js (default port: 3001)
+    - python npm_install_all.py
+    - Start each service in separate terminal window.
 
-	$ cd <topdir>/Node-DC-EIS-microservices/family_service;
-		$ node server.js (default port: 3002)
+   $ cd <topdir>/Node-DC-EIS-microservices/employee_service;   
+   $ node server.js (default port: 3000)
 
-	$ cd <topdir>/Node-DC-EIS-microservices/health_service;
-		$ node server.js (default port: 3003)
+   $ cd <topdir>/Node-DC-EIS-microservices/address_service;
+   $ node server.js (default port: 3001)
 
-	$ cd <topdir>/Node-DC-EIS-microservices/comp_service;
-		$ node server.js (default port: 3004)
+   $ cd <topdir>/Node-DC-EIS-microservices/family_service;
+   $ node server.js (default port: 3002)
 
-	$ cd <topdir>/Node-DC-EIS-microservices/photo_service;
-		$ node server.js (default port: 3005)
+   $ cd <topdir>/Node-DC-EIS-microservices/health_service;
+   $ node server.js (default port: 3003)
 
-	$ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
-		$ node server.js (default port: 4001)
+   $ cd <topdir>/Node-DC-EIS-microservices/comp_service;
+   $ node server.js (default port: 3004)
+
+   $ cd <topdir>/Node-DC-EIS-microservices/photo_service;
+   $ node server.js (default port: 3005)
+
+   $ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
+   $ node server.js (default port: 4001)
 
 #### NOTE: 
 
-	1. For microservices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
-	2. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
-
-      microservices/employee_service/config/configuration.js file.
-	  In this mode employee_service acts as a main receiver and delegator for all incoming requests.
-	  This mode works but if there are any questions, please reach out to us.
-
+  1. For microservices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
+  2. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
+       microservices/employee_service/config/configuration.js file.
+     In this mode employee_service acts as a main receiver and delegator for all incoming requests.
+     This mode works but if there are any questions, please reach out to us.
 
 # Testing:
 
@@ -273,18 +269,17 @@ driver program and other supporting files.
 
 - config.json: 
   The input configuration file to set default parameters such as, 
-	- Client parameters,
+  - Client parameters,
     - total time interval for each run/ numbers of total_requests to issue,
-	  - time interval for data collection
-	  - number of concurrent requests,
-	  - total number of dynamic urls to use,
+    - time interval for data collection
+    - number of concurrent requests,
+    - total number of dynamic urls to use,
 
-	- Server parameters,
-	  - server ipaddress and port number. This can be changed either from the command
-		  line or in the config.json file.
+  - Server parameters,
+    - server ipaddress and port number. This can be changed either from the command line or in the config.json file.
 
-	- Database parameters,
-	  - Total number of records to populate, etc.
+  - Database parameters,
+    - Total number of records to populate, etc.
 
   - Caching parameters,
     - Enable or disable cache for the database
@@ -292,10 +287,9 @@ driver program and other supporting files.
 
 - runspec.py: 
   A top-level runspec script; the main script to launch workload.
-  This script initiates, track requests, generates log file, and output 
-	graphs.
-	Use config.json for setting parameters. This needs to be use -f option. 
-	User can override all parameters from the command line as well..
+  This script initiates, track requests, generates log file, and output graphs.
+  Use config.json for setting parameters. This needs to be use -f option. 
+  User can override all parameters from the command line as well..
   - Invoke "runspec.py -h" for detail help
 
 - node-dc-eis-testurls.py: 
@@ -313,14 +307,14 @@ The validation report gives details of how many record were loaded in the databa
     - Temporary log file with following details for every request,
       request-number, issue time, response time.
     - Summary file with,
-		  - client information, 
-			- database information,
+      - client information, 
+      - database information,
       - hardware,software,version details and 
-			- summarized throughput, min max,average response time.
+      - summarized throughput, min max,average response time.
     - Three output graphs (throughput,latency  and memory utilization graph).
 
 # Platforms Tested ON:
- 
+
 Linux Client:
   - Intel(R) Core (™) i7-4770 CPU @ 3.40 GHz
   - Debian (jessie)
@@ -345,18 +339,29 @@ Windows Server 2012 R2
   - MongoDB version 3.2.10
 
 # Known issues/limitations: 
- 
-  - Some issue while running on CentOS. 
   - Following issues are observed while installing python and related dependencies
-  	- Tool "pip" is not installed by default with Python
-	- Proxy errors while using pip and npm 
-	- Proxy errors while using request module in python.
-	  - Here is stackoverflow thread for various proxy setting issue and solutions
-		- https://stackoverflow.com/questions/28521535/requests-how-to-disable-bypass-proxy
-	- NPM is not build if use your own build of Node.js
+    - Tool "pip" is not installed by default with Python
+    - Proxy errors while using pip and npm 
+    - Proxy errors while using request module in python.
+    - Here is stackoverflow thread for various proxy setting issue and solutions
+    - https://stackoverflow.com/questions/28521535/requests-how-to-disable-bypass-proxy
+    - NPM is not build if use your own build of Node.js
 
   - If you try to populate with very high number of DB records, you may encounter following issues,
-  	- On the Server side, server may run out of memory causing core-dump
-	- With --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space while the records are loaded.
-	- On the client side, initial request to populate the DB may fail due to HTTP timeout.
-	- Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)#NODE-DC-EIS
+    - On the Server side, server may run out of memory causing core-dump
+    - With --max_old_space_size=5000 This will set the heap space to 5 GB, large databases take up more space while the records are loaded.
+    - On the client side, initial request to populate the DB may fail due to HTTP timeout.
+    - Upper limit for the database records is number of unique lastnames(777) * lastname_ratio(default: 25)#NODE-DC-EIS
+  - Most Linux based environments have default open files limitation to 1024. Please increase it to at least 100K.
+    - A system file you are looking to update is /etc/security/limits.conf and updated setting is as follows,
+    - * soft nofile 100000
+    - * hard nofile 100000
+  - If you are seeing 'Dropped packets' message in the system log (run 'dmesg' command), you may be hitting connection tracking limit in the Kernel. Please update this setting as follws,
+    $ cat /proc/sys/net/netfilter/nf_conntrack_max (default value: 262144)
+    - As a root, 
+    $ echo 512000 > /proc/sys/net/netfilter/nf_conntrack_max or more if needed.
+
+  - If the system is reaching network bandwidth limit, then the options are,
+    - Try using higher bandwidth NIC (> 10G),
+    - Try reducing data set size (by using small size images used by the server). Checkout configuration.js in the server code. Now there is a way to try using image file with different sizes.
+
