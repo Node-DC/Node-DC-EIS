@@ -19,12 +19,7 @@ export PATH=/opt/local/node-v6.10.0-linux-x64/bin:$PATH
 
 IMAGE_NAME=""  #if not set, workload uses image.jpeg by default
 
-type npm  
-npm_ret=$?
-type node 
-node_ret=$?
-
-if [ $npm_ret -ne 0 ] || [ $node_ret -ne 0 ]; then
+if [ ! type npm ] || [ ! type node ]; then
 	echo "Node or npm binary not found. Please set the PATH and try again"
 	exit 1
 fi
