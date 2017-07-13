@@ -19,7 +19,7 @@ USERNAME=`whoami`
 remote_work_dir="$HOME/Node-DC-EIS-multiple/multiple-instance-`date +%Y%m%d%H%M%S`"
 log_dir_name=instance_log
 num_instances=2 #must match with the number of blocks in the input_config_file
-container_cpu_count=0 #cpu count for node server running in a container
+cpu_count=0 #cpu count for node server 
 
 ##################################################################################
 # No change required below this line
@@ -537,11 +537,11 @@ start_server(){
   print_master_log "Starting a remote server instance"
 
   STARTUP_SCRIPT="start-server.sh"
-  remote_cmd_to_run="(cd ${instance_dir}/`basename $temp_serverdir` && bash ${STARTUP_SCRIPT})"
+  remote_cmd_to_run="(cd ${instance_dir}/`basename $temp_serverdir` && bash ${STARTUP_SCRIPT} ${cpu_count})"
 
   if [ "$server_type" == "1" ]; then
     STARTUP_SCRIPT=`basename ${CONTAINER_STARTUP_SCRIPT}`
-    remote_cmd_to_run="(cd ${instance_dir} && bash ${STARTUP_SCRIPT} ${server_ip} ${server_port} ${db_ip} ${db_port} ${db_name} ${container_cpu_count})"
+    remote_cmd_to_run="(cd ${instance_dir} && bash ${STARTUP_SCRIPT} ${server_ip} ${server_port} ${db_ip} ${db_port} ${db_name} ${cpu_count})"
   fi
 
   #execute_remote_cmd "$server_ip" "$logfile" "$remote_cmd_to_run"
