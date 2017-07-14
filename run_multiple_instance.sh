@@ -17,19 +17,19 @@
 runtype=$1
 USERNAME=`whoami`
 remote_work_dir="$HOME/Node-DC-EIS-multiple/multiple-instance-`date +%Y%m%d%H%M%S`"
-log_dir_name=log
+log_dir_name=instance_log
 num_instances=2 #must match with the number of blocks in the input_config_file
-container_cpu_count=0 #cpu count for node server running in a container
+cpu_count=0 #cpu count for node server 
 
 ##################################################################################
 # No change required below this line
 ##################################################################################
 if [[ "x${runtype}" == "x" || ${runtype} -eq 0 ]]; then
   runtype=0 #bare metal
-  print_master_log "Starting bare metal run"
+  echo "`date`: Starting bare metal run"
 else
   runtype=1 #container
-  print_master_log "Starting container run"
+  echo "`date`: Starting container run"
 fi
 
 script_pathname=`pwd`/$0 
@@ -41,7 +41,7 @@ CONTAINER_STARTUP_SCRIPT="${client_workdir}/container-startup.sh"
 top_results_dir=${client_workdir}/results_multiple_instance
 run_dir=${top_results_dir}/run"$current_time"
 log_dir="$run_dir/$log_dir_name"
-master_log="$log_dir/$current_time.log"
+master_log="$run_dir/${current_time}_master.log"
 
 client_dir=${client_workdir}/Node-DC-EIS-client
 server_dir=${client_workdir}/Node-DC-EIS-cluster
@@ -61,19 +61,19 @@ server_list=""
 #setup all top level directories
 setup() {
   if [ ! -d "$top_results_dir" ]; then
-    print_master_log "Creating results directory"
+    echo "`date`: Creating results directory"
     mkdir -p "$top_results_dir"
     if [ $? -ne 0 ] ; then
-    print_master_log "Creating results directory failed"
+    echo "`date`: Creating results directory failed"
     exit 1
     fi
   fi
 
-  print_master_log "Creating run directory"
+  echo "`date`: Creating run directory"
   mkdir -p "$run_dir"
 
   if [ $? -ne 0 ] ; then
-    print_master_log "Creating run directory failed"
+    echo "`date`: Creating run directory failed"
     exit 1
   fi
 
@@ -270,7 +270,7 @@ process_configfile(){
           create_serverconfig "$instance_id" "$server_ip" "$server_port" "$db_name" "$db_ip" "$db_port"
         fi
         #if manually copying the server, comment this function call
-        start_server "$instance_id" "$server_ip" "$server_port" "$log_dir/$instance_logfile" "$db_port" "$db_ip" "db_name"
+        start_server "$instance_id" "$server_ip" "$server_port" "$log_dir/$instance_logfile" "$db_port" "$db_ip" "$db_name"
         sb=0
       fi
     fi
@@ -537,11 +537,11 @@ start_server(){
   print_master_log "Starting a remote server instance"
 
   STARTUP_SCRIPT="start-server.sh"
-  remote_cmd_to_run="(cd ${instance_dir}/`basename $temp_serverdir` && bash ${STARTUP_SCRIPT})"
+  remote_cmd_to_run="(cd ${instance_dir}/`basename $temp_serverdir` && bash ${STARTUP_SCRIPT} ${cpu_count})"
 
   if [ "$server_type" == "1" ]; then
     STARTUP_SCRIPT=`basename ${CONTAINER_STARTUP_SCRIPT}`
-    remote_cmd_to_run="(cd ${instance_dir} && bash ${STARTUP_SCRIPT} ${server_ip} ${server_port} ${db_ip} ${db_port} ${db_name} ${container_cpu_count})"
+    remote_cmd_to_run="(cd ${instance_dir} && bash ${STARTUP_SCRIPT} ${server_ip} ${server_port} ${db_ip} ${db_port} ${db_name} ${cpu_count})"
   fi
 
   #execute_remote_cmd "$server_ip" "$logfile" "$remote_cmd_to_run"

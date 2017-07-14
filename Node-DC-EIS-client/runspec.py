@@ -59,7 +59,7 @@ import util
 
 temp_log = "RTdata"
 request = 10000
-MT_interval = 60
+MT_interval = 100
 concurrency = 200
 rampup_rampdown = 10
 total_urls = 100
@@ -150,9 +150,9 @@ checkdb_url = server_url + checkdb_endpoint
 """
 #  Type of URL ratio - defaults
 """
-get_ratio = 100
-post_ratio = 0
-delete_ratio = 0
+get_ratio = 90
+post_ratio = 5
+delete_ratio = 5
 
 """
 #  GET URL distribution (% of total urls - make sure this adds upto 100) - default
@@ -164,8 +164,8 @@ zipurl_ratio = 25
 """
 #  Database record distribution parameters - defaults
 """
-name_dbratio = 25
-zip_dbratio = 25
+name_dbratio = 5
+zip_dbratio = 5
 
 def setup():
   """
