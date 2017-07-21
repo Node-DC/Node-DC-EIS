@@ -134,7 +134,7 @@ def calculate(response_array):
     max_resp = np.amax(respa)
     mean_resp = np.mean(respa)
 
-def post_process(temp_log,output_file,results_dir,interval,memlogfile,show_graph):
+def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
   """
   # Desc  : Main function for post processing of log file to summarize the results.
   #         Calculates MIN, MAX,MEAN response time, throughput, 
@@ -220,7 +220,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,show_graph
   print ("[%s] Post processing is done.\n" % (util.get_current_time()))
   processed_file.flush()
 
-  if show_graph:
+  if not no_graph:
     #plot graphs. Plots three graphs, latency graph, throughput graph and a memory usage graph. These files are stored in the result directory  
     print ("[%s] Plotting graphs." % (util.get_current_time()))
     #write_arr = list(range(int(abs_start), int(end_time), interval))
@@ -269,7 +269,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,show_graph
         print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(results_dir,'memory_usage.png')))
     print ("[%s] Plotting graphs done." % (util.get_current_time()))
   
-def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance,show_graph):
+def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance,no_graph):
     """
     # Desc  : Main function which handles all the Output Processing
     #         This function is run by the Child Function
@@ -283,6 +283,6 @@ def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_
     if multiple_instance:
       util.create_indicator_file(os.path.dirname(os.path.dirname(results_dir)),"done_processing", instance_id, "")
     # #Post Processing Function
-    post_process(temp_log,output_file,results_dir,interval,memlogfile,show_graph)
+    post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph)
     print ("[%s] Exiting process for post processing." % (util.get_current_time()))
     sys.exit(0)

@@ -68,7 +68,7 @@ server_port = "9000"
 urllist= []
 memstat_interval = 3
 memlogfile = "memlog_file"
-show_graph = 1 #if set to 0, output graphs will not be generated.
+no_graph = True #if set to True, output graphs will not be generated.
 
 i = datetime.now() 
 directory = i.strftime('%H-%M-%S_%m-%d-%Y')
@@ -228,13 +228,13 @@ def arg_parse():
   global output_file
   global multiple_instance
   global run_mode
-  global show_graph
+  global no_graph
 
   print ("[%s] Parsing arguments." % (util.get_current_time()))
   parser = argparse.ArgumentParser()
   parser.add_argument('-id', '--instanceID', dest="id",
                   help='Instance ID')
-  parser.add_argument('-g', '--showgraph', dest="showgraph",
+  parser.add_argument('-ng', '--nograph', action="store_true",
                   help='Show graph option')
   parser.add_argument('-m', '--multiple', action="store_true",
                   help='Multiple instance run')
@@ -434,8 +434,8 @@ def arg_parse():
   if(options.multiple):
     multiple_instance = True
 
-  if(options.showgraph):
-    show_graph = int(options.showgraph)
+  if(options.nograph):
+    no_graph = True
 
   if(options.MT_interval) :
     MT_interval = int(options.MT_interval)
@@ -492,7 +492,6 @@ def arg_parse():
   if int(concurrency) > int(request):
     print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests"
     concurrency = request
-
 
   #Setup function, create logdir, etc
   setup()
@@ -998,7 +997,7 @@ def timebased_run(pool):
 
   #Spin Another Process to do processing of Data
   post_processing = Process(target=process_time_based_output,args=(log_dir,interval,rampup_rampdown,MT_interval,temp_log,output_file,memlogfile,instance_id,
-    multiple_instance,show_graph))
+    multiple_instance,no_graph))
   post_processing.start()
   print ("[%s] Starting time based run." % (util.get_current_time()))
   if ramp:
@@ -1156,7 +1155,7 @@ def post_process_request_based_data(temp_log,output_file):
   logfile.close()
   processed_file.flush() 
   processed_file.close()
-  if show_graph:
+  if not no_graph:
     plot_graph_request_based_run(output_file)
   print ("[%s] Post processing is done.\n" % (util.get_current_time()))
   return

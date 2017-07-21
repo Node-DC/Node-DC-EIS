@@ -119,7 +119,7 @@ def process_summary(RTdatafile_list):
 		if post_process_done:
 			throughput_total=print_throughput_summary(RTdatafile_list)
 			print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_total)
-			if show_graph:
+			if not no_graph:
 				alldone=True 
 				thread_latency.join() 
 				plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_arr)
@@ -441,12 +441,13 @@ def print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughpu
 		writer.writerows(izip(write_arr,min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_arr)) 
 
 if __name__ == '__main__':
+	no_graph = False
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-i', '--instances', dest="instances",
                   help='Total instances')
 	parser.add_argument('-dir', '--directory', dest="rundir",
                   help='Run directory')
-	parser.add_argument('-g', '--showgraph', dest="showgraph",
+	parser.add_argument('-ng', '--nograph', action="store_true",
                   help='Show graph option')
 	options = parser.parse_args()
 	if((not options.instances) or (not options.rundir)):
@@ -454,9 +455,9 @@ if __name__ == '__main__':
 		sys.exit(1)
 	instances = options.instances
 	rundir = options.rundir
-	if(options.showgraph):
-		show_graph = int(options.showgraph)
-	if show_graph:
+	if(options.nograph):
+		no_graph = options.nograph
+	if not no_graph:
 		thread_latency = Thread(target = show_live_graph)
 		thread_latency.start()
 	read_syncfile()
