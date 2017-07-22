@@ -68,7 +68,7 @@ server_port = "9000"
 urllist= []
 memstat_interval = 3
 memlogfile = "memlog_file"
-no_graph = True #if set to True, output graphs will not be generated.
+no_graph = False #if set to True, output graphs will not be generated.
 
 i = datetime.now() 
 directory = i.strftime('%H-%M-%S_%m-%d-%Y')

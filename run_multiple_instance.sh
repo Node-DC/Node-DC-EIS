@@ -20,7 +20,7 @@ remote_work_dir="$HOME/Node-DC-EIS-multiple/multiple-instance-`date +%Y%m%d%H%M%
 log_dir_name=instance_log
 num_instances=2 #must match with the number of blocks in the input_config_file
 cpu_count=0 #cpu count for node server 
-no_graph=true #if true, output graphs will not be generated
+no_graph=false #if true, output graphs will not be generated
 
 ##################################################################################
 # No change required below this line
