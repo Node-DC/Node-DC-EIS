@@ -20,6 +20,7 @@ remote_work_dir="$HOME/Node-DC-EIS-multiple/multiple-instance-`date +%Y%m%d%H%M%
 log_dir_name=instance_log
 num_instances=2 #must match with the number of blocks in the input_config_file
 cpu_count=0 #cpu count for node server 
+no_graph=false #if true, output graphs will not be generated
 
 ##################################################################################
 # No change required below this line
@@ -606,7 +607,11 @@ start_clients(){
     logfile="${log_dir}/${current_time}-instance${i}.log"
     print_master_log "Starting client instance$i"
     client_config_file="config${i}.json"
-    python -u runspec.py -f "${client_config_file}" -m -id "$i" -dir "$run_dir" >> "$logfile" 2>&1 &
+    if $no_graph ; then
+      python -u runspec.py -f "${client_config_file}" -m -id "$i" -dir "$run_dir" --nograph >> "$logfile" 2>&1 &
+    else
+      python -u runspec.py -f "${client_config_file}" -m -id "$i" -dir "$run_dir" >> "$logfile" 2>&1 &
+    fi
     sleep 1
   done
   create_startfile "$srv_instances"
@@ -650,7 +655,11 @@ start_postprocess(){
       break
     fi
   done
-  python -u ${client_workdir}/multiple_instance_post_process.py "$instances" "$run_dir"
+  if $no_graph ; then
+    python -u ${client_workdir}/multiple_instance_post_process.py -i "$instances" -dir "$run_dir" --nograph
+  else
+    python -u ${client_workdir}/multiple_instance_post_process.py -i "$instances" -dir "$run_dir"
+  fi
 }
 
 #stops server and mongodb instances

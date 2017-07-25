@@ -68,6 +68,7 @@ server_port = "9000"
 urllist= []
 memstat_interval = 3
 memlogfile = "memlog_file"
+no_graph = False #if set to True, output graphs will not be generated.
 
 i = datetime.now() 
 directory = i.strftime('%H-%M-%S_%m-%d-%Y')
@@ -227,11 +228,14 @@ def arg_parse():
   global output_file
   global multiple_instance
   global run_mode
+  global no_graph
 
   print ("[%s] Parsing arguments." % (util.get_current_time()))
   parser = argparse.ArgumentParser()
   parser.add_argument('-id', '--instanceID', dest="id",
                   help='Instance ID')
+  parser.add_argument('-ng', '--nograph', action="store_true",
+                  help='Show graph option')
   parser.add_argument('-m', '--multiple', action="store_true",
                   help='Multiple instance run')
   parser.add_argument('-dir', '--directory', dest="rundir",
@@ -284,15 +288,6 @@ def arg_parse():
   options = parser.parse_args()
 
   print('Input options config files: %s' % options.config)
-
-  if(options.id):
-    instance_id = options.id
-  if(options.rundir):
-    rundir = options.rundir
-  if(options.output_filename):
-    output_file = options.output_filename
-  if(options.multiple):
-    multiple_instance = True
 
   #parse configuration file
   if(options.config) :
@@ -427,33 +422,61 @@ def arg_parse():
       print("Error: %s File not found." % options.config)
       return None
 
+  if(options.id):
+    instance_id = options.id
+
+  if(options.rundir):
+    rundir = options.rundir
+
+  if(options.output_filename):
+    output_file = options.output_filename
+
+  if(options.multiple):
+    multiple_instance = True
+
+  if(options.nograph):
+    no_graph = True
+
   if(options.MT_interval) :
     MT_interval = int(options.MT_interval)
+
   if(options.request) :
     request = options.request
+
   if(options.concurrency) :
     concurrency = options.concurrency
+
   if(options.interval) :
     interval = int(options.interval)
+
   if(options.rampup_rampdown) :
     rampup_rampdown = options.rampup_rampdown
     ramp = 1
+
   if(options.run_mode) :
     run_mode = int(options.run_mode)
+
   if(options.templogfile) :
     temp_log = options.templogfile
+
   if(options.dbcount) :
     dbrecord_count = options.dbcount
+
   if(options.idurl_ratio) :
     idurl_ratio = options.idurl_ratio
+
   if(options.nameurl_ratio) :
     nameurl_ratio = options.nameurl_ratio
+
   if(options.zipurl_ratio) :
     zipurl_ratio = options.zipurl_ratio
+
   if(options.name_dbratio) :
     name_dbratio = options.name_dbratio
+
   if(options.zip_dbratio) :
     zip_dbratio = options.zip_dbratio
+
   if options.html:
     use_html = options.html
 
@@ -469,7 +492,6 @@ def arg_parse():
   if int(concurrency) > int(request):
     print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests"
     concurrency = request
-
 
   #Setup function, create logdir, etc
   setup()
@@ -974,7 +996,8 @@ def timebased_run(pool):
   request_index = 0 # Initializing the Request Counter to 0
 
   #Spin Another Process to do processing of Data
-  post_processing = Process(target=process_time_based_output,args=(log_dir,interval,rampup_rampdown,MT_interval,temp_log,output_file,memlogfile,instance_id,multiple_instance))
+  post_processing = Process(target=process_time_based_output,args=(log_dir,interval,rampup_rampdown,MT_interval,temp_log,output_file,memlogfile,instance_id,
+    multiple_instance,no_graph))
   post_processing.start()
   print ("[%s] Starting time based run." % (util.get_current_time()))
   if ramp:
@@ -1132,7 +1155,8 @@ def post_process_request_based_data(temp_log,output_file):
   logfile.close()
   processed_file.flush() 
   processed_file.close()
-  plot_graph_request_based_run(output_file)
+  if not no_graph:
+    plot_graph_request_based_run(output_file)
   print ("[%s] Post processing is done.\n" % (util.get_current_time()))
   return
 

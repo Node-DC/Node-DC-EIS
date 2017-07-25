@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import sys
 import os
 import csv
@@ -116,13 +117,13 @@ def process_summary(RTdatafile_list):
 			else:
 				post_process_done=False
 		if post_process_done:
-			alldone=True 
-			thread_latency.join() 
-			plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_arr)
-			plot_throughputgraph(throughput_arr,write_arr)
 			throughput_total=print_throughput_summary(RTdatafile_list)
 			print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_total)
-			print ("[%s] Exiting live graph thread." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+			if not no_graph:
+				alldone=True 
+				thread_latency.join() 
+				plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_arr)
+				plot_throughputgraph(throughput_arr,write_arr)
 			break
 
 def show_live_graph():
@@ -335,7 +336,6 @@ def print_throughput_summary(RTdatafile_list):
 	for i in range(0,int(instances)):
 		throughput_filename = os.path.join(os.path.dirname(RTdatafile_list[i]),"throughput_info.txt")
 		if os.path.exists(throughput_filename):
-			print "Opening " +str(throughput_filename)
 			with open(throughput_filename) as throughput_file:
 				for line in throughput_file:
 					if "Throughput" in line:
@@ -441,10 +441,25 @@ def print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughpu
 		writer.writerows(izip(write_arr,min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_arr)) 
 
 if __name__ == '__main__':
-	thread_latency = Thread(target = show_live_graph)
-	thread_latency.start()
-	instances = sys.argv[1]
-	rundir = sys.argv[2]
+	no_graph = False
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-i', '--instances', dest="instances",
+                  help='Total instances')
+	parser.add_argument('-dir', '--directory', dest="rundir",
+                  help='Run directory')
+	parser.add_argument('-ng', '--nograph', action="store_true",
+                  help='Show graph option')
+	options = parser.parse_args()
+	if((not options.instances) or (not options.rundir)):
+		print "Required fields missing in multiple instance post process file.Post processing failed"
+		sys.exit(1)
+	instances = options.instances
+	rundir = options.rundir
+	if(options.nograph):
+		no_graph = options.nograph
+	if not no_graph:
+		thread_latency = Thread(target = show_live_graph)
+		thread_latency.start()
 	read_syncfile()
 
 

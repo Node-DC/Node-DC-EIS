@@ -134,7 +134,7 @@ def calculate(response_array):
     max_resp = np.amax(respa)
     mean_resp = np.mean(respa)
 
-def post_process(temp_log,output_file,results_dir,interval,memlogfile):
+def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
   """
   # Desc  : Main function for post processing of log file to summarize the results.
   #         Calculates MIN, MAX,MEAN response time, throughput, 
@@ -220,55 +220,56 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile):
   print ("[%s] Post processing is done.\n" % (util.get_current_time()))
   processed_file.flush()
 
-  #plot graphs. Plots three graphs, latency graph, throughput graph and a memory usage graph. These files are stored in the result directory  
-  print ("[%s] Plotting graphs." % (util.get_current_time()))
-  #write_arr = list(range(int(abs_start), int(end_time), interval))
-  plt.figure("Response Time")
-  plt.grid(True)
-  plt.plot(write_arr,min_arr, linewidth=1, linestyle='-', marker='.', color='b', label='Min resp')
-  plt.plot(write_arr,mean_arr, linewidth=1, linestyle='-', marker='.', color='y', label='Mean Resp')
-  plt.plot(write_arr,arr_95, linewidth=1, linestyle='-', marker='.', color='m', label='95 percentile')
-  plt.plot(write_arr,arr_99, linewidth=1, linestyle='-', marker='.', color='r', label='99 percentile')
-  plt.plot(write_arr,max_arr, linewidth=1, linestyle='-', marker='.', color='g', label='Max Resp')
+  if not no_graph:
+    #plot graphs. Plots three graphs, latency graph, throughput graph and a memory usage graph. These files are stored in the result directory  
+    print ("[%s] Plotting graphs." % (util.get_current_time()))
+    #write_arr = list(range(int(abs_start), int(end_time), interval))
+    plt.figure("Response Time")
+    plt.grid(True)
+    plt.plot(write_arr,min_arr, linewidth=1, linestyle='-', marker='.', color='b', label='Min resp')
+    plt.plot(write_arr,mean_arr, linewidth=1, linestyle='-', marker='.', color='y', label='Mean Resp')
+    plt.plot(write_arr,arr_95, linewidth=1, linestyle='-', marker='.', color='m', label='95 percentile')
+    plt.plot(write_arr,arr_99, linewidth=1, linestyle='-', marker='.', color='r', label='99 percentile')
+    plt.plot(write_arr,max_arr, linewidth=1, linestyle='-', marker='.', color='g', label='Max Resp')
 
-  plt.title('Response time')
-  plt.ylabel('Response time in s')
-  plt.xlabel('Time in s')
-  plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=5,prop={'size':10})
-  plt.tight_layout(pad=3)
-  plt.savefig(os.path.join(results_dir, 'resptime.png'))
-  print("The response-time graph is located at  " +os.path.abspath(os.path.join(results_dir,'resptime.png')))
+    plt.title('Response time')
+    plt.ylabel('Response time in s')
+    plt.xlabel('Time in s')
+    plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=5,prop={'size':10})
+    plt.tight_layout(pad=3)
+    plt.savefig(os.path.join(results_dir, 'resptime.png'))
+    print("The response-time graph is located at  " +os.path.abspath(os.path.join(results_dir,'resptime.png')))
 
-  plt.figure("Throughput")
-  plt.grid(True)
-  plt.plot(write_arr,throughput_arr, linewidth=2, linestyle='-', marker='.', color='r', label='throughput')
-  plt.title('Throughput')
-  plt.ylabel('Throughput in req/s')
-  plt.xlabel('Time in s')
-  plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=1,prop={'size':10})
-  plt.tight_layout(pad=3)
-  plt.savefig(os.path.join(results_dir, 'throughput.png')) 
-  print("\nThe throughput graph is located at  " +os.path.abspath(os.path.join(results_dir,'throughput.png')))
+    plt.figure("Throughput")
+    plt.grid(True)
+    plt.plot(write_arr,throughput_arr, linewidth=2, linestyle='-', marker='.', color='r', label='throughput')
+    plt.title('Throughput')
+    plt.ylabel('Throughput in req/s')
+    plt.xlabel('Time in s')
+    plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=1,prop={'size':10})
+    plt.tight_layout(pad=3)
+    plt.savefig(os.path.join(results_dir, 'throughput.png')) 
+    print("\nThe throughput graph is located at  " +os.path.abspath(os.path.join(results_dir,'throughput.png')))
 
-  if os.path.exists(os.path.join(results_dir,memlogfile+".csv")):
-   with open(os.path.join(results_dir,memlogfile+".csv")) as f:
-      reader=csv.reader(f, delimiter=',')
-      write_arr, rss_values, heapTotal_values, heapUsed_values = zip(*reader)
-      plt.figure("Memory usage")
-      plt.grid(True)
-      plt.plot(write_arr,rss_values, linewidth=1, linestyle='-', marker='.', color='r', label='rss')
-      plt.plot(write_arr,heapTotal_values, linewidth=1, linestyle='-', marker='.', color='b', label='heapTotal')
-      plt.plot(write_arr,heapUsed_values, linewidth=1, linestyle='-', marker='.', color='g', label='heapUsed')
-      plt.title('Memory usage')
-      plt.ylabel('Memory used in M')
-      plt.xlabel('Time in s')
-      plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=3)
-      plt.tight_layout(pad=3)
-      plt.savefig(os.path.join(results_dir,'memory_usage.png'))
-      print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(results_dir,'memory_usage.png')))
-  print ("[%s] Plotting graphs done." % (util.get_current_time()))
+    if os.path.exists(os.path.join(results_dir,memlogfile+".csv")):
+      with open(os.path.join(results_dir,memlogfile+".csv")) as f:
+        reader=csv.reader(f, delimiter=',')
+        write_arr, rss_values, heapTotal_values, heapUsed_values = zip(*reader)
+        plt.figure("Memory usage")
+        plt.grid(True)
+        plt.plot(write_arr,rss_values, linewidth=1, linestyle='-', marker='.', color='r', label='rss')
+        plt.plot(write_arr,heapTotal_values, linewidth=1, linestyle='-', marker='.', color='b', label='heapTotal')
+        plt.plot(write_arr,heapUsed_values, linewidth=1, linestyle='-', marker='.', color='g', label='heapUsed')
+        plt.title('Memory usage')
+        plt.ylabel('Memory used in M')
+        plt.xlabel('Time in s')
+        plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=3)
+        plt.tight_layout(pad=3)
+        plt.savefig(os.path.join(results_dir,'memory_usage.png'))
+        print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(results_dir,'memory_usage.png')))
+    print ("[%s] Plotting graphs done." % (util.get_current_time()))
   
-def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance):
+def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance,no_graph):
     """
     # Desc  : Main function which handles all the Output Processing
     #         This function is run by the Child Function
@@ -282,6 +283,6 @@ def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_
     if multiple_instance:
       util.create_indicator_file(os.path.dirname(os.path.dirname(results_dir)),"done_processing", instance_id, "")
     # #Post Processing Function
-    post_process(temp_log,output_file,results_dir,interval,memlogfile)
+    post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph)
     print ("[%s] Exiting process for post processing." % (util.get_current_time()))
     sys.exit(0)
