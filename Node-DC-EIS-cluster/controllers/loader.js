@@ -172,7 +172,7 @@ exports.initDb = function initDB(req, res) {
   var zipcode_current_index=0;
   var lastname_current_index=0;
   var original_lname_len=lnames.length;
-  if (lnames.length < lastnamecount) {
+  if (lnames.length <= lastnamecount) {
     var new_namecount = lastnamecount - lnames.length;
     var idx = 0;
     for (var ii=0; ii < new_namecount; ii++) {
