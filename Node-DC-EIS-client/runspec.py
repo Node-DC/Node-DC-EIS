@@ -367,14 +367,14 @@ def arg_parse():
             server_root_endpoint = json_data["client_params"]["root_endpoint"]
 
           #client config parameters
-          if "idurl_ratio" in json_data["client_params"]:
-            idurl_ratio = json_data["client_params"]["idurl_ratio"]
+          if "idurl_count" in json_data["client_params"]:
+            idurl_ratio = json_data["client_params"]["idurl_count"]
 
-          if "nameurl_ratio" in json_data["client_params"]:
-            nameurl_ratio = json_data["client_params"]["nameurl_ratio"]
+          if "nameurl_count" in json_data["client_params"]:
+            nameurl_ratio = json_data["client_params"]["nameurl_count"]
 
-          if "zipurl_ratio" in json_data["client_params"]:
-            zipurl_ratio = json_data["client_params"]["zipurl_ratio"]
+          if "zipurl_count" in json_data["client_params"]:
+            zipurl_ratio = json_data["client_params"]["zipurl_count"]
 
           if "url_file" in json_data["client_params"]:
             url_file = json_data["client_params"]["url_file"]
