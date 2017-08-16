@@ -46,7 +46,7 @@ def record_end_time():
   end_MT = time.time()
   
 
-def printlog(log,phase,request_num,url,start,end,response_time):
+def printlog(log,phase,url_type,request_num,url,start,end,response_time,total_length):
   """
   # Desc  : Function to Generate per request details in a templog file
   #         checks all the requests in MT phase are within the start and end time 
@@ -63,7 +63,7 @@ def printlog(log,phase,request_num,url,start,end,response_time):
       phase = "RD"
     else:
       MT_req = MT_req + 1
-  log_str = phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)
+  log_str = phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)+","+str(total_length)+","+str(url_type)
   print >> log, log_str
   log.flush()
 

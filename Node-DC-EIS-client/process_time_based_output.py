@@ -26,6 +26,7 @@ matplotlib.use(matplotlib.get_backend())
 import matplotlib.pyplot as plt
 import util
 import math
+from collections import Counter
 
 #globals
 min_resp =0
@@ -83,12 +84,15 @@ def process_data(temp_file,temp_log,results_dir,file_cnt,interval):
     #         all the templog files are present
     # Output: Generates a summary output file with all the processed data
     """
-    col_st = 3; #column number of start time
-    col_et = 4
-    col_rt = 5; #column number of response time
-    col_url = 2; #column number of url
+    col_st = 3 #column number of start time
+    col_et = 4 #column number of end time
+    col_rt = 5 #column number of response time
+    col_ct = 6 #column number of total data length
+    col_type = 7 #column number of url type
     read_time = []
     res_arr = []
+    total_length = []
+    url_type = []
     abs_start = 0
     RUreq = 0
     MTreq = 0
@@ -98,6 +102,8 @@ def process_data(temp_file,temp_log,results_dir,file_cnt,interval):
     for row in sortedlist:
       read_time.append(float(row[col_et]))
       res_arr.append(float(row[col_rt]))
+      total_length.append(int(row[col_ct]))
+      url_type.append(int(row[col_type]))
       if "RU" in row[0]:
         RUreq = RUreq + 1 
       if "MT" in row[0]: 
@@ -107,10 +113,14 @@ def process_data(temp_file,temp_log,results_dir,file_cnt,interval):
       if abs_start == 0:
         abs_start = float(row[col_st])
     if(len(res_arr) > 0):
-      calculate(res_arr) 
+      calculate(res_arr)
+      total_length.sort()
+      len_arr = np.array(total_length)
+      mean_len = np.mean(len_arr)
+      url_count = Counter(url_type)
       print >> temp_log,str(file_cnt)+","+str(min_resp)+","+str(mean_resp)+","+str(percent95)+","+str(percent99)+","\
       +str(max_resp)+","+str(abs_start)+","+str(max(read_time))+","+str(RUreq)+","+str(MTreq)+","+str(RDreq)+","+str(len(res_arr))+","+\
-      str(len(res_arr)/int(interval))
+      str(len(res_arr)/int(interval))+","+str(mean_len)+","+str(url_count[1])+","+str(url_count[2])+","+str(url_count[3])
     print ("[%s] Writing tempfile_[%d] data to summary file." % (util.get_current_time(), file_cnt))
     temp_log.flush()
 
