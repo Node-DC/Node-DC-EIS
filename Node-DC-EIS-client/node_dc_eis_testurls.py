@@ -52,6 +52,7 @@ timeout_err = 0
 conn_err = 0
 http_err = 0
 bad_url = 0
+static_post = 0
 
 s = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=20)
@@ -201,12 +202,15 @@ def post_url(url,url_type,request_num,log,phase):
   global http_err
   global bad_url
   global post_datalist
+  global static_post
   header_len = 0
   content_len = 0
   r = None
   post_data = static_postdata
   if post_datalist:
-    post_data = post_datalist[0] 
+    post_data = post_datalist[0]
+  else:
+    static_post = static_post + 1
   start = time.time()
   end = start
   for i in range(100):
