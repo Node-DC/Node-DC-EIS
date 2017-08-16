@@ -193,9 +193,9 @@ def calculate_minresp(RTdata_dict,min_samplelogs):
  	#  Input : Dictionary with processed data from each instance, Minimum number of samples that has been processed
   	#  Output: Returns average minimum-response-time for all the instances
   	"""
-	min_avglist = []
-	min_local_list = []
+  	min_avglist = []
 	for i in range(0,min_samplelogs):
+		min_local_list = []
 		ignore_minvalue = False
 		min_avg = 0
 		local_instances = 0
@@ -215,9 +215,9 @@ def calculate_maxresp(RTdata_dict,min_samplelogs):
  	#  Input : Dictionary with processed data from each instance, Minimum number of samples that has been processed
   	#  Output: Returns average maximum-response-time list for all the instances
   	"""
-	max_avglist = []
-	max_local_list = []
+  	max_avglist = []
 	for i in range(0,min_samplelogs):
+		max_local_list = []
 		ignore_maxvalue = False
 		max_avg = 0
 		local_instances = 0
