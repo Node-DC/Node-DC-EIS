@@ -130,7 +130,7 @@ Accept: {}
       if "content-length" in line.lower():
         sock_content_len = int(line.split(':')[1].strip())
     http_status = data[9:12]
-    if http_status[0] != '3' or http_status[0] != '2':
+    if http_status[0] != '2':
       http_err += 1
 
   except socket.timeout:
