@@ -1276,10 +1276,11 @@ def print_summary():
         print >> processed_file, "Chakracore version: " +str(chakracore_ver)
 
   print >> processed_file, "\n====Validation and Error Summary===="
-  print >> processed_file, "Timeout Error = " + str(timeout_err)
-  print >> processed_file, "Connection Error = " + str(conn_err)
-  print >> processed_file, "Http Error = " + str(http_err)
-  print >> processed_file, "Bad Url Error = " + str(bad_url)
+  print >> processed_file, "Timeout Error = " + str(node_dc_eis_testurls.timeout_err)
+  print >> processed_file, "Connection Error = " + str(node_dc_eis_testurls.conn_err)
+  print >> processed_file, "Http Error = " + str(node_dc_eis_testurls.http_err)
+  print >> processed_file, "Bad Url Error = " + str(node_dc_eis_testurls.bad_url)
+  print >> processed_file, "Static posts = " + str(node_dc_eis_testurls.static_post) 
   print >> processed_file, "\n====Validation Report===="
   print >> processed_file, "Database Validation:"
   print >> processed_file, "Actual database record count: "+str(dbrecord_count)
