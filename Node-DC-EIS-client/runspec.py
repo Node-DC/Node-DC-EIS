@@ -31,9 +31,6 @@ import time
 import traceback
 import urlparse
 from urlparse import urlsplit
-import matplotlib
-matplotlib.use(matplotlib.get_backend())
-import matplotlib.pyplot as plt
 from collections import OrderedDict 
 from collections import Counter
 from datetime import datetime
@@ -1316,6 +1313,10 @@ def plot_graph_request_based_run(output_file):
   # Input : Output file
   # Output: All resulted files will be stored in the result directory
   """
+  import matplotlib
+  matplotlib.use(matplotlib.get_backend())
+  import matplotlib.pyplot as plt
+
   start_time = []
   response_time = []
   rps = []

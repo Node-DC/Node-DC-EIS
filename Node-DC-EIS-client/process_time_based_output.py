@@ -21,9 +21,6 @@ import numpy as np
 import operator
 import requests
 import json
-import matplotlib
-matplotlib.use(matplotlib.get_backend())
-import matplotlib.pyplot as plt
 import util
 import math
 from collections import Counter
@@ -231,6 +228,10 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
   processed_file.flush()
 
   if not no_graph:
+    import matplotlib
+    matplotlib.use(matplotlib.get_backend())
+    import matplotlib.pyplot as plt
+
     #plot graphs. Plots three graphs, latency graph, throughput graph and a memory usage graph. These files are stored in the result directory  
     print ("[%s] Plotting graphs." % (util.get_current_time()))
     #write_arr = list(range(int(abs_start), int(end_time), interval))
