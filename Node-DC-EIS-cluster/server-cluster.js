@@ -40,8 +40,9 @@ function startSingleNodeInstance() {
   mongoose.connect(appConfig.db_url);
   var db = mongoose.connection;
 
-  db.on('error', function() {
+  db.on('error', function(err) {
     // connection error!
+    console.log(err.message);
     console.log('Mongoose connection error. Server exiting');
     process.exit(0);
   });
