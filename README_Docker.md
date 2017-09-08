@@ -58,6 +58,15 @@ _If using proxy, please add a build-arg for the http_proxy: `$ docker build -t i
 
 2. Run the node container
 ```
+$ docker run -itd -p $NODE_SERVER_PORT:9000 --net node-dc-net -e CPU_COUNT=${cpu_count} -e DB_URL=mongodb://${db_ip}:$DB_PORT/node-dc-eis-db-$NODE_SERVER_PORT --name cnodemongo-$NODE_SERVER_PORT inode
+```
+* NODE_SERVER_PORT and DB_PORT are any available ports for the node server and mongo database that you choose to publish respectively. Be sure to set these values in your environment in your preferred way (a script or export commands).
+* The environment variables, CPU_COUNT and DB_URL are passed as parameters here, and you are free to configure it to the mode you want. The default CPU_COUNT is set to 0 for monolithic mode, and DB_URL is set to the localhost database in Node-DC-EIS-cluster/config/configuration.js
+* NODE_SERVER_PORT:9000 maps the NODE_SERVER_PORT of your container to 9000 on localhost making the container accessible to host for communication
+
+
+If you were to hard code the above variables, it might looks something like:
+```
 $ docker run -itd -p 9000:9000 --net node-dc-net -e CPU_COUNT=0 -e DB_URL=mongodb://cmongo:27017/node-dc-eis-db-9000 --name cnodemongo-9000 inode
 
 ```
@@ -82,9 +91,15 @@ $ exit
 Check for your node-database connection. It's a good idea to ensure that you're able to reach the database through your container
 
 ```
-$ curl --noproxy cmongo --silent http://cmongo:27017/
+$curl --noproxy ${db_ip} --silent http://${db_ip}:$NODE_SERVER_PORT/
 ```
 Should return OK
+
+You can also use the db host name to perform this check: 
+```
+$ curl --noproxy cmongo --silent http://cmongo:27017/
+```
+
 
 Building and running the node container (microservices mode - skip if you did cluster mode)
 ------------------------------------------------------------
@@ -141,7 +156,7 @@ Execute the client container bash
 ```Bash
 $ docker exec -it cclient bash
 ```
-Go to `Node-DC-EIS-client/config.json` and change `server_ipaddress` to node container's IP. You can retrieve the node container's IP similar to mongo's. Simply type `$ docker network inspect node-dc-net` and look for cnode's IPv4 address and put the same in your config file (Note that for microservices, it is better to keep the record count to 9000 or less to get more stable scores).
+Go to `Node-DC-EIS-client/config.json` and change `server_ipaddress` to node container's IP. You can retrieve the node container's IP similar to mongo's by typing `$ docker network inspect node-dc-net` and looking for `cnodemongo`'s IPv4 address and put the same in your config file (Note that for microservices, it is better to keep the record count to 9000 or less to get more stable scores).
 
 You are now set to run the client from inside the docker client container:
 ```
