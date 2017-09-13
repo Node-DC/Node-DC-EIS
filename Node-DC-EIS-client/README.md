@@ -26,10 +26,11 @@ This client directory contains,
         - You will need to change the IP address and port of your server in ‘runspec.py’ or in config.json. 
         - Takes additional command line parameters.
         - Default parameters in the script or can be read from a configuration file with -f/--config option (command line has the maximum priority).
-        -h gives the available options.
+        - h gives the available options.
+        - Configurable option -g or --showgraph for graph generation(1 to generate output graphs or 0 for no graph)
         - the server ip address and port can be changed in config.json or directly in runspec.py
-        -This script sends requests using python's requests module, generates log file and generates output graphs.
- 
+        - This script sends requests using python's requests module, generates log file and generates output graphs.
+
  
 ## Client result files
    - A temporary log file (request-based-run) which contains details like request-number,write-time, read-time, response-time for every request.

@@ -31,9 +31,6 @@ import time
 import traceback
 import urlparse
 from urlparse import urlsplit
-import matplotlib
-matplotlib.use(matplotlib.get_backend())
-import matplotlib.pyplot as plt
 from collections import OrderedDict 
 from collections import Counter
 from datetime import datetime
@@ -59,7 +56,7 @@ import util
 
 temp_log = "RTdata"
 request = 10000
-MT_interval = 60
+MT_interval = 100
 concurrency = 200
 rampup_rampdown = 10
 total_urls = 100
@@ -68,6 +65,7 @@ server_port = "9000"
 urllist= []
 memstat_interval = 3
 memlogfile = "memlog_file"
+no_graph = False #if set to True, output graphs will not be generated.
 
 i = datetime.now() 
 directory = i.strftime('%H-%M-%S_%m-%d-%Y')
@@ -150,9 +148,9 @@ checkdb_url = server_url + checkdb_endpoint
 """
 #  Type of URL ratio - defaults
 """
-get_ratio = 100
-post_ratio = 0
-delete_ratio = 0
+get_ratio = 90
+post_ratio = 5
+delete_ratio = 5
 
 """
 #  GET URL distribution (% of total urls - make sure this adds upto 100) - default
@@ -164,8 +162,8 @@ zipurl_ratio = 25
 """
 #  Database record distribution parameters - defaults
 """
-name_dbratio = 25
-zip_dbratio = 25
+name_dbratio = 5
+zip_dbratio = 5
 
 def setup():
   """
@@ -227,11 +225,14 @@ def arg_parse():
   global output_file
   global multiple_instance
   global run_mode
+  global no_graph
 
   print ("[%s] Parsing arguments." % (util.get_current_time()))
   parser = argparse.ArgumentParser()
   parser.add_argument('-id', '--instanceID', dest="id",
                   help='Instance ID')
+  parser.add_argument('-ng', '--nograph', action="store_true",
+                  help='Show graph option')
   parser.add_argument('-m', '--multiple', action="store_true",
                   help='Multiple instance run')
   parser.add_argument('-dir', '--directory', dest="rundir",
@@ -284,15 +285,6 @@ def arg_parse():
   options = parser.parse_args()
 
   print('Input options config files: %s' % options.config)
-
-  if(options.id):
-    instance_id = options.id
-  if(options.rundir):
-    rundir = options.rundir
-  if(options.output_filename):
-    output_file = options.output_filename
-  if(options.multiple):
-    multiple_instance = True
 
   #parse configuration file
   if(options.config) :
@@ -372,14 +364,14 @@ def arg_parse():
             server_root_endpoint = json_data["client_params"]["root_endpoint"]
 
           #client config parameters
-          if "idurl_ratio" in json_data["client_params"]:
-            idurl_ratio = json_data["client_params"]["idurl_ratio"]
+          if "idurl_count" in json_data["client_params"]:
+            idurl_ratio = json_data["client_params"]["idurl_count"]
 
-          if "nameurl_ratio" in json_data["client_params"]:
-            nameurl_ratio = json_data["client_params"]["nameurl_ratio"]
+          if "nameurl_count" in json_data["client_params"]:
+            nameurl_ratio = json_data["client_params"]["nameurl_count"]
 
-          if "zipurl_ratio" in json_data["client_params"]:
-            zipurl_ratio = json_data["client_params"]["zipurl_ratio"]
+          if "zipurl_count" in json_data["client_params"]:
+            zipurl_ratio = json_data["client_params"]["zipurl_count"]
 
           if "url_file" in json_data["client_params"]:
             url_file = json_data["client_params"]["url_file"]
@@ -427,33 +419,61 @@ def arg_parse():
       print("Error: %s File not found." % options.config)
       return None
 
+  if(options.id):
+    instance_id = options.id
+
+  if(options.rundir):
+    rundir = options.rundir
+
+  if(options.output_filename):
+    output_file = options.output_filename
+
+  if(options.multiple):
+    multiple_instance = True
+
+  if(options.nograph):
+    no_graph = True
+
   if(options.MT_interval) :
     MT_interval = int(options.MT_interval)
+
   if(options.request) :
     request = options.request
+
   if(options.concurrency) :
     concurrency = options.concurrency
+
   if(options.interval) :
     interval = int(options.interval)
+
   if(options.rampup_rampdown) :
     rampup_rampdown = options.rampup_rampdown
     ramp = 1
+
   if(options.run_mode) :
     run_mode = int(options.run_mode)
+
   if(options.templogfile) :
     temp_log = options.templogfile
+
   if(options.dbcount) :
     dbrecord_count = options.dbcount
+
   if(options.idurl_ratio) :
     idurl_ratio = options.idurl_ratio
+
   if(options.nameurl_ratio) :
     nameurl_ratio = options.nameurl_ratio
+
   if(options.zipurl_ratio) :
     zipurl_ratio = options.zipurl_ratio
+
   if(options.name_dbratio) :
     name_dbratio = options.name_dbratio
+
   if(options.zip_dbratio) :
     zip_dbratio = options.zip_dbratio
+
   if options.html:
     use_html = options.html
 
@@ -469,7 +489,6 @@ def arg_parse():
   if int(concurrency) > int(request):
     print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests"
     concurrency = request
-
 
   #Setup function, create logdir, etc
   setup()
@@ -974,7 +993,8 @@ def timebased_run(pool):
   request_index = 0 # Initializing the Request Counter to 0
 
   #Spin Another Process to do processing of Data
-  post_processing = Process(target=process_time_based_output,args=(log_dir,interval,rampup_rampdown,MT_interval,temp_log,output_file,memlogfile,instance_id,multiple_instance))
+  post_processing = Process(target=process_time_based_output,args=(log_dir,interval,rampup_rampdown,MT_interval,temp_log,output_file,memlogfile,instance_id,
+    multiple_instance,no_graph))
   post_processing.start()
   print ("[%s] Starting time based run." % (util.get_current_time()))
   if ramp:
@@ -1132,7 +1152,8 @@ def post_process_request_based_data(temp_log,output_file):
   logfile.close()
   processed_file.flush() 
   processed_file.close()
-  plot_graph_request_based_run(output_file)
+  if not no_graph:
+    plot_graph_request_based_run(output_file)
   print ("[%s] Post processing is done.\n" % (util.get_current_time()))
   return
 
@@ -1252,10 +1273,11 @@ def print_summary():
         print >> processed_file, "Chakracore version: " +str(chakracore_ver)
 
   print >> processed_file, "\n====Validation and Error Summary===="
-  print >> processed_file, "Timeout Error = " + str(timeout_err)
-  print >> processed_file, "Connection Error = " + str(conn_err)
-  print >> processed_file, "Http Error = " + str(http_err)
-  print >> processed_file, "Bad Url Error = " + str(bad_url)
+  print >> processed_file, "Timeout Error = " + str(node_dc_eis_testurls.timeout_err)
+  print >> processed_file, "Connection Error = " + str(node_dc_eis_testurls.conn_err)
+  print >> processed_file, "Http Error = " + str(node_dc_eis_testurls.http_err)
+  print >> processed_file, "Bad Url Error = " + str(node_dc_eis_testurls.bad_url)
+  print >> processed_file, "Static posts = " + str(node_dc_eis_testurls.static_post) 
   print >> processed_file, "\n====Validation Report===="
   print >> processed_file, "Database Validation:"
   print >> processed_file, "Actual database record count: "+str(dbrecord_count)
@@ -1291,6 +1313,10 @@ def plot_graph_request_based_run(output_file):
   # Input : Output file
   # Output: All resulted files will be stored in the result directory
   """
+  import matplotlib
+  matplotlib.use(matplotlib.get_backend())
+  import matplotlib.pyplot as plt
+
   start_time = []
   response_time = []
   rps = []

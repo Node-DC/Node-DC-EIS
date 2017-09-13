@@ -171,6 +171,19 @@ exports.initDb = function initDB(req, res) {
   var e_count=0;
   var zipcode_current_index=0;
   var lastname_current_index=0;
+  var original_lname_len=lnames.length;
+  if (lnames.length <= lastnamecount) {
+    var new_namecount = lastnamecount - lnames.length;
+    var idx = 0;
+    for (var ii=0; ii < new_namecount; ii++) {
+      var new_name = lnames[idx]+ii.toString();
+      idx++;
+      if (idx > original_lname_len){
+        idx = 0;
+      }
+      lnames.push(new_name);
+     }
+  }
   for (var ii=0; ii < count; ii++) {
     //Build Employee record
     var employee = new Employee();
@@ -181,6 +194,7 @@ exports.initDb = function initDB(req, res) {
     if (lastname_current_index >= lnames.length) {
       lastname_current_index=0;
     }
+
     var lastname = lnames[lastname_current_index]; 
     lastname_current_index++;
 
@@ -195,7 +209,6 @@ exports.initDb = function initDB(req, res) {
     if (zipcode_current_index >= zipCodeArr.length) {
       zipcode_current_index=0;
     }
-
     var zipcode = zipCodeArr[zipcode_current_index]; 
     zipcode_current_index++;
        

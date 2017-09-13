@@ -27,7 +27,7 @@ Multi node run allows distributed testing/benchmarking. You can run multiple app
     ```
  - multiple_instance_post_process.py - Script to post process and summarize data from all the instances
     -  Post processes data from each instance to generate a summary data file.
-    -  Generates live throughput and response time graphs.
+    -  Generates live throughput and response time graphs (configurable through -g or -showgraph option. If set to 1 graphs are generated)
 
  - a results_multiple_instance will be created after the run which contains all the result directories for which are designated by the date and time stamp.
   - log directory with individual instance logs and master log designated by the date and time stamp.

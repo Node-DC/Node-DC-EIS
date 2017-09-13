@@ -14,6 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import argparse
 import sys
 import os
 import csv
@@ -116,13 +117,13 @@ def process_summary(RTdatafile_list):
 			else:
 				post_process_done=False
 		if post_process_done:
-			alldone=True 
-			thread_latency.join() 
-			plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_arr)
-			plot_throughputgraph(throughput_arr,write_arr)
 			throughput_total=print_throughput_summary(RTdatafile_list)
 			print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_total)
-			print ("[%s] Exiting live graph thread." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+			if not no_graph:
+				alldone=True 
+				thread_latency.join() 
+				plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_arr)
+				plot_throughputgraph(throughput_arr,write_arr)
 			break
 
 def show_live_graph():
@@ -192,9 +193,9 @@ def calculate_minresp(RTdata_dict,min_samplelogs):
  	#  Input : Dictionary with processed data from each instance, Minimum number of samples that has been processed
   	#  Output: Returns average minimum-response-time for all the instances
   	"""
-	min_avglist = []
-	min_local_list = []
+  	min_avglist = []
 	for i in range(0,min_samplelogs):
+		min_local_list = []
 		ignore_minvalue = False
 		min_avg = 0
 		local_instances = 0
@@ -214,9 +215,9 @@ def calculate_maxresp(RTdata_dict,min_samplelogs):
  	#  Input : Dictionary with processed data from each instance, Minimum number of samples that has been processed
   	#  Output: Returns average maximum-response-time list for all the instances
   	"""
-	max_avglist = []
-	max_local_list = []
+  	max_avglist = []
 	for i in range(0,min_samplelogs):
+		max_local_list = []
 		ignore_maxvalue = False
 		max_avg = 0
 		local_instances = 0
@@ -262,16 +263,17 @@ def calculate_95percentileresp(RTdata_dict,min_samplelogs):
   	"""
 	percentile95_avglist = []
 	for i in range(0,min_samplelogs):
-		percentile95_avg = 0
+		percentile95_total = 0
 		local_instances = 0
 		ignore_percentile95 = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
-				percentile95_avg = (percentile95_avg + float(RTdata_dict[key][i][2]))/local_instances
+				percentile95_total = percentile95_total + float(RTdata_dict[key][i][2])
 			else:
 				ignore_percentile95 = True
 		if ignore_percentile95 == False:
+			percentile95_avg = percentile95_total/local_instances
 			percentile95_avglist.append(percentile95_avg)
 	return percentile95_avglist
 
@@ -283,16 +285,17 @@ def calculate_99percentileresp(RTdata_dict,min_samplelogs):
   	"""
 	percentile99_avglist = []
 	for i in range(0,min_samplelogs):
-		percentile99_avg = 0
+		percentile99_total = 0
 		local_instances = 0
 		ignore_percentile99 = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
-				percentile99_avg = (percentile99_avg + float(RTdata_dict[key][i][3]))/local_instances
+				percentile99_total = percentile99_total + float(RTdata_dict[key][i][3])
 			else:
 				ignore_percentile99 = True
 		if ignore_percentile99 == False:
+			percentile99_avg = percentile99_total/local_instances
 			percentile99_avglist.append(percentile99_avg)
 	return percentile99_avglist
 
@@ -304,16 +307,17 @@ def calculate_throughput(RTdata_dict,min_samplelogs):
   	"""
 	throughput_avglist = []
 	for i in range(0,min_samplelogs):
-		throughput_avg = 0
+		throughput_total = 0
 		local_instances = 0
 		ignore_throughput = False
 		for key in RTdata_dict:
 			if i in RTdata_dict.get(key, {}):
 				local_instances = local_instances+1
-				throughput_avg = (throughput_avg + float(RTdata_dict[key][i][11]))/local_instances
+				throughput_total = throughput_total + float(RTdata_dict[key][i][11])
 			else:
 				ignore_throughput = True
 		if ignore_throughput == False:
+			throughput_avg = throughput_total/local_instances
 			throughput_avglist.append(throughput_avg)
 	return throughput_avglist
 
@@ -332,7 +336,6 @@ def print_throughput_summary(RTdatafile_list):
 	for i in range(0,int(instances)):
 		throughput_filename = os.path.join(os.path.dirname(RTdatafile_list[i]),"throughput_info.txt")
 		if os.path.exists(throughput_filename):
-			print "Opening " +str(throughput_filename)
 			with open(throughput_filename) as throughput_file:
 				for line in throughput_file:
 					if "Throughput" in line:
@@ -438,10 +441,25 @@ def print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughpu
 		writer.writerows(izip(write_arr,min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_arr)) 
 
 if __name__ == '__main__':
-	thread_latency = Thread(target = show_live_graph)
-	thread_latency.start()
-	instances = sys.argv[1]
-	rundir = sys.argv[2]
+	no_graph = False
+	parser = argparse.ArgumentParser()
+	parser.add_argument('-i', '--instances', dest="instances",
+                  help='Total instances')
+	parser.add_argument('-dir', '--directory', dest="rundir",
+                  help='Run directory')
+	parser.add_argument('-ng', '--nograph', action="store_true",
+                  help='Show graph option')
+	options = parser.parse_args()
+	if((not options.instances) or (not options.rundir)):
+		print "Required fields missing in multiple instance post process file.Post processing failed"
+		sys.exit(1)
+	instances = options.instances
+	rundir = options.rundir
+	if(options.nograph):
+		no_graph = options.nograph
+	if not no_graph:
+		thread_latency = Thread(target = show_live_graph)
+		thread_latency.start()
 	read_syncfile()
 
 

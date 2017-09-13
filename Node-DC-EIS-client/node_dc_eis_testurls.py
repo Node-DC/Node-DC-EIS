@@ -52,6 +52,8 @@ timeout_err = 0
 conn_err = 0
 http_err = 0
 bad_url = 0
+static_post = 0
+
 s = requests.Session()
 a = requests.adapters.HTTPAdapter(max_retries=20)
 b = requests.adapters.HTTPAdapter(max_retries=20)
@@ -81,7 +83,7 @@ def get_ip(hostname):
   ip_cache[hostname] = ip
   return ip
 
-def get_url(url, request_num, log, phase, accept_header):
+def get_url(url, url_type, request_num, log, phase, accept_header):
   """
   # Desc  : Function to send get requests to the server. Type 1 is get requests
   #         handles 3 types of GET requests based on ID, last_name and zipcode.
@@ -94,6 +96,7 @@ def get_url(url, request_num, log, phase, accept_header):
   global http_err
   global bad_url 
   data = ""
+  headers = ""
 
   urlo = urlparse.urlparse(url)
   ip = get_ip(urlo.hostname)
@@ -117,10 +120,12 @@ Accept: {}
     sock.settimeout(30)
     sock.connect((ip, urlo.port))
     sock.sendall(req)
-    while len(data) < 15:
-      data += sock.recv(15)
+    while "\r\n\r\n" not in data:
+      data = sock.recv(256)
+      headers += data
+
     http_status = data[9:12]
-    if http_status[0] != '3' or http_status[0] != '2':
+    if http_status[0] != '2':
       http_err += 1
 
   except socket.timeout:
@@ -131,7 +136,9 @@ Accept: {}
     sock.close()
     end = time.time()
     response_time = end - start
-  util.printlog(log,phase,request_num,url,start,end,response_time)
+    total_length = calculate_len_get(headers)
+
+  util.printlog(log,phase,url_type,request_num,url,start,end,response_time,total_length)
   return 
 
 def post_function(url, post_data):
@@ -175,7 +182,7 @@ def post_function(url, post_data):
     print e
   return r
 
-def post_url(url,request_num,log,phase): 
+def post_url(url,url_type,request_num,log,phase): 
   """
   # Desc  : Function to send post requests to the server. Type 2 is post requests
   #         Retries if the post request fails
@@ -191,16 +198,21 @@ def post_url(url,request_num,log,phase):
   global http_err
   global bad_url
   global post_datalist
+  global static_post
   r = None
+
   post_data = static_postdata
   if post_datalist:
     post_data = post_datalist[0]
+  else:
+    static_post = static_post + 1
   start = time.time()
   end = start
   for i in range(100):
     r =  post_function(url, post_data)
     if r:
       end = time.time()
+      total_length = calculate_len_postdel(r)
       break
   if not r:
     print "Post request failed. Received null response.Exiting run"
@@ -221,10 +233,11 @@ def post_url(url,request_num,log,phase):
       print("Exception -- Post did not return a valid employee_id")
       print post_data
       exit(1)
-  util.printlog(log,phase,request_num,url,start,end,response_time)
+
+  util.printlog(log,phase,url_type,request_num,url,start,end,response_time,total_length)
   return
 
-def delete_url(url,request_num,log,phase): 
+def delete_url(url,url_type,request_num,log,phase): 
   """
   # Desc  : Function to send delete requests to the server. Type 3 is delete requests
   #         also captures the data record being deleted and saves it in a list(post/_datalist)
@@ -239,7 +252,7 @@ def delete_url(url,request_num,log,phase):
   global bad_url 
   global employee_idlist
   global post_datalist
-  start = time.time()
+
   #1. issue a get request to get the record that is being deleted
   try:
     try:
@@ -276,9 +289,50 @@ def delete_url(url,request_num,log,phase):
   finally:
     end = time.time()
     response_time = end-start
+    total_length = calculate_len_postdel(r)
 
-  util.printlog(log,phase,request_num,url,start,end,response_time)
+  util.printlog(log,phase,url_type,request_num,url,start,end,response_time,total_length)
   return
+
+def calculate_len_get(headers):
+  """
+  # Desc  : Function to calculate total length of data received for a get request.
+  #         Calculated as sum of header length and the content length
+  # Input : Header from a get request
+  # Output: Returns the total length of data received
+  """
+  sock_header_len = 0 
+  sock_content_len = 0
+  total_length = 0
+  sock_header_len = headers.find('\r\n\r\n') + 4
+  for line in headers.splitlines():
+    if "content-length" in line.lower():
+      sock_content_len = int(line.split(':')[1].strip())
+  total_length = sock_header_len + sock_content_len
+  return total_length
+
+def calculate_len_postdel(response):
+  """
+  # Desc  : Function to calculate total length of data received for post/delete request.
+  #         Calculated as sum of header length and the content length.
+  # Input : response from post/delete request
+  # Output: Returns the total length of data received
+  """
+  header_len = 0
+  content_len = 0
+  total_length = 0
+  content_len = len(response.content)
+  header = response.headers
+  header_len = (
+    17 + # size of 'HTTP/1.1 200 OK\r\n' at the top
+    # size of keys + size of values
+    sum(len(kk) + len(vv) for kk, vv in header.iteritems()) +
+    # size of the extra ': ' between key and value and '\r\n' per header
+    len(header) * 4 +
+    2 # size of the empty line at the end
+  )
+  total_length = header_len + content_len
+  return total_length
 
 def main_entry(url, request_num, url_type, log_dir, phase, interval,
                run_mode, temp_log, accept_header):
@@ -320,8 +374,9 @@ def main_entry(url, request_num, url_type, log_dir, phase, interval,
       sys.exit(1)
 
   if url_type == 1:
-    get_url(url, request_num, log, phase, accept_header)
+    get_url(url,url_type,request_num, log, phase, accept_header)
   if url_type == 2:
-    post_url(url,request_num,log,phase)
+    post_url(url,url_type,request_num,log,phase)
   if url_type == 3:
-    delete_url(url,request_num,log,phase)
+    delete_url(url,url_type,request_num,log,phase)
+

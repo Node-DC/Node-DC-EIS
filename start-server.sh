@@ -15,14 +15,25 @@
 # limitations under the License.
 
 #provide the path to Node directory before starting the run
-#NODE_PATH=/opt/local/node-v6.10.0-linux-x64/
-if [ "x$NODE_PATH" == "x" ]; then
-	echo "Node path is not set"
+export PATH=/opt/local/node-v6.10.0-linux-x64/bin:$PATH
+
+IMAGE_NAME=""  #if not set, workload uses image.jpeg by default
+
+if ! type npm  ||  ! type node ; then
+	echo "Node or npm binary not found. Please set the PATH and try again"
 	exit 1
 fi
 
+CPU_COUNT=$1
+if [ -n "${CPU_COUNT}" ]; then
+  export CPU_COUNT=${CPU_COUNT}
+fi
+
+if [ -n "${IMAGE_NAME}" ]; then
+  export IMAGE_NAME=${IMAGE_NAME}
+fi
+
 echo "Hello from start server script"
-export PATH=$NODE_PATH/bin:$PATH
 
 # Set proxy if needed
 # export http_proxy

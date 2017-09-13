@@ -5,7 +5,7 @@
     "request" : "10000",
     "concurrency" : "200",
     "run_mode" : "1",
-    "interval" : "15",
+    "interval" : "10",
     "rampup_rampdown": "25",
     "tempfile":"RTdata",
     "total_urls":"100",
@@ -14,20 +14,20 @@
     "root_endpoint": "/",
     "nameurl_count":"25", 
     "zipurl_count":"25",
-    "idurl_ratio":"50",
+    "idurl_count":"50",
     "html": false
   },
 "db_params": 
   { 
     "dbrecord_count": "10000", 
-    "name_ratio":"25",
-    "zip_ratio":"25"
+    "name_ratio":"5",
+    "zip_ratio":"5"
   },
 "url_params": 
   { 
-    "get_ratio": "100", 
-    "post_ratio":"0",
-    "delete_ratio":"0"
+    "get_ratio": "90", 
+    "post_ratio":"5",
+    "delete_ratio":"5"
   },
 "memory_params": 
   { 
