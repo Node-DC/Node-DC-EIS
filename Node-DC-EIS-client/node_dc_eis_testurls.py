@@ -19,6 +19,7 @@ import json, time
 import os
 import urlparse
 import re
+import sys
 from functools import partial
 from eventlet.green import urllib2
 from eventlet.green import socket
@@ -63,7 +64,6 @@ s.mount('https://', b)
 #globals to implement file optimization
 start_time = 0
 file_cnt = 0
-log=""
 
 ip_cache = {}
 def get_ip(hostname):
@@ -83,7 +83,7 @@ def get_ip(hostname):
   ip_cache[hostname] = ip
   return ip
 
-def get_url(url, url_type, request_num, log, phase, accept_header):
+def get_url(url, url_type, request_num, phase, accept_header, http_headers):
   """
   # Desc  : Function to send get requests to the server. Type 1 is get requests
   #         handles 3 types of GET requests based on ID, last_name and zipcode.
@@ -108,12 +108,12 @@ def get_url(url, url_type, request_num, log, phase, accept_header):
 
   req_path = '{}{}'.format(urlo.path, query)
 
-  req = '''GET {} HTTP/1.1
-Host: {}
-User-Agent: runspec/0.9
-Accept: {}
-
-'''.format(req_path, urlo.netloc, accept_header)
+  req = '''GET {} HTTP/1.1\r
+Host: {}\r
+Accept: {}\r
+{}\r
+'''.format(req_path, urlo.netloc,
+           accept_header, ''.join(hh + '\r\n' for hh in http_headers))
 
   try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -182,7 +182,7 @@ def post_function(url, post_data):
     print e
   return r
 
-def post_url(url,url_type,request_num,log,phase): 
+def post_url(url, url_type, request_num, phase):
   """
   # Desc  : Function to send post requests to the server. Type 2 is post requests
   #         Retries if the post request fails
@@ -237,7 +237,7 @@ def post_url(url,url_type,request_num,log,phase):
   util.printlog(log,phase,url_type,request_num,url,start,end,response_time,total_length)
   return
 
-def delete_url(url,url_type,request_num,log,phase): 
+def delete_url(url, url_type, request_num, phase):
   """
   # Desc  : Function to send delete requests to the server. Type 3 is delete requests
   #         also captures the data record being deleted and saves it in a list(post/_datalist)
@@ -271,6 +271,7 @@ def delete_url(url,url_type,request_num,log,phase):
       if 'employee' in response:
         post_datalist.insert(front_oflist,response)
     else:
+      print url
       print "Warning : Record not found"
     start = time.time()
     r = s.delete(url, headers=headers)
@@ -334,8 +335,24 @@ def calculate_len_postdel(response):
   total_length = header_len + content_len
   return total_length
 
+def open_log(log_dir):
+  try:
+      log = open(os.path.join(log_dir, "tempfile_" + str(file_cnt)), "w")
+  except IOError:
+      print "[%s] Could not open templog file for writing." % (util.get_current_time())
+      sys.exit(1)
+
+  return log
+
+def clean_up_log(queue):
+  ''' Used to clean up last log file '''
+  global log
+  log.close()
+  queue.put(('PROCESS', log.name, file_cnt))
+  log = None
+
 def main_entry(url, request_num, url_type, log_dir, phase, interval,
-               run_mode, temp_log, accept_header):
+               run_mode, temp_log, accept_header, queue, http_headers):
   """
   # Desc  : main entry function to determine the type of url - GET,POST or DELETE
   #         creates log file which captures per request data depending on the type of run.
@@ -347,36 +364,36 @@ def main_entry(url, request_num, url_type, log_dir, phase, interval,
   """
   global start_time
   global file_cnt
-  global log
   global init
+  global log
   if run_mode == 1:
     if not init:
-      start_time=time.time();
-      try:
-          log = open(os.path.join(log_dir,"tempfile_"+str(file_cnt)),"w")
-          init = True 
-      except IOError:
-          print ("[%s] Could not open templog file for writing." % (util.get_current_time()))
-          sys.exit(1)
-    if(time.time()-start_time > float(interval)):
-      file_cnt +=1   
+      start_time = time.time();
+      log = open_log(log_dir)
+      init = True
+
+    if time.time() - start_time > float(interval):
+      old_log = log
+      old_file_cnt = file_cnt
+      file_cnt += 1
       start_time = time.time()
-      try:
-          log = open(os.path.join(log_dir,"tempfile_"+str(file_cnt)),"w") 
-      except IOError:
-          print ("[%s] Could not open templog file for writing." % (util.get_current_time())) 
-          sys.exit(1)
+
+      log = open_log(log_dir)
+
+      old_log.close()
+      queue.put(('PROCESS', old_log.name, old_file_cnt))
+
   else:
     try:
-      log = open(os.path.join(log_dir,temp_log), "a")
-    except IOError as e:
-      print("Error: %s File not found." % temp_log)
+      log = open(os.path.join(log_dir, temp_log), "a")
+    except IOError:
+      print "Error: %s File not found." % temp_log
       sys.exit(1)
 
   if url_type == 1:
-    get_url(url,url_type,request_num, log, phase, accept_header)
+    get_url(url, url_type, request_num, phase, accept_header, http_headers)
   if url_type == 2:
-    post_url(url,url_type,request_num,log,phase)
+    post_url(url, url_type, request_num, phase)
   if url_type == 3:
-    delete_url(url,url_type,request_num,log,phase)
+    delete_url(url, url_type, request_num, phase)
 
