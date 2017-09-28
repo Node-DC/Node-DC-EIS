@@ -16,7 +16,6 @@
 import argparse
 import json
 import os
-import subprocess
 import csv
 import sys
 import re
@@ -42,7 +41,7 @@ import platform
 from itertools import izip
 from threading import Thread,Timer
 from multiprocessing import Process   
-from multiprocessing import Pool
+from multiprocessing import Queue
 import node_dc_eis_testurls
 from node_dc_eis_testurls import *    
 from process_time_based_output import process_time_based_output       
@@ -60,16 +59,13 @@ MT_interval = 100
 concurrency = 200
 rampup_rampdown = 10
 total_urls = 100
-server_ipaddress = "localhost"
-server_port = "9000"
 urllist= []
 memstat_interval = 3
 memlogfile = "memlog_file"
 no_graph = False #if set to True, output graphs will not be generated.
 
-i = datetime.now() 
-directory = i.strftime('%H-%M-%S_%m-%d-%Y')
-output_file = str(directory + 'summary-report.txt')
+directory = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+output_file = str(directory + '_summary-report.txt')
 
 idmatches_index = 0
 postid_index = 0
@@ -88,6 +84,8 @@ multiple_instance = False
 memlogind = "requestsdone.ind"
 cpuCount = -1
 run_mode = 1
+
+http_headers = []
 
 """
 #  Database parameters - defaults
@@ -118,7 +116,7 @@ appName = "cluster"
 """
 #  Results directory - defaults
 """
-results_dir = "results_node_DC_EIS"
+results_dir = "results_node_DC"
 
 """
 #  Server end points (urls) to test
@@ -133,17 +131,7 @@ meminfo_endpoint = "getmeminfo"
 cpuinfo_endpoint = "getcpuinfo"
 checkdb_endpoint = "checkdb"
 
-"""
-#  Absolute server url prefix to build all the urls
-"""
-server_url = "http://" + server_ipaddress + ":" + server_port + server_root_endpoint
-loaddb_url = server_url + loaddb_endpoint
-id_url = server_url + id_endpoint
-name_url = server_url + name_endpoint
-zipcode_url = server_url + zipcode_endpoint
-meminfo_url = server_url + meminfo_endpoint
-cpuinfo_url = server_url + cpuinfo_endpoint
-checkdb_url = server_url + checkdb_endpoint
+get_endpoints_urls = []
 
 """
 #  Type of URL ratio - defaults
@@ -171,6 +159,7 @@ def setup():
   #  Input : None
   #  Output: None
   """
+  global version
   global appName
   global cpuCount
   global directory
@@ -191,11 +180,14 @@ def setup():
       """
       print "Exception -- Decoding of result from cpuinfo failed. Exiting"
       exit(1)
+
   if result:
     if 'appName' in result:
       appName = result["appName"]
     if 'cpuCount' in result:
       cpuCount = result["cpuCount"]
+    if 'appVersion' in result:
+      version = result['appVersion']
   print "Starting "+version + " in "+appName + " Mode"
   if(instance_id):
     directory = directory+"-"+appName+"-"+instance_id
@@ -214,7 +206,7 @@ def setup():
       os.makedirs(os.path.join(results_dir, directory))
   return
 
-def arg_parse():
+def main():
   """
   #  Desc  : Function to parse command line arguments
   #  Input : None
@@ -226,6 +218,12 @@ def arg_parse():
   global multiple_instance
   global run_mode
   global no_graph
+  global no_db
+  global get_endpoints
+  global get_endpoints_urls
+
+  get_endpoints = None
+  no_db = False
 
   print ("[%s] Parsing arguments." % (util.get_current_time()))
   parser = argparse.ArgumentParser()
@@ -254,7 +252,7 @@ def arg_parse():
                   action="store",
                   help='Number of rampup-rampdown requests to perform')
   parser.add_argument('-r','--run_mode',dest="run_mode",
-                  action="store",
+                  action="store", choices=[1, 2], type=int,
                   help='1 for time based run. 2 for request based run. Default is 1')
   parser.add_argument('-int','--interval',dest="interval",action="store",         
                   help='Interval after which logging switches to next temp log file')
@@ -282,6 +280,24 @@ def arg_parse():
   parser.add_argument('-H', '--html', dest='html',
                       default=False, action='store_true',
                       help='Request HTML instead of JSON from server')
+
+  parser.add_argument('-nd', '--no-db', action='store_true',
+                      help='Skips all database loading and checking actions')
+
+  parser.add_argument('-ge', '--get-endpoints', nargs='+',
+                      help='Directly specific which endpoints to use during '
+                      'GET operations (bypasses id, name, and zip ratios)')
+
+  def header_check(value):
+    header = [ss.strip() for ss in value.split(':', 1)]
+    if len(header) != 2:
+      raise argparse.ArgumentTypeError('"%s" is not of the form '
+                                       '"key: value"' % value)
+    return ': '.join(header)
+
+  parser.add_argument('-hh', '--http-headers', nargs='+', type=header_check,
+                      help='Extra HTTP headers to send to the server')
+
   options = parser.parse_args()
 
   print('Input options config files: %s' % options.config)
@@ -385,6 +401,26 @@ def arg_parse():
           if "html" in json_data["client_params"]:
             use_html = json_data["client_params"]["html"]
 
+          if "no_db" in json_data["client_params"]:
+            no_db = str(json_data["client_params"]["no_db"]).lower() in (
+                'y', 'yes',
+                't', 'true',
+                '1',
+              )
+
+          if "get_endpoints" in json_data["client_params"]:
+            get_endpoints = json_data["client_params"]["get_endpoints"]
+
+          if "http_headers" in json_data["client_params"]:
+            try:
+              headers = [header_check(hh)
+                          for hh in json_data["client_params"]["http_headers"]]
+            except Exception as e:
+              print 'Error: http_headers: %s' % e
+              sys.exit(1)
+
+            http_headers.extend(headers)
+
         #database setup parameters
         if "db_params" in json_data:
           if "dbrecord_count" in json_data["db_params"]:
@@ -477,6 +513,15 @@ def arg_parse():
   if options.html:
     use_html = options.html
 
+  if options.no_db:
+    no_db = options.no_db
+
+  if options.get_endpoints:
+    get_endpoints = options.get_endpoints
+
+  if options.http_headers:
+    http_headers.extend(options.http_headers)
+
   server_url = "http://" + server_ipaddress + ":" + server_port + server_root_endpoint
   loaddb_url = server_url + loaddb_endpoint
   id_url = server_url + id_endpoint
@@ -485,6 +530,9 @@ def arg_parse():
   meminfo_url = server_url + meminfo_endpoint
   cpuinfo_url = server_url + cpuinfo_endpoint
   checkdb_url = server_url + checkdb_endpoint
+
+  if get_endpoints:
+    get_endpoints_urls = [server_url + endpoint for endpoint in get_endpoints]
 
   if int(concurrency) > int(request):
     print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests"
@@ -508,17 +556,26 @@ def run_printenv(log):
   print >> log, "# requests    :"+ str(request) +"  (Default value = 10000)"
   print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
   print >> log, "#  URLs  :" +str(total_urls) +"  (Default value = 100)"
-  print >> log, "#  get url ratio:" + str(get_ratio) +"  (Default value = 80)"
-  print >> log,"#  post url ratio:"+ str(post_ratio) +"  (Default value = 10)"
-  print >> log, "#  delete url ratio:"+ str(delete_ratio)+"  (Default value = 10)"
-  print >> log, "#  id_url:"+ str(idurl_ratio)  +"  (Default value = 50)"
-  print >> log, "#  name url ratio:"+  str(nameurl_ratio) +"  (Default value = 25)"
-  print >> log,"#  zip url ratio:"+  str(zipurl_ratio)+"  (Default value = 25)"
-  print >> log, "====Database Parameters===="
-  print >> log, "# records    :"+ str(dbrecord_count) +"  (Default value = 10000)"
-  print >> log, "#  unique name:"  + str(name_dbratio) +"  (Default value = 25)"
-  print >> log, "#  unique zips:"  + str(zip_dbratio) +"  (Default value = 25)"
-  return
+  print >> log, "# Use HTML: %s (Default value = False)" % use_html
+  if http_headers:
+    print >> log, "# Extra HTTP headers:"
+    for hh in http_headers:
+      print >> log, "# ", hh
+
+  if not get_endpoints_urls:
+    print >> log, "#  get url ratio:%s  (Default value = 80)" % get_ratio
+    print >> log, "#  post url ratio:%s  (Default value = 10)" % post_ratio
+    print >> log, "#  delete url ratio:%s  (Default value = 10)" % delete_ratio
+    print >> log, "#  id_url:%s  (Default value = 50)" % idurl_ratio
+    print >> log, "#  name url ratio:%s  (Default value = 25)" % nameurl_ratio
+    print >> log, "#  zip url ratio:%s  (Default value = 25)" % zipurl_ratio
+
+  if not no_db:
+    print >> log, "====Database Parameters===="
+    print >> log, "# records    :%s  (Default value = 10000)" % dbrecord_count
+    print >> log, "#  unique name:%s  (Default value = 25)" % name_dbratio
+    print >> log, "#  unique zips:%s  (Default value = 25)" % zip_dbratio
+
 
 def get_data():
   """
@@ -530,10 +587,34 @@ def get_data():
   # Input : None
   # Output: None
   """
-  global employee_idlist
 
   #Populate database
-  run_loaddb()
+  if not no_db:
+    run_loaddb()
+
+  if get_endpoints_urls:
+    generate_urls_from_list()
+  else:
+    generate_urls_from_db()
+
+  if multiple_instance:
+    util.create_indicator_file(rundir,"loaddb_done", instance_id,"")
+    util.check_startfile(rundir)
+  #Send requests
+  send_request()
+
+def generate_urls_from_list():
+  urls_count = len(get_endpoints_urls)
+  for ii in xrange(int(total_urls)):
+    urls_idx = random.randint(0, urls_count - 1)
+    urllist.append({
+        'url': get_endpoints_urls[urls_idx],
+        'method':'GET'})
+
+  print "[%s] Building list of Urls done." % util.get_current_time()
+
+def generate_urls_from_db():
+  global employee_idlist
 
   print ("[%s] Build list of employee IDs." % (util.get_current_time()))
   try:
@@ -591,13 +672,7 @@ def get_data():
   zip_number = int(math.ceil((int(get_urlcount)*float(float(zipurl_ratio)/100))))
 
   #start building the url list
-  buildurllist(employee_idlist, id_number, name_matches, name_number , zip_matches, zip_number, post_urlcount,delete_urlcount)
-  if(multiple_instance):
-    util.create_indicator_file(rundir,"loaddb_done", instance_id,"")
-    util.check_startfile(rundir)
-  #Send requests
-  send_request(employee_idlist)
-  return
+  builddburllist(employee_idlist, id_number, name_matches, name_number , zip_matches, zip_number, post_urlcount,delete_urlcount)
   
 def run_loaddb():
   """
@@ -658,7 +733,7 @@ def check_db():
 
   return checkdb_dict
 
-def buildurllist(employee_idlist, id_number, name_matches, name_number , zip_matches, zip_number,post_urlcount,delete_urlcount):
+def builddburllist(employee_idlist, id_number, name_matches, name_number, zip_matches, zip_number,post_urlcount, delete_urlcount):
   """
   # Desc  :Function build list of URLs with enough randomness for realistic 
   #        behavior
@@ -849,7 +924,7 @@ def collect_meminfo():
     heapTotlist.append(0)
   return
 
-def send_request(employee_idlist):
+def send_request():
   """
   # Desc  : Main function initiates requests to server
   # Input : List of EmployeeId
@@ -894,12 +969,13 @@ def send_request(employee_idlist):
     requestBasedRun(pool)
 
   mem_process.join()
-  after_run = check_db()
+  if not no_db:
+    after_run = check_db()
   print_summary()
   log.close()
   return
 
-def execute_request(pool):
+def execute_request(pool, queue=None):
     """
     # Desc  : Creates threadpool for concurrency, and sends concurrent requests
     #         to server for the input #requests or based on time interval.
@@ -924,8 +1000,8 @@ def execute_request(pool):
 
         if(urllist[execute_request.url_index]['method']== 'GET'):
           url_type = 1
-          tot_get = tot_get +1
-          if not(parsed.path == "/employees/zipcode" or parsed.path == "/employees/name"):
+          tot_get = tot_get + 1
+          if parsed.path == "/employees/id/":
               ids = getNextEmployeeId()
               url = url+ids
         if(urllist[execute_request.url_index]['method']== 'POST'):
@@ -947,7 +1023,9 @@ def execute_request(pool):
             interval,
             run_mode,
             temp_log,
-            'text/html' if use_html else 'application/json'
+            'text/html' if use_html else 'application/json',
+            queue,
+            http_headers
           ]
 
         if(int(concurrency) == 1):
@@ -992,9 +1070,14 @@ def timebased_run(pool):
   url_index = 0
   request_index = 0 # Initializing the Request Counter to 0
 
+  queue = Queue()
+
   #Spin Another Process to do processing of Data
-  post_processing = Process(target=process_time_based_output,args=(log_dir,interval,rampup_rampdown,MT_interval,temp_log,output_file,memlogfile,instance_id,
-    multiple_instance,no_graph))
+  post_processing = Process(target=process_time_based_output,
+                            args=(log_dir, interval, rampup_rampdown,
+                                  MT_interval, temp_log, output_file,
+                                  memlogfile, instance_id, multiple_instance,
+                                  no_graph, queue))
   post_processing.start()
   print ("[%s] Starting time based run." % (util.get_current_time()))
   if ramp:
@@ -1009,14 +1092,14 @@ def timebased_run(pool):
   print ("[%s] Started processing of requests with concurrency of [%d] for [%d] seconds" % (util.get_current_time(), int(concurrency), int(MT_interval)))
   if ramp:
           while(time.time()-start < int(rampup_rampdown)):
-              execute_request(pool)
+              execute_request(pool, queue)
           print ("[%s] Exiting RampUp time window." %(util.get_current_time()))
           phase = "MT"
           util.record_start_time()
           start=time.time()
           print ("[%s] Entering Measuring time window." %(util.get_current_time()))
           while(time.time()-start < int(MT_interval)):
-              execute_request(pool)
+              execute_request(pool, queue)
           print ("[%s] Exiting Measuring time window." %(util.get_current_time()))
           util.record_end_time()
           phase = "RD"
@@ -1024,20 +1107,23 @@ def timebased_run(pool):
           start=time.time()
           print ("[%s] Entering RampDown time window." %(util.get_current_time()))
           while(time.time()-start < int(rampup_rampdown)):
-              execute_request(pool)
+              execute_request(pool, queue)
           print ("[%s] Exiting RampDown time window." %(util.get_current_time()))
           phase = "SD"
           print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
   else:
           while(time.time()-start < int(MT_interval)):
-              execute_request(pool)
+              execute_request(pool, queue)
           print ("[%s] Exiting Measuring time window." %(util.get_current_time()))
           phase = "SD"
           print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
   print("[%s] All requests done." % (util.get_current_time()))
   file = open(os.path.join(log_dir,memlogind),"w") 
-  file.close() 
+  file.close()
+  pool.waitall()
+  node_dc_eis_testurls.clean_up_log(queue)
   processing_complete = True
+  queue.put(('EXIT',))
   post_processing.join()
 
 def requestBasedRun(pool):
@@ -1137,17 +1223,17 @@ def post_process_request_based_data(temp_log,output_file):
 
   print "\n====Report Summary===="
   print "Primary Metrics:"
-  print 'Response time 99 percentile = ' + str(round(percent,3)) + " " +version+" sec"
-  print 'Throughput = ' + str(round(throughput,2)) + " " +version+ " req/sec"
+  print 'Response time 99 percentile = %.3f sec' % percent
+  print 'Throughput = %.2f req/sec' % throughput
   print "--------------------------------------\n"
   print >> processed_file, "\n====Report Summary===="
   print >> processed_file, "Primary Metrics:"
-  print >> processed_file, 'Throughput = ' + str(round(throughput,2)) +" " +version+" req/sec"
-  print >> processed_file, '99 percentile = ' + str(round(percent,3)) +" " +version+" sec"
+  print >> processed_file, 'Throughput = %.2f req/sec' % throughput
+  print >> processed_file, '99 percentile = %.3f sec' % percent
   print >> processed_file, "\nDetailed summary:"
-  print >> processed_file, 'Min Response time = ' + str(round(minimum,3)) +" " +version+" sec"
-  print >> processed_file, 'Max Response time = ' + str(round(maximum,3)) +" " +version+ " sec"
-  print >> processed_file, 'Mean Response time = ' + str(round(mean,3)) +" " +version+" sec"
+  print >> processed_file, 'Min Response time = %.3f sec' % minimum
+  print >> processed_file, 'Max Response time = %.3f sec' % maximum
+  print >> processed_file, 'Mean Response time = %.3f sec' % mean
  
   logfile.close()
   processed_file.flush() 
@@ -1191,9 +1277,15 @@ def print_summary():
       print "Exception -- Decoding of result from cpuinfo failed. Exiting"
       sys.exit(1)
   if result:
+
+    print >> processed_file, "\n====System under test===="
+
+    print >> processed_file, '====Application===='
+    print >> processed_file, 'App Mode:', appName
+    print >> processed_file, 'App Version', version
+
     #hardware details 
     if 'hw' in result:
-      print >> processed_file, "\n====System under test===="
       print >> processed_file, "\n====SUT Hardware Details===="
       if 'architecture' in result['hw']:
         architecture = result['hw']['architecture']
@@ -1279,27 +1371,38 @@ def print_summary():
   print >> processed_file, "Bad Url Error = " + str(node_dc_eis_testurls.bad_url)
   print >> processed_file, "Static posts = " + str(node_dc_eis_testurls.static_post) 
   print >> processed_file, "\n====Validation Report===="
-  print >> processed_file, "Database Validation:"
-  print >> processed_file, "Actual database record count: "+str(dbrecord_count)
-  print >> processed_file, "Database record count after loadDB: "+str(after_dbload["message"])
-  print >> processed_file, "Database record count after the run: " +str(after_run["message"])
+
+  if not no_db:
+    print >> processed_file, "Database Validation:"
+    print >> processed_file, "Actual database record count: ", dbrecord_count
+    print >> processed_file, "Database record count after loadDB: ", after_dbload["message"]
+    print >> processed_file, "Database record count after the run: ", after_run["message"]
+    print >> processed_file, "--------------------------------------"
+
+  if get_endpoints_urls:
+    print >> processed_file, 'URL Validation:'
+    print >> processed_file, 'Endpoints:'
+    print >> processed_file, ' GET:', ', '.join(get_endpoints)
+  else:
+    print >> processed_file, "URL ratio Validation:"
+    print >> processed_file, "Total number of urls generated: " +str(count)
+    print >> processed_file, "Number of get urls generated: "+ str(int(id_count)+int(name_count)+int(zip_count)) +"  ("+str(get_ratio)+"% of "+str(count)+")"
+    print >> processed_file, "    Number of get id urls generated: " +str(id_count) +"  ("+str(idurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
+    print >> processed_file, "    Number of get name urls generated: " +str(name_count) +"  ("+str(nameurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
+    print >> processed_file, "    Number of get zip urls generated: " +str(zip_count) +"  ("+str(zipurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
+    print >> processed_file, "Number of post urls generated: " +str(post_count) +"  ("+str(post_ratio)+"% of "+str(count)+")"
+    print >> processed_file, "Number of delete urls generated: " +str(delete_count) +"  ("+str(delete_ratio)+"% of "+str(count)+")"
+
   print >> processed_file, "--------------------------------------"
-  print >> processed_file, "URL ratio Validation:"
-  print >> processed_file, "Total number of urls generated: " +str(count)
-  print >> processed_file, "Number of get urls generated: "+ str(int(id_count)+int(name_count)+int(zip_count)) +"  ("+str(get_ratio)+"% of "+str(count)+")"
-  print >> processed_file, "    Number of get id urls generated: " +str(id_count) +"  ("+str(idurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
-  print >> processed_file, "    Number of get name urls generated: " +str(name_count) +"  ("+str(nameurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
-  print >> processed_file, "    Number of get zip urls generated: " +str(zip_count) +"  ("+str(zipurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
-  print >> processed_file, "Number of post urls generated: " +str(post_count) +"  ("+str(post_ratio)+"% of "+str(count)+")"
-  print >> processed_file, "Number of delete urls generated: " +str(delete_count) +"  ("+str(delete_ratio)+"% of "+str(count)+")"
-  print >> processed_file, "--------------------------------------"
+
   print >> processed_file, "Requests Validation:"
   print >> processed_file, "Total runtime duration: " +str(int(MT_interval))
   print >> processed_file, "Total number of get requests: " +str(tot_get)
   print >> processed_file, "Total number of post requests: " +str(tot_post)
   print >> processed_file, "Total number of delete requests: " +str(tot_del)
 
-  processed_file.flush() 
+  processed_file.flush()
+  processed_file.close()
   processed_file = open(processed_filename, "r")
   print processed_file.read()
   processed_file.close() 
@@ -1390,4 +1493,5 @@ def plot_graph_request_based_run(output_file):
 """
 # Desc  : This the main entry call.
 """
-arg_parse()
+if __name__ == "__main__":
+  main()

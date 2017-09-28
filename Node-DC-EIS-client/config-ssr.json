@@ -1,0 +1,29 @@
+{
+"client_params": 
+  { 
+    "MT_interval" : "100",
+    "request" : "10000",
+    "concurrency" : "200",
+    "run_mode" : "1",
+    "interval" : "10",
+    "rampup_rampdown": "25",
+    "tempfile": "RTdata",
+    "total_urls": "100",
+    "server_ipaddress": "localhost",
+    "server_port": "3000",
+    "root_endpoint": "/",
+    "no_db": true,
+    "get_endpoints": [
+      "count/10000/15"
+    ],
+    "http_headers": [
+      "User-Agent: Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/59.0.3071.115 Safari/537.36"
+    ],
+    "html": true
+  },
+"memory_params": 
+  { 
+    "memstat_interval": "1", 
+    "memlogfile": "memlog_file"
+  }
+}

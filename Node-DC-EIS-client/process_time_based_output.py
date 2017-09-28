@@ -32,7 +32,8 @@ mean_resp = 0
 percent99 = 0
 percent95 = 0
 
-def process_tempfile(results_dir,interval,rampup_rampdown,request,temp_log,instance_id,multiple_instance):
+def process_tempfile(results_dir, interval, rampup_rampdown, request,
+                     temp_log, instance_id, multiple_instance, queue):
     """
     # Desc  : Function to process each intermediate files.
     #         waits for interval and then calls process_data on the next templog file
@@ -41,33 +42,33 @@ def process_tempfile(results_dir,interval,rampup_rampdown,request,temp_log,insta
     #         total time for the measurement, instance ID, flag to check multiple insatnce run 
     # Output: None
     """
-    number_of_files = int(math.ceil((2.0 * rampup_rampdown + request) / interval))
 
-    file_cnt=0
     try:
-        temp_log = open(os.path.join(results_dir,temp_log),"a")
+        temp_log = open(os.path.join(results_dir, temp_log),"a")
     except IOError:
-        print ("[%s] Could not open templog file for writing." % (util.get_current_time()))
+        print "[%s] Could not open templog file for writing." % util.get_current_time()
+        sys.exit(1)
+
     temp_log.flush()
-    time.sleep(60)
-    while file_cnt < number_of_files:
-        tempfile = os.path.join(results_dir,"tempfile_"+str(file_cnt))
-        if(os.path.exists(tempfile)): 
-          time.sleep(interval)
-          try:
-            temp_file = open(tempfile,"r")
-            print ("[%s] Processing Output File tempfile_[%d]." % (util.get_current_time(),file_cnt))
-            process_data(temp_file,temp_log,results_dir,file_cnt,interval)
-            temp_file.close()
-            if(file_cnt == 0 and multiple_instance):
-              util.create_indicator_file(os.path.dirname(os.path.dirname(results_dir)),"start_processing", instance_id, temp_log.name)
-            os.remove(tempfile)
-            file_cnt +=1
-          except IOError:
-            print ("[%s] Could not open templog file for reading." % (util.get_current_time()))
-            sys.exit(1)
-        else:
-          time.sleep(interval)
+
+    while True:
+      event = queue.get()
+      if event[0] == 'EXIT':
+        break
+      _, tempfile, file_cnt = event
+      try:
+        temp_file = open(tempfile, "r")
+      except IOError:
+        print "[%s] Could not open %s file for reading." % (util.get_current_time(), tempfile)
+        sys.exit(1)
+
+      with temp_file:
+        print "[%s] Processing Output File tempfile_[%d]." % (util.get_current_time(), file_cnt)
+        process_data(temp_file, temp_log, results_dir, file_cnt, interval)
+
+      if file_cnt == 0 and multiple_instance:
+        util.create_indicator_file(os.path.dirname(os.path.dirname(results_dir)), "start_processing", instance_id, temp_log.name)
+      os.remove(tempfile)
 
     print ("[%s] Closing main templog file." % (util.get_current_time()))
     temp_log.close()    
@@ -280,7 +281,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
         print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(results_dir,'memory_usage.png')))
     print ("[%s] Plotting graphs done." % (util.get_current_time()))
   
-def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance,no_graph):
+def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance,no_graph, queue):
     """
     # Desc  : Main function which handles all the Output Processing
     #         This function is run by the Child Function
@@ -290,7 +291,8 @@ def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_
     # Output: None
     """
     print ("[%s] Starting process for post processing." % (util.get_current_time()))
-    process_tempfile(results_dir,interval,rampup_rampdown,request,temp_log,instance_id,multiple_instance)     
+    process_tempfile(results_dir, interval, rampup_rampdown, request, temp_log,
+                     instance_id, multiple_instance, queue)
     if multiple_instance:
       util.create_indicator_file(os.path.dirname(os.path.dirname(results_dir)),"done_processing", instance_id, "")
     # #Post Processing Function
