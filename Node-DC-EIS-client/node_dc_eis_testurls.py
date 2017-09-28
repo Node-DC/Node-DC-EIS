@@ -111,6 +111,7 @@ def get_url(url, url_type, request_num, phase, accept_header, http_headers):
   req = '''GET {} HTTP/1.1\r
 Host: {}\r
 Accept: {}\r
+Connection: close\r
 {}\r
 '''.format(req_path, urlo.netloc,
            accept_header, ''.join(hh + '\r\n' for hh in http_headers))
