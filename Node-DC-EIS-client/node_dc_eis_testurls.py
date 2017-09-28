@@ -112,6 +112,7 @@ def get_url(url, url_type, request_num, log, phase, accept_header):
 Host: {}
 User-Agent: runspec/0.9
 Accept: {}
+Connection: close
 
 '''.format(req_path, urlo.netloc, accept_header)
 
