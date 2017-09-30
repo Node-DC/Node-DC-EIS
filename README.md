@@ -138,24 +138,28 @@ If proxy needs to be set up, make sure the it has been properly set.
 
 # Client Setup  
 
-## Linux Client: Required Modules and Installations
-
-Install Python '2.7.10'   (command: sudo apt-get python2.7-dev)
-
+## Required Modules and Installations
+Install Python   (command: sudo apt-get python)
 Install Pip for Python    (command: sudo apt-get python-pip)
-  - Pip 1.5.4
-
 Install the following modules  
-  - NumPy version '1.8.2'     (command: pip install numpy)
-  - Matplotlib '1.4.2'        (command: sudo apt-get install python-matplotlib)
-  - requests '2.10.0'         (command: sudo pip install requests)
-  - eventlet '0.19.0'         (command: sudo pip install eventlet)
+  - NumPy       (command: pip install numpy)
+  - Matplotlib  (command: sudo apt-get install python-matplotlib)
+  - requests    (command: pip install requests)
+  - eventlet    (command: pip install eventlet)
 
-#### NOTE: 
+## NOTE: 
 Please make sure above modules are installed without any error. 
 Installing pip modules may require gaining access to the local directory by calling 'sudo chown -R $USER /usr/local'.
 
 Install any missing modules as per your system configuration.
+
+## On Linux OS this client has been tested successfully with following versions,
+  - Python - v2.7.10
+  - Pip    - v1.5.4
+  - NumPy  - v1.8.2
+  - Matplotlib - v1.4.2
+  - requests - v2.10.0
+  - eventlet - v0.19.0
 
 ## Windows Client: Required Modules and Installations
 
@@ -168,17 +172,24 @@ Download “Windows x86 MSI installer. Once you have downloaded the Python MSI, 
   - If you are behind a proxy set your proxy
   - Install pip.py from https://pip.pypa.io/en/stable/installing/ and follow the instruction for running it
   - Make sure that pip is installed and is in your path before continuing installation
-  - NumPy version '1.11.2' (command: pip install numpy)
-  - Matplotlib 1.5.3       (command: pip install matplotlib)
-  - requests '2.11.1'      (command: pip install requests)
-  - eventlet '0.19.0'      (command: pip install eventlet)
+  - NumPy      (command: pip install numpy)
+  - Matplotlib (command: pip install matplotlib)
+  - requests   (command: pip install requests)
+  - eventlet   (command: pip install eventlet)
 
 #### NOTE: 
-
 Please make sure above modules are installed without any error. 
 Install any missing modules as per your system configuration.
 
 On Windows, there is a limit of 512 file descriptors open at a time. Because of this, the client script will crash if the concurrency setting is higher than 512.
+
+## On Windows OS this client has been tested successfully with following versions,
+  - Python - v2.7.12
+  - Pip    - v1.5.4
+  - NumPy  - v1.11.2
+  - Matplotlib - v1.5.3
+  - requests - v2.11.1
+  - eventlet - v0.19.0
 
 # Server Setup  
 
