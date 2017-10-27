@@ -1,9 +1,9 @@
 {
 "client_params": 
   { 
-    "MT_interval" : "100",
+    "MT_interval" : "300",
     "request" : "10000",
-    "concurrency" : "200",
+    "concurrency" : "100",
     "run_mode" : "1",
     "interval" : "10",
     "rampup_rampdown": "25",
