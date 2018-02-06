@@ -6,3 +6,6 @@ npm-debug.log
 *.swp
 *.js~
 *.js#
+results_node_DC
+Node-DC-EIS-cluster/mongodb.template/*
+package-lock.json
