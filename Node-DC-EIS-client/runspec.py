@@ -1078,7 +1078,7 @@ def timebased_run(pool):
                             args=(log_dir, interval, rampup_rampdown,
                                   MT_interval, temp_log, output_file,
                                   memlogfile, instance_id, multiple_instance,
-                                  no_graph, queue))
+                                  no_graph, queue, concurrency))
   post_processing.start()
   print ("[%s] Starting time based run." % (util.get_current_time()))
   if ramp:
