@@ -31,6 +31,7 @@ max_resp = 0
 mean_resp = 0
 percent99 = 0
 percent95 = 0
+total_bytes = 0
 
 def process_tempfile(results_dir, interval, rampup_rampdown, request,
                      temp_log, instance_id, multiple_instance, queue):
@@ -112,15 +113,27 @@ def process_data(temp_file,temp_log,results_dir,file_cnt,interval):
         abs_start = float(row[col_st])
     if(len(res_arr) > 0):
       calculate(res_arr)
+      calculate_total_bytes(total_length)
       total_length.sort()
       len_arr = np.array(total_length)
       mean_len = np.mean(len_arr)
       url_count = Counter(url_type)
       print >> temp_log,str(file_cnt)+","+str(min_resp)+","+str(mean_resp)+","+str(percent95)+","+str(percent99)+","\
       +str(max_resp)+","+str(abs_start)+","+str(max(read_time))+","+str(RUreq)+","+str(MTreq)+","+str(RDreq)+","+str(len(res_arr))+","+\
-      str(len(res_arr)/int(interval))+","+str(mean_len)+","+str(url_count[1])+","+str(url_count[2])+","+str(url_count[3])
+      str(len(res_arr)/int(interval))+","+str(mean_len)+","+str(url_count[1])+","+str(url_count[2])+","+str(url_count[3])+","+str(total_bytes)
     print ("[%s] Writing tempfile_[%d] data to summary file." % (util.get_current_time(), file_cnt))
     temp_log.flush()
+
+#function to calculate total bytes received during each sample run
+def calculate_total_bytes(total_length_array):
+    """
+    # Desc  : function to calculate total bytes received during each run
+    # Input : Array of length for each run
+    # Output: Returns total bytes received for each run
+    """
+    global total_bytes
+    respa = np.array(total_length_array)
+    total_bytes = np.sum(total_length_array)
 
 #function to calculate 95, 99 percentile, min, max, mean response time
 def calculate(response_array): 
@@ -142,7 +155,7 @@ def calculate(response_array):
     max_resp = np.amax(respa)
     mean_resp = np.mean(respa)
 
-def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
+def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph, concurrency):
   """
   # Desc  : Main function for post processing of log file to summarize the results.
   #         Calculates MIN, MAX,MEAN response time, throughput, 
@@ -162,6 +175,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
   no_arr=[]
   throughput_arr=[]
   write_arr=[]
+  total_bytes_arr=[]
   abs_start =0
   print ("[%s] Post_process phase." % (util.get_current_time()))
   try:
@@ -188,6 +202,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
       read_arr.append(float(row[7]))
       no_arr.append(float(row[11]))
       throughput_arr.append(float(row[12]))
+      total_bytes_arr.append(float(row[17]))
   minimum = min(min_arr)
   maximum = max(max_arr)
   sortmarr = sorted(mean_arr)
@@ -201,6 +216,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
   percent95 = np.mean(nparr_95)
   requests = sum(float(i) for i in no_arr)
   end_time = float(read_arr[-1])
+  total_bytes_received = np.sum(total_bytes_arr)
   try: 
      throughput_filename = os.path.join(results_dir,"throughput_info.txt")
      throughput_file = open(throughput_filename, 'r')
@@ -215,6 +231,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
   print "Primary Metrics:"
   print 'Response time 99 percentile = ' + str(round(percent99,3)) +" sec"
   print 'Throughput = ' + str(throughput) + " req/sec"
+  print 'Concurrency = ' + str(concurrency)
   print >> processed_file, "\n====Report Summary===="
   print >> processed_file, "Primary Metrics:"
   print >> processed_file, 'Throughput = ' + str(throughput)+" req/sec"
@@ -225,6 +242,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
   print >> processed_file, 'Mean Response time = ' + str(round(mean,3)) +" sec"
   print >> processed_file, 'Max Response time = ' + str(round(maximum,3)) +" sec"
   print >> processed_file, '95 percentile = ' + str(round(percent95,3)) +" sec"
+  print >> processed_file, 'Total bytes recieved = ' + str(total_bytes_received) +" bytes"
   print ("[%s] Post processing is done.\n" % (util.get_current_time()))
   processed_file.flush()
 
@@ -281,7 +299,7 @@ def post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph):
         print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(results_dir,'memory_usage.png')))
     print ("[%s] Plotting graphs done." % (util.get_current_time()))
   
-def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance,no_graph, queue):
+def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_log,output_file,memlogfile,instance_id,multiple_instance,no_graph, queue, concurrency):
     """
     # Desc  : Main function which handles all the Output Processing
     #         This function is run by the Child Function
@@ -296,6 +314,6 @@ def process_time_based_output(results_dir,interval,rampup_rampdown,request,temp_
     if multiple_instance:
       util.create_indicator_file(os.path.dirname(os.path.dirname(results_dir)),"done_processing", instance_id, "")
     # #Post Processing Function
-    post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph)
+    post_process(temp_log,output_file,results_dir,interval,memlogfile,no_graph, concurrency)
     print ("[%s] Exiting process for post processing." % (util.get_current_time()))
     sys.exit(0)
