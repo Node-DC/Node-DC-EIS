@@ -552,9 +552,18 @@ def run_printenv(log):
   # Input : None
   # Output: None
   """
+
+  if run_mode == 1:
+    print >> log, "** Time based run **"
+  else:
+    print >> log, "** Requests based run **"
+
   print >> log, ('Server url is : %s' % server_url)
-  print >> log, "Runtime interval:"+ str(MT_interval) +"  (Default value = 60s)"
-  print >> log, "# requests    :"+ str(request) +"  (Default value = 10000)"
+  if run_mode == 1:
+    print >> log, "Runtime interval:"+ str(MT_interval) +"  (Default value = 60s)"
+  else:
+    print >> log, "Requests    :"+ str(request) +"  (Default value = 10000)"
+
   print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
   print >> log, "#  URLs  :" +str(total_urls) +"  (Default value = 100)"
   print >> log, "# Use HTML: %s (Default value = False)" % use_html
@@ -683,7 +692,7 @@ def run_loaddb():
   """
   global after_dbload
   print ("[%s] Loading database with %d records." % (util.get_current_time(), int(dbrecord_count)))
-  print "In progress..."  
+  print "In progress to load database..."
   loaddbparams = {'count': int(dbrecord_count), 'zipcode': int(zip_dbratio), 'lastname' : int(name_dbratio) }
   try:
     res = requests.get(loaddb_url, params=loaddbparams, timeout=300)
@@ -1185,8 +1194,10 @@ def post_process_request_based_data(temp_log,output_file):
   col_et = 4
   col_rt = 5; #column number of response time
   col_url = 2; #column number of url
+  col_datasize = 6
   read_time = [] #list with elapsed time
   response_array = []
+  total_bytes_arr=[]
   url_array = []
   print ("[%s] Post_process phase." % (util.get_current_time()))
   try:
@@ -1195,7 +1206,7 @@ def post_process_request_based_data(temp_log,output_file):
     print("Error: %s File not found." % temp_log)
     return None
   csvReader = csv.reader(logfile)
-  try: 
+  try:
      processed_filename = os.path.join(os.path.join(results_dir,directory),output_file)
      processed_file = open(processed_filename, 'w')
   except IOError as e:
@@ -1210,7 +1221,9 @@ def post_process_request_based_data(temp_log,output_file):
         response_array.append(float(sortedlist[i][col_rt]))
         if(abs_start == 0):
           abs_start = float(sortedlist[0][col_st])
-          continue    
+          continue
+        datasize=sortedlist[i][col_datasize]
+        total_bytes_arr.append(float(datasize))
   tot_lapsedtime = max(read_time) - abs_start
   if not tot_lapsedtime:
     throughput = 1
@@ -1221,6 +1234,7 @@ def post_process_request_based_data(temp_log,output_file):
   minimum = np.amin(respa)
   maximum = np.amax(respa)
   mean = np.mean(respa)
+  total_bytes_received = np.sum(total_bytes_arr)
 
   print "\n====Report Summary===="
   print "Primary Metrics:"
@@ -1235,7 +1249,8 @@ def post_process_request_based_data(temp_log,output_file):
   print >> processed_file, 'Min Response time = %.3f sec' % minimum
   print >> processed_file, 'Max Response time = %.3f sec' % maximum
   print >> processed_file, 'Mean Response time = %.3f sec' % mean
- 
+  print >> processed_file, 'Total size received = %d bytes' % total_bytes_received
+
   logfile.close()
   processed_file.flush() 
   processed_file.close()
@@ -1397,7 +1412,11 @@ def print_summary():
   print >> processed_file, "--------------------------------------"
 
   print >> processed_file, "Requests Validation:"
-  print >> processed_file, "Total runtime duration: " +str(int(MT_interval))
+  if run_mode == 1:
+    print >> processed_file, "Total runtime duration: " +str(int(MT_interval))
+  else:
+    print >> processed_file, "Total requests processed (MT): "+ str(request)
+
   print >> processed_file, "Total number of get requests: " +str(tot_get)
   print >> processed_file, "Total number of post requests: " +str(tot_post)
   print >> processed_file, "Total number of delete requests: " +str(tot_del)
