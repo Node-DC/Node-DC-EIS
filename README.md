@@ -4,7 +4,7 @@ The Node-DC is an open source collaboration project to develop workloads represe
 Workloads APIs, functionalities and metrics will be used to evaluate performance of the complete software stack for Node.js, Operating Systems, containers, virtualization, network stacks as well as various data center configuration choices. These are relevant for hardware and software developers, researchers and Node.js community. One priority for this project is to update the workloads in order to keep them up with the fast moving eco-system of Node.js. 
 
 # Current Release
-Latest code has been marked stable and released as v1.2.0
+Latest code has been marked stable and released as v1.1.2
 
 # Contributing and Community   
 
