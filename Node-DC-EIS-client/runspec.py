@@ -1,5 +1,5 @@
 #!/usr/bin/python
-# Copyright (c) 2016 Intel Corporation 
+# Copyright (c) 2016 Intel Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import time
 import traceback
 import urlparse
 from urlparse import urlsplit
-from collections import OrderedDict 
+from collections import OrderedDict
 from collections import Counter
 from datetime import datetime
 from urllib import urlencode
@@ -41,13 +41,13 @@ import zipfile
 import platform
 from itertools import izip
 from threading import Thread,Timer
-from multiprocessing import Process   
+from multiprocessing import Process
 from multiprocessing import Queue
 import node_dc_eis_testurls
-from node_dc_eis_testurls import *    
-from process_time_based_output import process_time_based_output       
-import traceback    
-import urllib   
+from node_dc_eis_testurls import *
+from process_time_based_output import process_time_based_output
+import traceback
+import urllib
 import util
 
 """
@@ -73,12 +73,12 @@ postid_index = 0
 
 keep_on_running = True # Initializing keep_on_running to True
 #default set to 1. Set it to 0 if ramp up rampdown phase is not required
-ramp = 1 
-phase = "MT" 
+ramp = 1
+phase = "MT"
 log =""
 log_dir =""
 interval = 10
-processing_complete = False 
+processing_complete = False
 instance_id = 0
 rundir = ""
 multiple_instance = False
@@ -255,7 +255,7 @@ def main():
   parser.add_argument('-r','--run_mode',dest="run_mode",
                   action="store", choices=[1, 2], type=int,
                   help='1 for time based run. 2 for request based run. Default is 1')
-  parser.add_argument('-int','--interval',dest="interval",action="store",         
+  parser.add_argument('-int','--interval',dest="interval",action="store",
                   help='Interval after which logging switches to next temp log file')
   parser.add_argument('-log','--templogfile',dest="templogfile",
                   action="store",
@@ -305,7 +305,7 @@ def main():
 
   #parse configuration file
   if(options.config) :
-    try:   
+    try:
       with open(options.config) as json_file:
         try:
           json_data = json.load(json_file)
@@ -336,9 +336,9 @@ def main():
         global post_ratio
         global delete_ratio
         global loaddb_url
-        global id_url 
-        global name_url 
-        global zipcode_url 
+        global id_url
+        global name_url
+        global zipcode_url
         global server_url
         global memstat_interval
         global memlogfile
@@ -592,7 +592,7 @@ def get_data():
   # Desc  : Main entry point to do multiple operations, such as
   #         Populate database (send remote request)
   #         Build list of URLS with ID, zipcode and name by querying the server
-  #         Initiates client requests either to do request based or 
+  #         Initiates client requests either to do request based or
   #         time based run
   # Input : None
   # Output: None
@@ -658,17 +658,17 @@ def generate_urls_from_db():
   if not ids and names and zipcode:
     print "Exception -- IDs or names or zipcodes not returned.Make sure application server is up and running.\n Make sure Database Server is up and running and \n Make sure client can communicate with server"
     sys.exit(1)
-  
+
   eidlist = re.findall(r'"([^"]*)"', ids)
   employee_idlist.extend(eidlist)
   name_matches = re.findall(r'"([^"]*)"', names)
   s = zipcode.strip("\"[]\"")
   zip_matches = s.split(',')
-  
+
   if not (int(get_ratio) + int(post_ratio) + int(delete_ratio) == 100) :
     print "Warning -- The get post and delete ratios don't add up to 100.Aborting the run"
     sys.exit(1)
-  
+
   if not(int(post_ratio) == int(delete_ratio)):
     print "Warning -- The post and delete ratios should be equal to maintain database consistency Aborting the run"
 
@@ -683,7 +683,7 @@ def generate_urls_from_db():
 
   #start building the url list
   builddburllist(employee_idlist, id_number, name_matches, name_number , zip_matches, zip_number, post_urlcount,delete_urlcount)
-  
+
 def run_loaddb():
   """
   # Desc  : Function to populate database by sending request to server
@@ -706,7 +706,7 @@ def run_loaddb():
     after_dbload = check_db()
   else:
     print("[%s] Loading database failed:[%d]. Exiting" % (util.get_current_time(), +str(res.status_code)))
-    sys.exit(1) 
+    sys.exit(1)
   return
 
 def check_db():
@@ -745,9 +745,9 @@ def check_db():
 
 def builddburllist(employee_idlist, id_number, name_matches, name_number, zip_matches, zip_number,post_urlcount, delete_urlcount):
   """
-  # Desc  :Function build list of URLs with enough randomness for realistic 
+  # Desc  :Function build list of URLs with enough randomness for realistic
   #        behavior
-  # Input :global list array,..... 
+  # Input :global list array,.....
   # Output:Return current date and time in specific format for all log messages
   """
   print ("[%s] Building list of Urls" % (util.get_current_time()))
@@ -764,7 +764,7 @@ def builddburllist(employee_idlist, id_number, name_matches, name_number, zip_ma
       random_name = random.randint(0,len(name_matches)-1)
       random_zip = random.randint(0,len(zip_matches)-1)
       random_delete = random.randint(0,delete_urlcount)
-      
+
       if(id_count < id_number):
         urls = server_url + "employees/id/"
         urllist.append({'url':urls,'method':'GET'})
@@ -785,13 +785,13 @@ def builddburllist(employee_idlist, id_number, name_matches, name_number, zip_ma
       if(post_count < post_urlcount):
         post_url = server_url + "employees"
         urllist.append({'url':post_url,'method':'POST'})
-        post_count = post_count + 1 
+        post_count = post_count + 1
 
       if(delete_count < delete_urlcount):
         delete_url = server_url + "employees/id/"
         urllist.append({'url':delete_url,'method':'DELETE'})
-        delete_count = delete_count + 1 
-      count = id_count + name_count + zip_count + post_count + delete_count 
+        delete_count = delete_count + 1
+      count = id_count + name_count + zip_count + post_count + delete_count
       if(count == int(total_urls)):
         break
   print ("[%s] Building list of Urls done." % (util.get_current_time()))
@@ -814,7 +814,7 @@ def print_ramp(request_index):
     phase = "MT"
     if (request_index - int(rampup_rampdown)) == 1:
       print ("[%s] Entering Measuring time window" % (util.get_current_time()))
-      print "In progress..."  
+      print "In progress..."
     if(request_index - int(rampup_rampdown)== 0.1*int(request)):
       print "10% of requests done"
     if(request_index - int(rampup_rampdown)== 0.2*int(request)):
@@ -851,7 +851,7 @@ def getNextEmployeeId():
   """
   global idmatches_index
   global postid_index
-  global employee_idlist 
+  global employee_idlist
   if len(employee_idlist) > 0:
     if idmatches_index >= len(employee_idlist):
         idmatches_index = 0
@@ -864,7 +864,7 @@ def getNextEmployeeId():
 
 def removeEmployeeId(ids):
   """
-  # Desc  : Function deletes employeeid from global list after successful 
+  # Desc  : Function deletes employeeid from global list after successful
   #         DELETE request
   # Input : input employeeid and global list
   # Output: None
@@ -902,7 +902,7 @@ def collect_meminfo():
       elapsed_time = time.time() - start_time
       with open(os.path.join(log_dir,memlogfile+".csv"), 'wb') as f:
         writer = csv.writer(f)
-        writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))  
+        writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))
         print ("[%s] Exiting meminfo collection process" % (util.get_current_time()))
         sys.exit(0)
     try:
@@ -911,7 +911,7 @@ def collect_meminfo():
       #catastrophic error. bail.
       print("[%s] Call to get server memory data failed." % (util.get_current_time()))
       print e
-      sys.exit(1) 
+      sys.exit(1)
     try:
       result = json.loads(r.content)
     except ValueError:
@@ -961,7 +961,7 @@ def send_request():
     print("Error: %s File not found." % temp_log)
     return None
 
-  #Print environment 
+  #Print environment
   run_printenv(log)
 
   if run_mode == 1:
@@ -1046,14 +1046,14 @@ def execute_request(pool, queue=None):
           pool.spawn_n(main_entry, *main_entry_args)
         execute_request.request_index += 1
         execute_request.url_index += 1
-         
+
     except Exception, err:
       traceback.print_exc()
       print Exception, err
       sys.exit(1)
 
 # Initializing the Static Variables of the Function , which are used as counter
-execute_request.request_index = 1 
+execute_request.request_index = 1
 execute_request.url_index = 0
 
 def timebased_run(pool):
@@ -1130,7 +1130,7 @@ def timebased_run(pool):
           phase = "SD"
           print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
   print("[%s] All requests done." % (util.get_current_time()))
-  file = open(os.path.join(log_dir,memlogind),"w") 
+  file = open(os.path.join(log_dir,memlogind),"w")
   file.close()
   pool.waitall()
   node_dc_eis_testurls.clean_up_log(queue)
@@ -1175,8 +1175,8 @@ def requestBasedRun(pool):
           print "Exiting Measuring time window"
       execute_request(pool)
   #Wait for request threads to finish
-  file = open(os.path.join(log_dir,memlogind),"w") 
-  file.close() 
+  file = open(os.path.join(log_dir,memlogind),"w")
+  file.close()
   pool.waitall()
 
   print ("[%s] All requests done." % (util.get_current_time()))
@@ -1188,7 +1188,7 @@ def post_process_request_based_data(temp_log,output_file):
   # Desc  : Post processing of log file
   # Input : Input templog and output filename
   # Output: It calculates,
-  #         MIN, MAX, MEAN response time, 
+  #         MIN, MAX, MEAN response time,
   #         throughput, 99 percentile.
   """
   abs_start = 0;
@@ -1218,7 +1218,7 @@ def post_process_request_based_data(temp_log,output_file):
     if "MT" in row[0]:
       sortedlist = sorted(csvReader, key=lambda row: int(row[1]))
       for i in range(len(sortedlist)):
-        read_time.append(float(sortedlist[i][col_et])) 
+        read_time.append(float(sortedlist[i][col_et]))
         url_array.append(sortedlist[i][col_url])
         response_array.append(float(sortedlist[i][col_rt]))
         if(abs_start == 0):
@@ -1254,7 +1254,7 @@ def post_process_request_based_data(temp_log,output_file):
   print >> processed_file, 'Total bytes received = %d bytes' % total_bytes_received
 
   logfile.close()
-  processed_file.flush() 
+  processed_file.flush()
   processed_file.close()
   if not no_graph:
     plot_graph_request_based_run(output_file)
@@ -1267,17 +1267,17 @@ def print_summary():
   # Desc  : Print summary of the run
   # Input : None
   # Output: Generates a summary output with,
-  #         hardware, Server Software OS and Client input details 
+  #         hardware, Server Software OS and Client input details
   #         for each run
   """
   print ("[%s] Printing Summary." % (util.get_current_time()))
-  try: 
+  try:
      processed_filename = os.path.join(log_dir,output_file)
      processed_file = open(processed_filename, 'a')
   except IOError as e:
     print("Error: %s Could not create file." % output_file)
     return None
-  #Print environment 
+  #Print environment
   print >> processed_file, "\n====Client information===="
   run_printenv(processed_file)
   try:
@@ -1302,17 +1302,17 @@ def print_summary():
     print >> processed_file, 'App Mode:', appName
     print >> processed_file, 'App Version', version
 
-    #hardware details 
+    #hardware details
     if 'hw' in result:
       print >> processed_file, "\n====SUT Hardware Details===="
       if 'architecture' in result['hw']:
         architecture = result['hw']['architecture']
         print >> processed_file, "Architecture: " +str(architecture)
       if 'endianness' in result['hw']:
-        endianness = result['hw']['endianness'] 
+        endianness = result['hw']['endianness']
         print >> processed_file, "Endianness: " +str(endianness)
       if 'totalmem' in result['hw']:
-        totalmem = result['hw']['totalmem'] 
+        totalmem = result['hw']['totalmem']
         print >> processed_file, "Total memory: " +str(totalmem) +" bytes"
       if 'freemem' in result['hw']:
         freemem = result['hw']['freemem']
@@ -1321,32 +1321,32 @@ def print_summary():
         model = result['hw']['model']
         print >> processed_file, "CPU model: " +str(model)
       if 'speed' in result['hw']:
-        speed = result['hw']['speed'] 
+        speed = result['hw']['speed']
         print >> processed_file, "CPU speed: " +str(speed) +" MHz"
-      systime = result['hw']['sys'] 
+      systime = result['hw']['sys']
       print >> processed_file, "Time spent in sys mode: " +str(systime) +" ms"
-      idletime = result['hw']['idle'] 
+      idletime = result['hw']['idle']
       print >> processed_file, "Time spent in idle mode: " +str(idletime) +" ms"
-      usertime = result['hw']['user'] 
+      usertime = result['hw']['user']
       print >> processed_file, "Time spent in user mode: " +str(usertime) +" ms"
-      irqtime = result['hw']['irq'] 
+      irqtime = result['hw']['irq']
       print >> processed_file, "Time spent in irq mode: " +str(irqtime)+" ms"
-      nice = result['hw']['nice']  
+      nice = result['hw']['nice']
       print >> processed_file, "Time spent in nice mode: " +str(nice)+" ms"
     #software details
     if 'icu' in result['version']:
       print >> processed_file, "\n====SUT Operating System Details===="
       if 'platform' in result['sw']:
-        platform = result['sw']['platform'] 
-        print >> processed_file, "Operating System Platform: " +str(platform) 
+        platform = result['sw']['platform']
+        print >> processed_file, "Operating System Platform: " +str(platform)
       if 'release' in result['sw']:
         release = result['sw']['release']
         print >> processed_file, "Operating System Release: " +str(release)
       if 'uptime' in result['sw']:
-        uptime = result['sw']['uptime'] 
+        uptime = result['sw']['uptime']
         print >> processed_file, "System uptime: " +str(uptime)
       if 'type' in result['sw']:
-        ostype = result['sw']['type'] 
+        ostype = result['sw']['type']
         print >> processed_file, "Operating System type: " +str(ostype)
     #version details
     if 'version' in result:
@@ -1355,31 +1355,31 @@ def print_summary():
         node_ver = result['version']['node']
         print >> processed_file, "Node version: " +str(node_ver)
       if 'zlib' in result['version']:
-        zlib_ver = result['version']['zlib'] 
+        zlib_ver = result['version']['zlib']
         print >> processed_file, "Zlib version: " +str(zlib_ver)
       if 'v8' in result['version']:
         v8_ver = result['version']['v8']
         print >> processed_file, "V8 version: " +str(v8_ver)
       if 'uv' in result['version']:
-        uv_ver = result['version']['uv'] 
+        uv_ver = result['version']['uv']
         print >> processed_file, "UV version: " +str(uv_ver)
       if 'http_parser' in result['version']:
         http_parser_ver = result['version']['http_parser']
-        print >> processed_file, "Http Parser version: " +str(http_parser_ver) 
+        print >> processed_file, "Http Parser version: " +str(http_parser_ver)
       if 'openssl' in result['version']:
-        openssl_ver = result['version']['openssl'] 
+        openssl_ver = result['version']['openssl']
         print >> processed_file, "OpenSSL version: " +str(openssl_ver)
       if 'ares' in result['version']:
-        ares_ver = result['version']['ares'] 
+        ares_ver = result['version']['ares']
         print >> processed_file, "Ares version: " +str(ares_ver)
       if 'modules' in result['version']:
-        modules_ver = result['version']['modules'] 
+        modules_ver = result['version']['modules']
         print >> processed_file, "Modules version: " +str(modules_ver)
       if 'icu' in result['version']:
-        icu_ver = result['version']['icu'] 
+        icu_ver = result['version']['icu']
         print >> processed_file, "ICU version: " +str(icu_ver)
       if 'chakracore' in result['version']:
-        chakracore_ver = result['version']['chakracore'] 
+        chakracore_ver = result['version']['chakracore']
         print >> processed_file, "Chakracore version: " +str(chakracore_ver)
 
   print >> processed_file, "\n====Validation and Error Summary===="
@@ -1387,7 +1387,7 @@ def print_summary():
   print >> processed_file, "Connection Error = " + str(node_dc_eis_testurls.conn_err)
   print >> processed_file, "Http Error = " + str(node_dc_eis_testurls.http_err)
   print >> processed_file, "Bad Url Error = " + str(node_dc_eis_testurls.bad_url)
-  print >> processed_file, "Static posts = " + str(node_dc_eis_testurls.static_post) 
+  print >> processed_file, "Static posts = " + str(node_dc_eis_testurls.static_post)
   print >> processed_file, "\n====Validation Report===="
 
   if not no_db:
@@ -1428,7 +1428,7 @@ def print_summary():
   processed_file.close()
   processed_file = open(processed_filename, "r")
   print processed_file.read()
-  processed_file.close() 
+  processed_file.close()
   print ("[%s] Printing Summary done.\n" % (util.get_current_time()))
   if multiple_instance:
     util.create_indicator_file(rundir,"run_completed", instance_id, "")
@@ -1480,7 +1480,7 @@ def plot_graph_request_based_run(output_file):
   plt.tight_layout()
   plt.savefig(os.path.join(os.path.join(results_dir,directory),directory+'-latency.png'))
   print("The latency graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-latency.png')))
-  
+
   plt.figure("Throughput RPS")
   plt.grid(True)
   plt.xlabel('Elapsed Time in seconds')
