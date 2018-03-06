@@ -692,7 +692,7 @@ def run_loaddb():
   """
   global after_dbload
   print ("[%s] Loading database with %d records." % (util.get_current_time(), int(dbrecord_count)))
-  print "In progress to load database..."
+  print "Loading database in progress..."
   loaddbparams = {'count': int(dbrecord_count), 'zipcode': int(zip_dbratio), 'lastname' : int(name_dbratio) }
   try:
     res = requests.get(loaddb_url, params=loaddbparams, timeout=300)
@@ -963,10 +963,12 @@ def send_request():
 
   #Print environment 
   run_printenv(log)
+
   if run_mode == 1:
     print >> log, "File#,MinResp,MeanResp,95percentile,99percentile,MaxResp,Startime,Endtime,#RUReq,#MTReq,#RDReq,TotalReq,Throughput"
   else:
     print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
+
   log.flush()
   mem_process = Process(target = collect_meminfo)
   mem_process.start()
@@ -1249,7 +1251,7 @@ def post_process_request_based_data(temp_log,output_file):
   print >> processed_file, 'Min Response time = %.3f sec' % minimum
   print >> processed_file, 'Max Response time = %.3f sec' % maximum
   print >> processed_file, 'Mean Response time = %.3f sec' % mean
-  print >> processed_file, 'Total size received = %d bytes' % total_bytes_received
+  print >> processed_file, 'Total bytes received = %d bytes' % total_bytes_received
 
   logfile.close()
   processed_file.flush() 
@@ -1412,6 +1414,7 @@ def print_summary():
   print >> processed_file, "--------------------------------------"
 
   print >> processed_file, "Requests Validation:"
+
   if run_mode == 1:
     print >> processed_file, "Total runtime duration: " +str(int(MT_interval))
   else:
