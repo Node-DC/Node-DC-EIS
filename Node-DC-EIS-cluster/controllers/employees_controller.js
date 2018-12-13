@@ -375,7 +375,7 @@ exports.getAllIds = function getAllIds(req, res) {
     }
   }
 
-  var query = Employee.aggregate({ $project: { _id: 1} });
+  var query = Employee.find({}, { _id: 1});
   query.exec(function callJSON(err, data) {
     if (err) {
       console.log(err);
