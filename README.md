@@ -242,36 +242,38 @@ In cluster mode user may have to increase the concurrency value in order to achi
 In cluster mode you can control the number CPU's by changing the configuration file in the cluster mode. If not set, it takes the default number of CPU's (number of logical threads) available.
 
 Running application server in microservices mode (default port: 3000):
-  - run “npm install” to install all dependencies for each service directory (don't use sudo), and start each service separately
-  - To auto run npm install run the script 
-    - python npm_install_all.py
-    - Start each service in separate terminal window.
+- run `npm install` to install all dependencies for each service directory (don't use sudo)
+	- To auto run npm install in each directory run the script `python npm_install_all.py`
+- Start each service with `node server.js`:
 
-   $ cd <topdir>/Node-DC-EIS-microservices/employee_service;   
-   $ node server.js (default port: 3000)
+	```bash
+	$ cd <topdir>/Node-DC-EIS-microservices/employee_service
+	$ node server.js (default port: 3000)
 
-   $ cd <topdir>/Node-DC-EIS-microservices/address_service;
-   $ node server.js (default port: 3001)
+	$ cd <topdir>/Node-DC-EIS-microservices/address_service
+	$ node server.js (default port: 3001)
 
-   $ cd <topdir>/Node-DC-EIS-microservices/family_service;
-   $ node server.js (default port: 3002)
+	$ cd <topdir>/Node-DC-EIS-microservices/family_service 
+	$ node server.js (default port: 3002)
 
-   $ cd <topdir>/Node-DC-EIS-microservices/health_service;
-   $ node server.js (default port: 3003)
+	$ cd <topdir>/Node-DC-EIS-microservices/health_service
+	$ node server.js (default port: 3003)
 
-   $ cd <topdir>/Node-DC-EIS-microservices/comp_service;
-   $ node server.js (default port: 3004)
+	$ cd <topdir>/Node-DC-EIS-microservices/comp_service; 
+	$ node server.js (default port: 3004)
 
-   $ cd <topdir>/Node-DC-EIS-microservices/photo_service;
-   $ node server.js (default port: 3005)
+	$ cd <topdir>/Node-DC-EIS-microservices/photo_service
+	$ node server.js (default port: 3005)
 
-   $ cd <topdir>/Node-DC-EIS-microservices/db_loader_service;
-   $ node server.js (default port: 4001)
+	$ cd <topdir>/Node-DC-EIS-microservices/db_loader_service
+	$ node server.js (default port: 4001)
+	```
 
 #### NOTE: 
-
-  1. For microservices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
-  2. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
+  1. Microservices must be started from within their directories 
+  2. Mongodb must be running on port 27017 before starting any of the microservices
+  3. For microservices mode, it's possible to deploy each service on different machine (seperate IP address). Please take a look at the following file for any such changes,
+  4. In this mode you (User) may have to increase the concurrency value in order to achive platform utilisation.
        microservices/employee_service/config/configuration.js file.
      In this mode employee_service acts as a main receiver and delegator for all incoming requests.
      This mode works but if there are any questions, please reach out to us.
