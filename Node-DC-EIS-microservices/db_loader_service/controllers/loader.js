@@ -186,6 +186,19 @@ exports.initDb = function initDB(req, res) {
   var lastname_current_index=0;
   var employee_id;
   var employeeObj;
+  original_lname_len = lnames.length;
+  if(original_lname_len <= lastnamecount) {
+    var new_namecount = lastnamecount - original_lname_len;
+    var idx = 0;
+    for (var ii = 0; ii < new_namecount; ii++) {
+      var new_name = lnames[idx]+ii.toString();
+      idx++;
+      if (idx > original_lname_len) {
+        idx = 0;
+      }
+      lnames.push(new_name);
+    }
+  }
   for (var ii=0; ii < count; ii++) {
     async.series([
       function(callback) {
