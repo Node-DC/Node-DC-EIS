@@ -62,6 +62,7 @@ if [ -f server-input.txt ]; then
     done
 else
   echo "Expected - mongodb to be running at the port specified in server config"
+  exit 1
 fi
 echo "Installing npm modules"
 npm install
