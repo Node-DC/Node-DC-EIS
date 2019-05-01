@@ -40,14 +40,28 @@ echo "Hello from start server script"
 # export https_proxy
 
 if [ -f server-input.txt ]; then
-	port=`grep db_port server-input.txt | cut -d':' -f2`
-	if [ "x$port" == "x" ]; then
-		echo "Mongodb port is not set. Instance will not be started"
-		exit 1
-	fi
-	mongod --dbpath ./mongodb.template --port $port > /dev/null &
+  port=`grep db_port server-input.txt | cut -d':' -f2`
+  if [ "x$port" == "x" ]; then
+    echo "Mongodb port is not set. Instance will not be started"
+    exit 1
+  fi
+  mongod --dbpath ./mongodb.template --port $port > ./mongodb.template/mongodb.$port.log &
+
+  time_start=$(date +%s)
+  while true
+    do
+      if grep "waiting for connections on port $port" ./mongodb.template/mongodb.$port.log ; then
+        break;
+      fi
+      time_end=$(date +%s)
+      time_diff=$(echo "$time_end - $time_start" | bc)
+      if [ $time_diff -gt 20 ]; then
+        echo "MongoDB did not start in time out interval"
+        exit 1
+      fi
+    done
 else
-	echo "Expected - mongodb to be running at the port specified in server config"
+  echo "Expected - mongodb to be running at the port specified in server config"
 fi
 echo "Installing npm modules"
 npm install
