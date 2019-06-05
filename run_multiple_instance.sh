@@ -452,16 +452,16 @@ create_serverconfig(){
   IFS=$OLDIFS
 }
 
-#executes remote commands using rsh
+#executes remote commands using ssh
 execute_remote_cmd() {
   server_ip="$1"
   logfile="$2"
   cmd_to_run="$3"
 
   if [ "x" == "x$USERNAME" ]; then
-      rsh "$server_ip" "$cmd_to_run"
+      ssh "$server_ip" "$cmd_to_run"
   else 
-      rsh $USERNAME@"$server_ip" "$cmd_to_run"
+      ssh $USERNAME@"$server_ip" "$cmd_to_run"
   fi
   retval=$?
   if [ "$retval" != "0" ]; then
@@ -503,7 +503,7 @@ start_server(){
   ###############################################################################
   print_master_log "Deleting old instance directory"
   print_master_log "--> ${instance_dir}"
-  if rsh ${USERNAME}@"$server_ip" "[ -d ${instance_dir} ]"; then
+  if ssh ${USERNAME}@"$server_ip" "[ -d ${instance_dir} ]"; then
     remote_cmd_to_run="/bin/rm -fr ${instance_dir}"
     execute_remote_cmd "$server_ip" "$logfile" "$remote_cmd_to_run"
   fi
@@ -518,7 +518,7 @@ start_server(){
   ###############################################################################
   if [ "$server_type" == "0" ]; then 
     print_master_log "Copying ${temp_serverdir} to remote instance work directory"
-    rcp -r ${temp_serverdir} ${USERNAME}@"${server_ip}":"${instance_dir}">> "$logfile" 2>&1
+    scp -r ${temp_serverdir} ${USERNAME}@"${server_ip}":"${instance_dir}">> "$logfile" 2>&1
     retval=$?
     if [ "$retval" != "0" ]; then
       print_master_log "Failed to copy server directory. Exiting the run"
@@ -526,7 +526,7 @@ start_server(){
     fi
   else
     print_master_log "Copying ${CONTAINER_STARTUP_SCRIPT} to remote instance work directory"
-    rcp -r ${CONTAINER_STARTUP_SCRIPT} ${USERNAME}@"${server_ip}":"${instance_dir}">> "$logfile" 2>&1
+    scp -r ${CONTAINER_STARTUP_SCRIPT} ${USERNAME}@"${server_ip}":"${instance_dir}">> "$logfile" 2>&1
     retval=$?
     if [ "$retval" != "0" ]; then
       print_master_log "Failed to copy container start-up script. Exiting the run"
@@ -546,7 +546,7 @@ start_server(){
   fi
 
   #execute_remote_cmd "$server_ip" "$logfile" "$remote_cmd_to_run"
-  rsh ${USERNAME}@"$server_ip" "${remote_cmd_to_run}" >> "$logfile" 2>&1 &
+  ssh ${USERNAME}@"$server_ip" "${remote_cmd_to_run}" >> "$logfile" 2>&1 &
   sleep 5
 }
 
@@ -683,7 +683,7 @@ stop_run(){
         instance_index=`expr $instance_index + 1`
         server_ip=`echo "$i" | cut -d ':' -f1`
         print_master_log "Stopping server($server_ip) and mongodb for instance$instance_index"
-        rsh ${USERNAME}@"$server_ip" "(cd ${remote_work_dir}/Node-DC-EIS-cluster-$instance_index/`basename $temp_serverdir` && bash ./stop-server.sh)" >> "$logfile" 2>&1 &
+        ssh ${USERNAME}@"$server_ip" "(cd ${remote_work_dir}/Node-DC-EIS-cluster-$instance_index/`basename $temp_serverdir` && bash ./stop-server.sh)" >> "$logfile" 2>&1 &
         retval=$?
         if [ "$retval" != "0" ]; then
           print_master_log "Failed to stop server at $server_ip for instance$instance_index. Please check manually"
