@@ -15,18 +15,18 @@
 # limitations under the License.
 
 print_this_message() {
-  echo "Usage: $0 runtype node_path"
+  echo "Usage: run_multiple_instance.sh runtype node_path"
   echo "runtype: 0 - bare metal, 1 - container"
   echo "node_path: Path to the node executable"
 }
 
 if [ "$#" -gt 2 ]; then
-  print_this_message $0
+  print_this_message
   exit 1
 fi
 
 if [ "$#" == 1 ] && [ $1 == "-h" ] ; then
-  print_this_message $0
+  print_this_message
   exit 0
 fi
 
