@@ -14,8 +14,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#provide the path to Node directory before starting the run
-export PATH=/opt/local/node-v6.10.0-linux-x64/bin:$PATH
+#Provide the path to Node directory before starting the run
+NODE_PATH=/opt/local/node-v6.10.0-linux-x64/bin
+
+CPU_COUNT=$1
+
+if [ "$#" == 2 ]; then
+  NODE_PATH=$1
+  CPU_COUNT=$2
+fi
+
+export PATH=$NODE_PATH:$PATH
 
 IMAGE_NAME=""  #if not set, workload uses image.jpeg by default
 

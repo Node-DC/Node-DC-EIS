@@ -14,13 +14,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+print_this_message() {
+  echo "Usage: run_multiple_instance.sh runtype node_path"
+  echo "runtype: 0 - bare metal, 1 - container"
+  echo "node_path: Path to the node executable"
+}
+
+if [ "$#" -gt 2 ]; then
+  print_this_message
+  exit 1
+fi
+
+if [ "$#" == 1 ] && [ $1 == "-h" ] ; then
+  print_this_message
+  exit 0
+fi
+
 runtype=$1
+
+#setting the node path
+if [ "$#" == 2 ]; then
+  NODE_PATH=$2
+fi
+
 USERNAME=`whoami`
 remote_work_dir="$HOME/Node-DC-EIS-multiple/multiple-instance-`date +%Y%m%d%H%M%S`"
 log_dir_name=instance_log
 num_instances=2 #must match with the number of blocks in the input_config_file
 cpu_count=0 #cpu count for node server 
-no_graph=false #if true, output graphs will not be generated
+no_graph=true #if true, output graphs will not be generated
 
 ##################################################################################
 # No change required below this line
@@ -538,7 +560,7 @@ start_server(){
   print_master_log "Starting a remote server instance"
 
   STARTUP_SCRIPT="start-server.sh"
-  remote_cmd_to_run="(cd ${instance_dir}/`basename $temp_serverdir` && bash ${STARTUP_SCRIPT} ${cpu_count})"
+  remote_cmd_to_run="(cd ${instance_dir}/`basename $temp_serverdir` && bash ${STARTUP_SCRIPT} ${NODE_PATH} ${cpu_count})"
 
   if [ "$server_type" == "1" ]; then
     STARTUP_SCRIPT=`basename ${CONTAINER_STARTUP_SCRIPT}`
