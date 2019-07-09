@@ -33,7 +33,6 @@ if ! type npm  ||  ! type node ; then
 	exit 1
 fi
 
-CPU_COUNT=$1
 if [ -n "${CPU_COUNT}" ]; then
   export CPU_COUNT=${CPU_COUNT}
 fi
