@@ -1,0 +1,5 @@
+#sudo apt install python-pip
+numpy
+eventlet
+requests
+eventlet

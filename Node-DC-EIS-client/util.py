@@ -11,6 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+from __future__ import absolute_import
+from __future__ import print_function
 import time
 import os
 start_MT = 0 
@@ -64,7 +66,7 @@ def printlog(log,phase,url_type,request_num,url,start,end,response_time,total_le
     else:
       MT_req = MT_req + 1
   log_str = phase+","+str(request_num)+","+str(url)+","+str(start)+","+str(end)+","+str(response_time)+","+str(total_length)+","+str(url_type)
-  print >> log, log_str
+  print(log_str, file=log)
   log.flush()
 
 def check_startfile(rundir):
@@ -84,7 +86,7 @@ def create_indicator_file(rundir,file_name,instance_id,string_towrite):
   #         string to be written in the new file created
   # Output: creates a new indicator file
   """
-  print "[%s] Creating indicator file." % get_current_time()
+  print("[%s] Creating indicator file." % get_current_time())
   with open(os.path.join(rundir, '%s%s.syncpt' % (file_name, instance_id)),
             'w') as ind_file:
     if string_towrite:
@@ -104,13 +106,13 @@ def calculate_throughput(log_dir,concurrency,cpuCount):
   except IOError as e:
     print("Error: %s File not found throughput_info.txt")
     return None
-  print >> log,"Concurrency is:"+str(concurrency)
-  print >> log,"Number of processess:"+str(cpuCount)
-  print >> log,"Measuring time window start time is:"+str(start_MT) 
-  print >> log,"Measuring time end time is:"+str(end_MT)
-  print >> log,"Elapsed time is:"+str(end_MT-start_MT)
-  print >> log,"Total measuring time requests:"+str(MT_req)
-  print >> log,"Throughput is:"+str(throughput)
+  print("Concurrency is:"+str(concurrency), file=log)
+  print("Number of processess:"+str(cpuCount), file=log)
+  print("Measuring time window start time is:"+str(start_MT), file=log) 
+  print("Measuring time end time is:"+str(end_MT), file=log)
+  print("Elapsed time is:"+str(end_MT-start_MT), file=log)
+  print("Total measuring time requests:"+str(MT_req), file=log)
+  print("Throughput is:"+str(throughput), file=log)
   log.close()
 
   
