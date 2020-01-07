@@ -910,7 +910,7 @@ def collect_meminfo():
       print("")
       os.remove(os.path.join(log_dir,memlogind))
       elapsed_time = time.time() - start_time
-      with open(os.path.join(log_dir,memlogfile+".csv"), 'wb') as f:
+      with open(os.path.join(log_dir,memlogfile+".csv"), 'w') as f:
         writer = csv.writer(f)
         writer.writerows(zip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))
         print(("[%s] Exiting meminfo collection process" % (util.get_current_time())))
