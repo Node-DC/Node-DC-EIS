@@ -23,7 +23,7 @@
     "express": "4.13.3",
     "lru-cache": "4.0.1",
     "mongoose": "5.7.7",
-    "pug": "2.0.0-rc.1"
+    "pug": "2.0.4"
   },
   "devDependencies": {},
   "keywords": [
