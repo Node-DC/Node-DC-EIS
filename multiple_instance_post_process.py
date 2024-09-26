@@ -14,19 +14,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import sys
 import os
 import csv
 import json
 import matplotlib
+from six.moves import zip
+from six.moves import range
 matplotlib.use(matplotlib.get_backend())
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 import time
 from threading import Thread
 import numpy as np
-from itertools import izip
+
 
 instances = ""
 rundir = ""
@@ -64,7 +68,7 @@ def read_syncfile():
 				file_name = file.readline()
 				RTdatafile_list.append(file_name)
 		else:
-			print "File not found.Exiting run" +str(process_filename)
+			print("File not found.Exiting run" +str(process_filename))
 			sys.exit(1)
 	process_summary(RTdatafile_list)
 
@@ -102,7 +106,7 @@ def process_summary(RTdatafile_list):
 						min_samplelogs = j
 
 			else:
-				print "File not found %s", RTdatafile_list[i-1]
+				print("File not found %s", RTdatafile_list[i-1])
 				sys.exit(1)
 		min_arr=calculate_minresp(RTdata_dict,min_samplelogs)
 		mean_arr=calculate_meanresp(RTdata_dict,min_samplelogs)
@@ -134,7 +138,7 @@ def show_live_graph():
   	"""
 	global ax1 
 	global ax2   
-	print ("[%s] Plotting live graphs." % (time.strftime("%d-%m-%Y %H:%M:%S")))        
+	print(("[%s] Plotting live graphs." % (time.strftime("%d-%m-%Y %H:%M:%S"))))        
 	fig = plt.figure()         
 	ax1 = fig.add_subplot(1,1,1)
 	ax2 = ax1.twinx()
@@ -157,7 +161,7 @@ def animate(i):
 	percent99_yar =[]
 	throughput_yar =[]
 	if (alldone == True):
-		print ("[%s] Plotting live graphs done." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+		print(("[%s] Plotting live graphs done." % (time.strftime("%d-%m-%Y %H:%M:%S"))))
 		plt.close()
 	else:
 		for i in range(len(write_arr)):
@@ -193,7 +197,7 @@ def calculate_minresp(RTdata_dict,min_samplelogs):
  	#  Input : Dictionary with processed data from each instance, Minimum number of samples that has been processed
   	#  Output: Returns average minimum-response-time for all the instances
   	"""
-  	min_avglist = []
+	min_avglist = []
 	for i in range(0,min_samplelogs):
 		min_local_list = []
 		ignore_minvalue = False
@@ -215,7 +219,7 @@ def calculate_maxresp(RTdata_dict,min_samplelogs):
  	#  Input : Dictionary with processed data from each instance, Minimum number of samples that has been processed
   	#  Output: Returns average maximum-response-time list for all the instances
   	"""
-  	max_avglist = []
+	max_avglist = []
 	for i in range(0,min_samplelogs):
 		max_local_list = []
 		ignore_maxvalue = False
@@ -352,7 +356,7 @@ def print_throughput_summary(RTdatafile_list):
 						processes_list.append(processes)
 				throughput_file.close()
 		else:
-			print "File not found " +str(throughput_filename)
+			print("File not found " +str(throughput_filename))
 	return throughput_list
 
 def plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_arr):
@@ -361,7 +365,7 @@ def plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_ar
   #  Input : response time lists
   #  Output: generates summary response time graph
   """
-  print ("[%s] Plotting Response time graphs." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print(("[%s] Plotting Response time graphs." % (time.strftime("%d-%m-%Y %H:%M:%S"))))
   plt.figure("Response Time")
   plt.grid(True)
   plt.plot(write_arr,min_arr, linewidth=1, linestyle='-', marker='.', color='b', label='Min resp')
@@ -376,7 +380,7 @@ def plot_respgraph(min_arr,mean_arr,max_arr,percent95_arr,percent99_arr,write_ar
   plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=5,prop={'size':10})
   plt.tight_layout(pad=3)
   plt.savefig(os.path.join(rundir, 'resptime.png'))
-  print("The response-time graph is located at  " +os.path.abspath(os.path.join(rundir,'resptime.png')))
+  print(("The response-time graph is located at  " +os.path.abspath(os.path.join(rundir,'resptime.png'))))
 
 def plot_throughputgraph(throughput_arr,write_arr):
   """
@@ -384,7 +388,7 @@ def plot_throughputgraph(throughput_arr,write_arr):
   #  Input : response time lists
   #  Output: generates summary throughput graph
   """
-  print ("[%s] Plotting Throughput graph." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+  print(("[%s] Plotting Throughput graph." % (time.strftime("%d-%m-%Y %H:%M:%S"))))
   plt.figure("Throughput")
   plt.grid(True)
   plt.plot(write_arr,throughput_arr, linewidth=2, linestyle='-', marker='.', color='r', label='throughput')
@@ -394,7 +398,7 @@ def plot_throughputgraph(throughput_arr,write_arr):
   plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=1,prop={'size':10})
   plt.tight_layout(pad=3)
   plt.savefig(os.path.join(rundir, 'throughput.png')) 
-  print("\nThe throughput graph is located at  " +os.path.abspath(os.path.join(rundir,'throughput.png')))
+  print(("\nThe throughput graph is located at  " +os.path.abspath(os.path.join(rundir,'throughput.png'))))
 
 def print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_total):
 	"""
@@ -402,7 +406,7 @@ def print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughpu
  	#  Input : throughput and response time lists
   	#  Output: prints throughput and response time summary for all the instances
   	"""
-	print ("[%s] Printing summary." % (time.strftime("%d-%m-%Y %H:%M:%S")))
+	print(("[%s] Printing summary." % (time.strftime("%d-%m-%Y %H:%M:%S"))))
 	minimum = min(min_arr)
 	maximum = max(max_arr)
 	sortmarr = sorted(mean_arr)
@@ -416,29 +420,29 @@ def print_summary(min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughpu
 	percent95 = np.mean(nparr_95)
 	throughput = sum(float(i) for i in throughput_total)
 	summary_file_name = os.path.join(rundir,"master_summary.txt")
-	with open(summary_file_name, 'wb') as summary_file:
-		print >> summary_file, "Number of instances:" +str(instances)
-		print >> summary_file, "Concurrency:"+str(concurrency)
-		print >> summary_file, "Number of processes per instance:"+str(processes) 
-		print >> summary_file, "\n====Report Summary===="
-		print >> summary_file, "Primary Metrics:"
-		print >> summary_file, 'Response time 99 percentile = ' + str(round(percent99,3)) +" sec"
-		print >> summary_file, 'Throughput = ' + str(throughput) + " req/sec"
-		print >> summary_file, "\n====Detailed summary====:"
-		print >> summary_file, 'Min Response time = ' + str(round(minimum,3)) +" sec"
-		print >> summary_file, 'Mean Response time = ' + str(round(mean,3)) +" sec"
-		print >> summary_file,'Max Response time = ' + str(round(maximum,3)) +" sec"
-		print >> summary_file, '95 percentile = ' + str(round(percent95,3)) +" sec"
-		print >> summary_file, "\n====Instance summary===="
+	with open(summary_file_name, 'w') as summary_file:
+		print("Number of instances:" +str(instances), file=summary_file)
+		print("Concurrency:"+str(concurrency), file=summary_file)
+		print("Number of processes per instance:"+str(processes), file=summary_file) 
+		print("\n====Report Summary====", file=summary_file)
+		print("Primary Metrics:", file=summary_file)
+		print('Response time 99 percentile = ' + str(round(percent99,3)) +" sec", file=summary_file)
+		print('Throughput = ' + str(throughput) + " req/sec", file=summary_file)
+		print("\n====Detailed summary====:", file=summary_file)
+		print('Min Response time = ' + str(round(minimum,3)) +" sec", file=summary_file)
+		print('Mean Response time = ' + str(round(mean,3)) +" sec", file=summary_file)
+		print('Max Response time = ' + str(round(maximum,3)) +" sec", file=summary_file)
+		print('95 percentile = ' + str(round(percent95,3)) +" sec", file=summary_file)
+		print("\n====Instance summary====", file=summary_file)
 		writer = csv.writer(summary_file)
 		writer.writerow(["Instance#", "Concurrency", "#Processes", "Tot_ElapsedTime", "Throughput"])
-		writer.writerows(izip(list(range(1, int(instances)+1, 1)), concurrency_list,processes_list,elapsedtime_list,throughput_list))
+		writer.writerows(zip(list(range(1, int(instances)+1, 1)), concurrency_list,processes_list,elapsedtime_list,throughput_list))
 		#print summary_file.read()
 	summary_report_file = os.path.join(rundir,"master_RTdata")
-	with open(summary_report_file, 'wb') as summary_file:
+	with open(summary_report_file, 'w') as summary_file:
 		writer = csv.writer(summary_file)
 		writer.writerow(["Number", "Min-avg", "Mean-avg", "95percentile-avg", "99percentile-avg", "Max-avg", "Throughput-avg"])
-		writer.writerows(izip(write_arr,min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_arr)) 
+		writer.writerows(zip(write_arr,min_arr,mean_arr,percent95_arr,percent99_arr,max_arr,throughput_arr)) 
 
 if __name__ == '__main__':
 	no_graph = False
@@ -451,7 +455,7 @@ if __name__ == '__main__':
                   help='Show graph option')
 	options = parser.parse_args()
 	if((not options.instances) or (not options.rundir)):
-		print "Required fields missing in multiple instance post process file.Post processing failed"
+		print("Required fields missing in multiple instance post process file.Post processing failed")
 		sys.exit(1)
 	instances = options.instances
 	rundir = options.rundir

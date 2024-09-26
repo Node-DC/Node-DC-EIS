@@ -13,6 +13,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from __future__ import absolute_import
+from __future__ import print_function
 import argparse
 import json
 import os
@@ -23,23 +25,25 @@ import numpy as np
 import random
 from random import seed, shuffle
 import eventlet
+from six.moves import zip
+from six.moves import range
 eventlet.sleep()  # workaround for eventlet bug 0.21.0
 requests = eventlet.import_patched('requests.__init__')
 import requests
 import glob
 import time
 import traceback
-import urlparse
-from urlparse import urlsplit
+import six.moves.urllib.parse
+from six.moves.urllib.parse import urlsplit
 from collections import OrderedDict
 from collections import Counter
 from datetime import datetime
-from urllib import urlencode
+from six.moves.urllib.parse import urlencode
 import shutil
 import math
 import zipfile
 import platform
-from itertools import izip
+
 from threading import Thread,Timer
 from multiprocessing import Process
 from multiprocessing import Queue
@@ -47,7 +51,7 @@ import node_dc_eis_testurls
 from node_dc_eis_testurls import *
 from process_time_based_output import process_time_based_output
 import traceback
-import urllib
+import six.moves.urllib.request, six.moves.urllib.parse, six.moves.urllib.error
 import util
 
 """
@@ -170,7 +174,7 @@ def setup():
   except requests.exceptions.RequestException as e:
     """ catastrophic error. bail.
     """
-    print e
+    print(e)
     print("CPU call failed.Exiting")
     sys.exit(1)
   if(r.content):
@@ -179,7 +183,7 @@ def setup():
     except ValueError:
       """  decoding failed
       """
-      print "Exception -- Decoding of result from cpuinfo failed. Exiting"
+      print("Exception -- Decoding of result from cpuinfo failed. Exiting")
       exit(1)
 
   if result:
@@ -189,7 +193,7 @@ def setup():
       cpuCount = result["cpuCount"]
     if 'appVersion' in result:
       version = result['appVersion']
-  print "Starting "+version + " in "+appName + " Mode"
+  print("Starting "+version + " in "+appName + " Mode")
   if(instance_id):
     directory = directory+"-"+appName+"-"+instance_id
     memlogind = memlogind+"-"+instance_id
@@ -226,7 +230,7 @@ def main():
   get_endpoints = None
   no_db = False
 
-  print ("[%s] Parsing arguments." % (util.get_current_time()))
+  print(("[%s] Parsing arguments." % (util.get_current_time())))
   parser = argparse.ArgumentParser()
   parser.add_argument('-id', '--instanceID', dest="id",
                   help='Instance ID')
@@ -301,7 +305,7 @@ def main():
 
   options = parser.parse_args()
 
-  print('Input options config files: %s' % options.config)
+  print(('Input options config files: %s' % options.config))
 
   #parse configuration file
   if(options.config) :
@@ -310,7 +314,7 @@ def main():
         try:
           json_data = json.load(json_file)
         except ValueError as e:
-          print('Invalid json: %s' % e)
+          print(('Invalid json: %s' % e))
           return None
 
         global server_ipaddress
@@ -417,7 +421,7 @@ def main():
               headers = [header_check(hh)
                           for hh in json_data["client_params"]["http_headers"]]
             except Exception as e:
-              print 'Error: http_headers: %s' % e
+              print('Error: http_headers: %s' % e)
               sys.exit(1)
 
             http_headers.extend(headers)
@@ -453,7 +457,7 @@ def main():
             memlogfile = json_data["memory_params"]["memlogfile"]
 
     except IOError as e:
-      print("Error: %s File not found." % options.config)
+      print(("Error: %s File not found." % options.config))
       return None
 
   if(options.id):
@@ -536,7 +540,7 @@ def main():
     get_endpoints_urls = [server_url + endpoint for endpoint in get_endpoints]
 
   if int(concurrency) > int(request):
-    print "Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests"
+    print("Warning -- concurrency cannot be greater than number of requests. Setting concurrency == number of requests")
     concurrency = request
 
   #Setup function, create logdir, etc
@@ -554,37 +558,37 @@ def run_printenv(log):
   """
 
   if run_mode == 1:
-    print >> log, "** Time based run **"
+    print("** Time based run **", file=log)
   else:
-    print >> log, "** Requests based run **"
+    print("** Requests based run **", file=log)
 
-  print >> log, ('Server url is : %s' % server_url)
+  print(('Server url is : %s' % server_url), file=log)
   if run_mode == 1:
-    print >> log, "Runtime interval:"+ str(MT_interval) +"  (Default value = 60s)"
+    print("Runtime interval:"+ str(MT_interval) +"  (Default value = 60s)", file=log)
   else:
-    print >> log, "Requests    :"+ str(request) +"  (Default value = 10000)"
+    print("Requests    :"+ str(request) +"  (Default value = 10000)", file=log)
 
-  print >> log, "# concurrency    :"+ str(concurrency) +"  (Default value = 200)"
-  print >> log, "#  URLs  :" +str(total_urls) +"  (Default value = 100)"
-  print >> log, "# Use HTML: %s (Default value = False)" % use_html
+  print("# concurrency    :"+ str(concurrency) +"  (Default value = 200)", file=log)
+  print("#  URLs  :" +str(total_urls) +"  (Default value = 100)", file=log)
+  print("# Use HTML: %s (Default value = False)" % use_html, file=log)
   if http_headers:
-    print >> log, "# Extra HTTP headers:"
+    print("# Extra HTTP headers:", file=log)
     for hh in http_headers:
-      print >> log, "# ", hh
+      print("# ", hh, file=log)
 
   if not get_endpoints_urls:
-    print >> log, "#  get url ratio:%s  (Default value = 80)" % get_ratio
-    print >> log, "#  post url ratio:%s  (Default value = 10)" % post_ratio
-    print >> log, "#  delete url ratio:%s  (Default value = 10)" % delete_ratio
-    print >> log, "#  id_url:%s  (Default value = 50)" % idurl_ratio
-    print >> log, "#  name url ratio:%s  (Default value = 25)" % nameurl_ratio
-    print >> log, "#  zip url ratio:%s  (Default value = 25)" % zipurl_ratio
+    print("#  get url ratio:%s  (Default value = 80)" % get_ratio, file=log)
+    print("#  post url ratio:%s  (Default value = 10)" % post_ratio, file=log)
+    print("#  delete url ratio:%s  (Default value = 10)" % delete_ratio, file=log)
+    print("#  id_url:%s  (Default value = 50)" % idurl_ratio, file=log)
+    print("#  name url ratio:%s  (Default value = 25)" % nameurl_ratio, file=log)
+    print("#  zip url ratio:%s  (Default value = 25)" % zipurl_ratio, file=log)
 
   if not no_db:
-    print >> log, "====Database Parameters===="
-    print >> log, "# records    :%s  (Default value = 10000)" % dbrecord_count
-    print >> log, "#  unique name:%s  (Default value = 25)" % name_dbratio
-    print >> log, "#  unique zips:%s  (Default value = 25)" % zip_dbratio
+    print("====Database Parameters====", file=log)
+    print("# records    :%s  (Default value = 10000)" % dbrecord_count, file=log)
+    print("#  unique name:%s  (Default value = 25)" % name_dbratio, file=log)
+    print("#  unique zips:%s  (Default value = 25)" % zip_dbratio, file=log)
 
 
 def get_data():
@@ -615,62 +619,68 @@ def get_data():
 
 def generate_urls_from_list():
   urls_count = len(get_endpoints_urls)
-  for ii in xrange(int(total_urls)):
+  for ii in range(int(total_urls)):
     urls_idx = random.randint(0, urls_count - 1)
     urllist.append({
         'url': get_endpoints_urls[urls_idx],
         'method':'GET'})
 
-  print "[%s] Building list of Urls done." % util.get_current_time()
+  print("[%s] Building list of Urls done." % util.get_current_time())
 
 def generate_urls_from_db():
   global employee_idlist
 
-  print ("[%s] Build list of employee IDs." % (util.get_current_time()))
+  print(("[%s] Build list of employee IDs." % (util.get_current_time())))
   try:
     ids_get = requests.get(id_url)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
     print("Building list of employee ids failed.Exiting")
-    print e
+    print(e)
     sys.exit(1)
   ids = ids_get.content
-  print ("[%s] Build list of employee IDs done." % (util.get_current_time()))
+  print(("[%s] Build list of employee IDs done." % (util.get_current_time())))
 
-  print ("[%s] Build list of employee last names." % (util.get_current_time()))
+  print(("[%s] Build list of employee last names." % (util.get_current_time())))
   try:
     names_get = requests.get(name_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee names failed.Exiting")
     sys.exit(1)
   names = names_get.content
-  print ("[%s] Build list of employee last names done." % (util.get_current_time()))
+  print(("[%s] Build list of employee last names done." % (util.get_current_time())))
 
-  print ("[%s] Build list of address zipcodes." % (util.get_current_time()))
+  print(("[%s] Build list of address zipcodes." % (util.get_current_time())))
   try:
     zipcode_get = requests.get(zipcode_url)
   except requests.exceptions.RequestException as e:
     print("Building list of employee address zipcodes failed.Exiting")
     sys.exit(1)
   zipcode= zipcode_get.content
-  print ("[%s] Build list of address zipcode done." % (util.get_current_time()))
+  print(("[%s] Build list of address zipcode done." % (util.get_current_time())))
 
   if not ids and names and zipcode:
-    print "Exception -- IDs or names or zipcodes not returned.Make sure application server is up and running.\n Make sure Database Server is up and running and \n Make sure client can communicate with server"
+    print("Exception -- IDs or names or zipcodes not returned.Make sure application server is up and running.\n Make sure Database Server is up and running and \n Make sure client can communicate with server")
     sys.exit(1)
 
-  eidlist = re.findall(r'"([^"]*)"', ids)
+  local_regex = re.compile(r'"([^"]*)"')
+  ids = ids.decode('utf-8')
+  eidlist = local_regex.findall(ids)
+  #====>>>>eidlist = re.findall(r'"([^"]*)"', ids)
   employee_idlist.extend(eidlist)
-  name_matches = re.findall(r'"([^"]*)"', names)
-  s = zipcode.strip("\"[]\"")
+  #name_matches = re.findall(r'"([^"]*)"', names)
+  names = names.decode('utf-8')
+  name_matches = local_regex.findall(names)
+  #s = zipcode.strip("\"[]\"")
+  s = zipcode.decode('utf8').strip("\"[]\"")
   zip_matches = s.split(',')
 
   if not (int(get_ratio) + int(post_ratio) + int(delete_ratio) == 100) :
-    print "Warning -- The get post and delete ratios don't add up to 100.Aborting the run"
+    print("Warning -- The get post and delete ratios don't add up to 100.Aborting the run")
     sys.exit(1)
 
   if not(int(post_ratio) == int(delete_ratio)):
-    print "Warning -- The post and delete ratios should be equal to maintain database consistency Aborting the run"
+    print("Warning -- The post and delete ratios should be equal to maintain database consistency Aborting the run")
 
   #formula to find number of get post and delete urls
   get_urlcount = int(math.ceil((int(total_urls)*float(float(get_ratio)/100))))
@@ -691,21 +701,21 @@ def run_loaddb():
   # Output: None
   """
   global after_dbload
-  print ("[%s] Loading database with %d records." % (util.get_current_time(), int(dbrecord_count)))
-  print "Loading database in progress..."
+  print(("[%s] Loading database with %d records." % (util.get_current_time(), int(dbrecord_count))))
+  print("Loading database in progress...")
   loaddbparams = {'count': int(dbrecord_count), 'zipcode': int(zip_dbratio), 'lastname' : int(name_dbratio) }
   try:
     res = requests.get(loaddb_url, params=loaddbparams, timeout=300)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
-    print("[%s] Loading database failed. Exiting" % (util.get_current_time()))
-    print e
+    print(("[%s] Loading database failed. Exiting" % (util.get_current_time())))
+    print(e)
     sys.exit(1)
   if ( res.status_code == requests.codes.ok ):
-    print ("[%s] Loading database done." % (util.get_current_time()))
+    print(("[%s] Loading database done." % (util.get_current_time())))
     after_dbload = check_db()
   else:
-    print("[%s] Loading database failed:[%d]. Exiting" % (util.get_current_time(), +str(res.status_code)))
+    print(("[%s] Loading database failed:[%d]. Exiting" % (util.get_current_time(), +str(res.status_code))))
     sys.exit(1)
   return
 
@@ -716,7 +726,7 @@ def check_db():
   # Output: None
   """
   checkdb_dict = {}
-  print ("[%s] Checking database consistency." % (util.get_current_time()))
+  print(("[%s] Checking database consistency." % (util.get_current_time())))
   checkdbparams = {'count': int(dbrecord_count)}
 
   try:
@@ -724,21 +734,21 @@ def check_db():
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
     print("Function Checkdb failed.Exiting")
-    print e
+    print(e)
     sys.exit(1)
   try:
     result = json.loads(res.content)
   except ValueError:
     #decoding failed
-    print "Exception -- Decoding of result from checkdb failed. Exiting"
+    print("Exception -- Decoding of result from checkdb failed. Exiting")
     sys.exit(1)
 
   if("db_status" in result and "message" in result):
     if(result['db_status']==200):
-      print ("[%s] Database check successful." % (util.get_current_time()))
+      print(("[%s] Database check successful." % (util.get_current_time())))
       checkdb_dict["message"] = result["message"]
     else:
-      print ("[%s] Error: Database check failed." % (util.get_current_time()))
+      print(("[%s] Error: Database check failed." % (util.get_current_time())))
       checkdb_dict["message"] = result["message"]
 
   return checkdb_dict
@@ -750,7 +760,7 @@ def builddburllist(employee_idlist, id_number, name_matches, name_number, zip_ma
   # Input :global list array,.....
   # Output:Return current date and time in specific format for all log messages
   """
-  print ("[%s] Building list of Urls" % (util.get_current_time()))
+  print(("[%s] Building list of Urls" % (util.get_current_time())))
   id_usedlist = []
   global id_count
   global name_count
@@ -772,7 +782,7 @@ def builddburllist(employee_idlist, id_number, name_matches, name_number, zip_ma
 
       if(name_count < name_number):
         names = name_matches[random_name]
-        urls = name_url + "?last_name=" + urllib.quote_plus(names, safe='')
+        urls = name_url + "?last_name=" + six.moves.urllib.parse.quote_plus(names, safe='')
         urllist.append({'url':urls,'method':'GET'})
         name_count = name_count + 1
 
@@ -794,7 +804,7 @@ def builddburllist(employee_idlist, id_number, name_matches, name_number, zip_ma
       count = id_count + name_count + zip_count + post_count + delete_count
       if(count == int(total_urls)):
         break
-  print ("[%s] Building list of Urls done." % (util.get_current_time()))
+  print(("[%s] Building list of Urls done." % (util.get_current_time())))
   return
 
 def print_ramp(request_index):
@@ -807,40 +817,40 @@ def print_ramp(request_index):
   if request_index <= int(rampup_rampdown):
     phase = "RU"
     if request_index == 1:
-      print ("[%s] Entering Rampup window" % (util.get_current_time()))
+      print(("[%s] Entering Rampup window" % (util.get_current_time())))
     if request_index == int(rampup_rampdown):
-      print ("[%s] Exiting Rampup window" % (util.get_current_time()))
+      print(("[%s] Exiting Rampup window" % (util.get_current_time())))
   elif (request_index - int(rampup_rampdown)) <= int(request):
     phase = "MT"
     if (request_index - int(rampup_rampdown)) == 1:
-      print ("[%s] Entering Measuring time window" % (util.get_current_time()))
-      print "In progress..."
+      print(("[%s] Entering Measuring time window" % (util.get_current_time())))
+      print("In progress...")
     if(request_index - int(rampup_rampdown)== 0.1*int(request)):
-      print "10% of requests done"
+      print("10% of requests done")
     if(request_index - int(rampup_rampdown)== 0.2*int(request)):
-      print "20% of requests done"
+      print("20% of requests done")
     if(request_index - int(rampup_rampdown)== 0.3*int(request)):
-      print "30% of requests done"
+      print("30% of requests done")
     if(request_index - int(rampup_rampdown)== 0.4*int(request)):
-      print "40% of requests done"
+      print("40% of requests done")
     if(request_index - int(rampup_rampdown)== 0.5*int(request)):
-      print "50% of requests done"
+      print("50% of requests done")
     if(request_index - int(rampup_rampdown)== 0.6*int(request)):
-      print "60% of requests done"
+      print("60% of requests done")
     if(request_index - int(rampup_rampdown)== 0.7*int(request)):
-      print "70% of requests done"
+      print("70% of requests done")
     if(request_index - int(rampup_rampdown)== 0.8*int(request)):
-      print "80% of requests done"
+      print("80% of requests done")
     if(request_index - int(rampup_rampdown)== 0.9*int(request)):
-      print "90% of requests done"
+      print("90% of requests done")
     if (request_index - int(rampup_rampdown)) == int(request):
-      print ("[%s] Exiting Measuring time window" % (util.get_current_time()))
+      print(("[%s] Exiting Measuring time window" % (util.get_current_time())))
   elif request_index - (int(rampup_rampdown)+int(request)) <= int(rampup_rampdown):
     phase = "RD"
     if request_index - (int(rampup_rampdown)+int(request)) == 1:
-      print ("[%s] Entering Rampdown window" % (util.get_current_time()))
+      print(("[%s] Entering Rampdown window" % (util.get_current_time())))
     if request_index - (int(rampup_rampdown)+int(request)) == int(rampup_rampdown):
-      print ("[%s] Exiting Rampdown window" % (util.get_current_time()))
+      print(("[%s] Exiting Rampdown window" % (util.get_current_time())))
   return
 
 def getNextEmployeeId():
@@ -858,7 +868,7 @@ def getNextEmployeeId():
     return_id = employee_idlist[idmatches_index]
     idmatches_index = idmatches_index + 1
   else:
-    print "Fatal error-No more IDs available. Aborting"
+    print("Fatal error-No more IDs available. Aborting")
     sys.exit(1)
   return return_id
 
@@ -876,10 +886,10 @@ def removeEmployeeId(ids):
       employee_idlist.remove(ids)
       id_found = True
     else:
-      print "Id not found. Aborting"
+      print("Id not found. Aborting")
       sys.exit(1)
   else:
-    print "Fatal error-No more IDs available. Aborting"
+    print("Fatal error-No more IDs available. Aborting")
     sys.exit(1)
   return
 
@@ -893,30 +903,30 @@ def collect_meminfo():
   rss_list =[]
   heapTotlist =[]
   heapUsedlist = []
-  print ("[%s] Starting meminfo collection process " % (util.get_current_time()))
+  print(("[%s] Starting meminfo collection process " % (util.get_current_time())))
   start_time = time.time()
   while True:
     if os.path.exists(os.path.join(log_dir,memlogind)):
-      print ""
+      print("")
       os.remove(os.path.join(log_dir,memlogind))
       elapsed_time = time.time() - start_time
-      with open(os.path.join(log_dir,memlogfile+".csv"), 'wb') as f:
+      with open(os.path.join(log_dir,memlogfile+".csv"), 'w') as f:
         writer = csv.writer(f)
-        writer.writerows(izip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))
-        print ("[%s] Exiting meminfo collection process" % (util.get_current_time()))
+        writer.writerows(zip(list(range(0, int(elapsed_time), 1)),rss_list,heapTotlist,heapUsedlist))
+        print(("[%s] Exiting meminfo collection process" % (util.get_current_time())))
         sys.exit(0)
     try:
       r = requests.get(meminfo_url)
     except requests.exceptions.RequestException as e:
       #catastrophic error. bail.
-      print("[%s] Call to get server memory data failed." % (util.get_current_time()))
-      print e
+      print(("[%s] Call to get server memory data failed." % (util.get_current_time())))
+      print(e)
       sys.exit(1)
     try:
       result = json.loads(r.content)
     except ValueError:
       #decoding failed
-      print "Exception -- Decoding of result from meminfo failed. Exiting"
+      print("Exception -- Decoding of result from meminfo failed. Exiting")
       sys.exit(1)
 
     if result and result["memoryInfo"]:
@@ -950,7 +960,7 @@ def send_request():
   #Create a pool with input concurrency
   pool = eventlet.GreenPool(int(concurrency))
 
-  print ("[%s] Creating temporary log file" % (util.get_current_time()))
+  print(("[%s] Creating temporary log file" % (util.get_current_time())))
   if(rundir):
     log_dir = os.path.join(rundir,os.path.join(results_dir,directory))
   else:
@@ -958,16 +968,16 @@ def send_request():
   try:
     log = open(os.path.join(log_dir,temp_log), "w")
   except IOError as e:
-    print("Error: %s File not found." % temp_log)
+    print(("Error: %s File not found." % temp_log))
     return None
 
   #Print environment
   run_printenv(log)
 
   if run_mode == 1:
-    print >> log, "File#,MinResp,MeanResp,95percentile,99percentile,MaxResp,Startime,Endtime,#RUReq,#MTReq,#RDReq,TotalReq,Throughput"
+    print("File#,MinResp,MeanResp,95percentile,99percentile,MaxResp,Startime,Endtime,#RUReq,#MTReq,#RDReq,TotalReq,Throughput", file=log)
   else:
-    print >> log, "Mode,Request_num,URL,StartTime,EndTime,Response_time"
+    print("Mode,Request_num,URL,StartTime,EndTime,Response_time", file=log)
 
   log.flush()
   mem_process = Process(target = collect_meminfo)
@@ -1008,7 +1018,7 @@ def execute_request(pool, queue=None):
         if(execute_request.url_index >= len(urllist)):
            execute_request.url_index = 0
         url = urllist[execute_request.url_index]['url']
-        parsed = urlparse.urlparse(url)
+        parsed = six.moves.urllib.parse.urlparse(url)
 
         if(urllist[execute_request.url_index]['method']== 'GET'):
           url_type = 1
@@ -1047,9 +1057,9 @@ def execute_request(pool, queue=None):
         execute_request.request_index += 1
         execute_request.url_index += 1
 
-    except Exception, err:
+    except Exception as err:
       traceback.print_exc()
-      print Exception, err
+      print(Exception, err)
       sys.exit(1)
 
 # Initializing the Static Variables of the Function , which are used as counter
@@ -1091,45 +1101,45 @@ def timebased_run(pool):
                                   memlogfile, instance_id, multiple_instance,
                                   no_graph, queue, concurrency))
   post_processing.start()
-  print ("[%s] Starting time based run." % (util.get_current_time()))
+  print(("[%s] Starting time based run." % (util.get_current_time())))
   if ramp:
     phase = "RU"
     start = time.time()
-    print("[%s] Entering RampUp time window." % (util.get_current_time()))
+    print(("[%s] Entering RampUp time window." % (util.get_current_time())))
   else:
     phase = "MT"
     start = time.time()
-    print("Entering Measuring time window : [%s]" % (util.get_current_time()))
+    print(("Entering Measuring time window : [%s]" % (util.get_current_time())))
     util.record_start_time()
-  print ("[%s] Started processing of requests with concurrency of [%d] for [%d] seconds" % (util.get_current_time(), int(concurrency), int(MT_interval)))
+  print(("[%s] Started processing of requests with concurrency of [%d] for [%d] seconds" % (util.get_current_time(), int(concurrency), int(MT_interval))))
   if ramp:
           while(time.time()-start < int(rampup_rampdown)):
               execute_request(pool, queue)
-          print ("[%s] Exiting RampUp time window." %(util.get_current_time()))
+          print(("[%s] Exiting RampUp time window." %(util.get_current_time())))
           phase = "MT"
           util.record_start_time()
           start=time.time()
-          print ("[%s] Entering Measuring time window." %(util.get_current_time()))
+          print(("[%s] Entering Measuring time window." %(util.get_current_time())))
           while(time.time()-start < int(MT_interval)):
               execute_request(pool, queue)
-          print ("[%s] Exiting Measuring time window." %(util.get_current_time()))
+          print(("[%s] Exiting Measuring time window." %(util.get_current_time())))
           util.record_end_time()
           phase = "RD"
           util.calculate_throughput(log_dir,concurrency,cpuCount)
           start=time.time()
-          print ("[%s] Entering RampDown time window." %(util.get_current_time()))
+          print(("[%s] Entering RampDown time window." %(util.get_current_time())))
           while(time.time()-start < int(rampup_rampdown)):
               execute_request(pool, queue)
-          print ("[%s] Exiting RampDown time window." %(util.get_current_time()))
+          print(("[%s] Exiting RampDown time window." %(util.get_current_time())))
           phase = "SD"
-          print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
+          print(("[%s] Entering ShutDown time window." %(util.get_current_time())))
   else:
           while(time.time()-start < int(MT_interval)):
               execute_request(pool, queue)
-          print ("[%s] Exiting Measuring time window." %(util.get_current_time()))
+          print(("[%s] Exiting Measuring time window." %(util.get_current_time())))
           phase = "SD"
-          print ("[%s] Entering ShutDown time window." %(util.get_current_time()))
-  print("[%s] All requests done." % (util.get_current_time()))
+          print(("[%s] Entering ShutDown time window." %(util.get_current_time())))
+  print(("[%s] All requests done." % (util.get_current_time())))
   file = open(os.path.join(log_dir,memlogind),"w")
   file.close()
   pool.waitall()
@@ -1154,8 +1164,8 @@ def requestBasedRun(pool):
   global phase
   global after_run
 
-  print ("[%s] Starting request based run." % (util.get_current_time()))
-  print ("[%s] Requests:[%d], Concurrency:[%d]" % (util.get_current_time(), int(request), int(concurrency)))
+  print(("[%s] Starting request based run." % (util.get_current_time())))
+  print(("[%s] Requests:[%d], Concurrency:[%d]" % (util.get_current_time(), int(request), int(concurrency))))
 
   url_index = 0
   if ramp:
@@ -1170,16 +1180,16 @@ def requestBasedRun(pool):
       else:
         phase = "MT"
         if request_index == 1:
-          print "Entering Measuring time window"
+          print("Entering Measuring time window")
         if request_index == int(request):
-          print "Exiting Measuring time window"
+          print("Exiting Measuring time window")
       execute_request(pool)
   #Wait for request threads to finish
   file = open(os.path.join(log_dir,memlogind),"w")
   file.close()
   pool.waitall()
 
-  print ("[%s] All requests done." % (util.get_current_time()))
+  print(("[%s] All requests done." % (util.get_current_time())))
   post_process_request_based_data(temp_log,output_file)
   return
 
@@ -1201,18 +1211,18 @@ def post_process_request_based_data(temp_log,output_file):
   response_array = []
   total_bytes_arr=[]
   url_array = []
-  print ("[%s] Post_process phase." % (util.get_current_time()))
+  print(("[%s] Post_process phase." % (util.get_current_time())))
   try:
     logfile = open(os.path.join(os.path.join(results_dir,directory),temp_log), "r")
   except IOError as e:
-    print("Error: %s File not found." % temp_log)
+    print(("Error: %s File not found." % temp_log))
     return None
   csvReader = csv.reader(logfile)
   try:
      processed_filename = os.path.join(os.path.join(results_dir,directory),output_file)
      processed_file = open(processed_filename, 'w')
   except IOError as e:
-    print("Error: %s Could not create file." % output_file)
+    print(("Error: %s Could not create file." % output_file))
     return None
   for row in csvReader:
     if "MT" in row[0]:
@@ -1238,27 +1248,27 @@ def post_process_request_based_data(temp_log,output_file):
   mean = np.mean(respa)
   total_bytes_received = np.sum(total_bytes_arr)
 
-  print "\n====Report Summary===="
-  print "Primary Metrics:"
-  print 'Response time 99 percentile = %.3f sec' % percent
-  print 'Throughput = %.2f req/sec' % throughput
-  print "--------------------------------------\n"
-  print >> processed_file, "\n====Report Summary===="
-  print >> processed_file, "Primary Metrics:"
-  print >> processed_file, 'Throughput = %.2f req/sec' % throughput
-  print >> processed_file, '99 percentile = %.3f sec' % percent
-  print >> processed_file, "\nDetailed summary:"
-  print >> processed_file, 'Min Response time = %.3f sec' % minimum
-  print >> processed_file, 'Max Response time = %.3f sec' % maximum
-  print >> processed_file, 'Mean Response time = %.3f sec' % mean
-  print >> processed_file, 'Total bytes received = %d bytes' % total_bytes_received
+  print("\n====Report Summary====")
+  print("Primary Metrics:")
+  print('Response time 99 percentile = %.3f sec' % percent)
+  print('Throughput = %.2f req/sec' % throughput)
+  print("--------------------------------------\n")
+  print("\n====Report Summary====", file=processed_file)
+  print("Primary Metrics:", file=processed_file)
+  print('Throughput = %.2f req/sec' % throughput, file=processed_file)
+  print('99 percentile = %.3f sec' % percent, file=processed_file)
+  print("\nDetailed summary:", file=processed_file)
+  print('Min Response time = %.3f sec' % minimum, file=processed_file)
+  print('Max Response time = %.3f sec' % maximum, file=processed_file)
+  print('Mean Response time = %.3f sec' % mean, file=processed_file)
+  print('Total bytes received = %d bytes' % total_bytes_received, file=processed_file)
 
   logfile.close()
   processed_file.flush()
   processed_file.close()
   if not no_graph:
     plot_graph_request_based_run(output_file)
-  print ("[%s] Post processing is done.\n" % (util.get_current_time()))
+  print(("[%s] Post processing is done.\n" % (util.get_current_time())))
   return
 
 #Generates a summary output file which contains hardware,software OS and Client details
@@ -1270,21 +1280,21 @@ def print_summary():
   #         hardware, Server Software OS and Client input details
   #         for each run
   """
-  print ("[%s] Printing Summary." % (util.get_current_time()))
+  print(("[%s] Printing Summary." % (util.get_current_time())))
   try:
      processed_filename = os.path.join(log_dir,output_file)
      processed_file = open(processed_filename, 'a')
   except IOError as e:
-    print("Error: %s Could not create file." % output_file)
+    print(("Error: %s Could not create file." % output_file))
     return None
   #Print environment
-  print >> processed_file, "\n====Client information===="
+  print("\n====Client information====", file=processed_file)
   run_printenv(processed_file)
   try:
     r = requests.get(cpuinfo_url)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
-    print e
+    print(e)
     print("CPU call failed.Exiting")
     sys.exit(1)
   if(r.content):
@@ -1292,144 +1302,144 @@ def print_summary():
       result = json.loads(r.content)
     except ValueError:
     # decoding failed
-      print "Exception -- Decoding of result from cpuinfo failed. Exiting"
+      print("Exception -- Decoding of result from cpuinfo failed. Exiting")
       sys.exit(1)
   if result:
 
-    print >> processed_file, "\n====System under test===="
+    print("\n====System under test====", file=processed_file)
 
-    print >> processed_file, '====Application===='
-    print >> processed_file, 'App Mode:', appName
-    print >> processed_file, 'App Version', version
+    print('====Application====', file=processed_file)
+    print('App Mode:', appName, file=processed_file)
+    print('App Version', version, file=processed_file)
 
     #hardware details
     if 'hw' in result:
-      print >> processed_file, "\n====SUT Hardware Details===="
+      print("\n====SUT Hardware Details====", file=processed_file)
       if 'architecture' in result['hw']:
         architecture = result['hw']['architecture']
-        print >> processed_file, "Architecture: " +str(architecture)
+        print("Architecture: " +str(architecture), file=processed_file)
       if 'endianness' in result['hw']:
         endianness = result['hw']['endianness']
-        print >> processed_file, "Endianness: " +str(endianness)
+        print("Endianness: " +str(endianness), file=processed_file)
       if 'totalmem' in result['hw']:
         totalmem = result['hw']['totalmem']
-        print >> processed_file, "Total memory: " +str(totalmem) +" bytes"
+        print("Total memory: " +str(totalmem) +" bytes", file=processed_file)
       if 'freemem' in result['hw']:
         freemem = result['hw']['freemem']
-        print >> processed_file, "Free mempry available: " +str(freemem)+" bytes"
+        print("Free mempry available: " +str(freemem)+" bytes", file=processed_file)
       if 'model' in result['hw']:
         model = result['hw']['model']
-        print >> processed_file, "CPU model: " +str(model)
+        print("CPU model: " +str(model), file=processed_file)
       if 'speed' in result['hw']:
         speed = result['hw']['speed']
-        print >> processed_file, "CPU speed: " +str(speed) +" MHz"
+        print("CPU speed: " +str(speed) +" MHz", file=processed_file)
       systime = result['hw']['sys']
-      print >> processed_file, "Time spent in sys mode: " +str(systime) +" ms"
+      print("Time spent in sys mode: " +str(systime) +" ms", file=processed_file)
       idletime = result['hw']['idle']
-      print >> processed_file, "Time spent in idle mode: " +str(idletime) +" ms"
+      print("Time spent in idle mode: " +str(idletime) +" ms", file=processed_file)
       usertime = result['hw']['user']
-      print >> processed_file, "Time spent in user mode: " +str(usertime) +" ms"
+      print("Time spent in user mode: " +str(usertime) +" ms", file=processed_file)
       irqtime = result['hw']['irq']
-      print >> processed_file, "Time spent in irq mode: " +str(irqtime)+" ms"
+      print("Time spent in irq mode: " +str(irqtime)+" ms", file=processed_file)
       nice = result['hw']['nice']
-      print >> processed_file, "Time spent in nice mode: " +str(nice)+" ms"
+      print("Time spent in nice mode: " +str(nice)+" ms", file=processed_file)
     #software details
     if 'icu' in result['version']:
-      print >> processed_file, "\n====SUT Operating System Details===="
+      print("\n====SUT Operating System Details====", file=processed_file)
       if 'platform' in result['sw']:
         platform = result['sw']['platform']
-        print >> processed_file, "Operating System Platform: " +str(platform)
+        print("Operating System Platform: " +str(platform), file=processed_file)
       if 'release' in result['sw']:
         release = result['sw']['release']
-        print >> processed_file, "Operating System Release: " +str(release)
+        print("Operating System Release: " +str(release), file=processed_file)
       if 'uptime' in result['sw']:
         uptime = result['sw']['uptime']
-        print >> processed_file, "System uptime: " +str(uptime)
+        print("System uptime: " +str(uptime), file=processed_file)
       if 'type' in result['sw']:
         ostype = result['sw']['type']
-        print >> processed_file, "Operating System type: " +str(ostype)
+        print("Operating System type: " +str(ostype), file=processed_file)
     #version details
     if 'version' in result:
-      print >> processed_file, "\n====SUT Version Details of Node.js and dependencies===="
+      print("\n====SUT Version Details of Node.js and dependencies====", file=processed_file)
       if 'node' in result['version']:
         node_ver = result['version']['node']
-        print >> processed_file, "Node version: " +str(node_ver)
+        print("Node version: " +str(node_ver), file=processed_file)
       if 'zlib' in result['version']:
         zlib_ver = result['version']['zlib']
-        print >> processed_file, "Zlib version: " +str(zlib_ver)
+        print("Zlib version: " +str(zlib_ver), file=processed_file)
       if 'v8' in result['version']:
         v8_ver = result['version']['v8']
-        print >> processed_file, "V8 version: " +str(v8_ver)
+        print("V8 version: " +str(v8_ver), file=processed_file)
       if 'uv' in result['version']:
         uv_ver = result['version']['uv']
-        print >> processed_file, "UV version: " +str(uv_ver)
+        print("UV version: " +str(uv_ver), file=processed_file)
       if 'http_parser' in result['version']:
         http_parser_ver = result['version']['http_parser']
-        print >> processed_file, "Http Parser version: " +str(http_parser_ver)
+        print("Http Parser version: " +str(http_parser_ver), file=processed_file)
       if 'openssl' in result['version']:
         openssl_ver = result['version']['openssl']
-        print >> processed_file, "OpenSSL version: " +str(openssl_ver)
+        print("OpenSSL version: " +str(openssl_ver), file=processed_file)
       if 'ares' in result['version']:
         ares_ver = result['version']['ares']
-        print >> processed_file, "Ares version: " +str(ares_ver)
+        print("Ares version: " +str(ares_ver), file=processed_file)
       if 'modules' in result['version']:
         modules_ver = result['version']['modules']
-        print >> processed_file, "Modules version: " +str(modules_ver)
+        print("Modules version: " +str(modules_ver), file=processed_file)
       if 'icu' in result['version']:
         icu_ver = result['version']['icu']
-        print >> processed_file, "ICU version: " +str(icu_ver)
+        print("ICU version: " +str(icu_ver), file=processed_file)
       if 'chakracore' in result['version']:
         chakracore_ver = result['version']['chakracore']
-        print >> processed_file, "Chakracore version: " +str(chakracore_ver)
+        print("Chakracore version: " +str(chakracore_ver), file=processed_file)
 
-  print >> processed_file, "\n====Validation and Error Summary===="
-  print >> processed_file, "Timeout Error = " + str(node_dc_eis_testurls.timeout_err)
-  print >> processed_file, "Connection Error = " + str(node_dc_eis_testurls.conn_err)
-  print >> processed_file, "Http Error = " + str(node_dc_eis_testurls.http_err)
-  print >> processed_file, "Bad Url Error = " + str(node_dc_eis_testurls.bad_url)
-  print >> processed_file, "Static posts = " + str(node_dc_eis_testurls.static_post)
-  print >> processed_file, "\n====Validation Report===="
+  print("\n====Validation and Error Summary====", file=processed_file)
+  print("Timeout Error = " + str(node_dc_eis_testurls.timeout_err), file=processed_file)
+  print("Connection Error = " + str(node_dc_eis_testurls.conn_err), file=processed_file)
+  print("Http Error = " + str(node_dc_eis_testurls.http_err), file=processed_file)
+  print("Bad Url Error = " + str(node_dc_eis_testurls.bad_url), file=processed_file)
+  print("Static posts = " + str(node_dc_eis_testurls.static_post), file=processed_file)
+  print("\n====Validation Report====", file=processed_file)
 
   if not no_db:
-    print >> processed_file, "Database Validation:"
-    print >> processed_file, "Actual database record count: ", dbrecord_count
-    print >> processed_file, "Database record count after loadDB: ", after_dbload["message"]
-    print >> processed_file, "Database record count after the run: ", after_run["message"]
-    print >> processed_file, "--------------------------------------"
+    print("Database Validation:", file=processed_file)
+    print("Actual database record count: ", dbrecord_count, file=processed_file)
+    print("Database record count after loadDB: ", after_dbload["message"], file=processed_file)
+    print("Database record count after the run: ", after_run["message"], file=processed_file)
+    print("--------------------------------------", file=processed_file)
 
   if get_endpoints_urls:
-    print >> processed_file, 'URL Validation:'
-    print >> processed_file, 'Endpoints:'
-    print >> processed_file, ' GET:', ', '.join(get_endpoints)
+    print('URL Validation:', file=processed_file)
+    print('Endpoints:', file=processed_file)
+    print(' GET:', ', '.join(get_endpoints), file=processed_file)
   else:
-    print >> processed_file, "URL ratio Validation:"
-    print >> processed_file, "Total number of urls generated: " +str(count)
-    print >> processed_file, "Number of get urls generated: "+ str(int(id_count)+int(name_count)+int(zip_count)) +"  ("+str(get_ratio)+"% of "+str(count)+")"
-    print >> processed_file, "    Number of get id urls generated: " +str(id_count) +"  ("+str(idurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
-    print >> processed_file, "    Number of get name urls generated: " +str(name_count) +"  ("+str(nameurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
-    print >> processed_file, "    Number of get zip urls generated: " +str(zip_count) +"  ("+str(zipurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")"
-    print >> processed_file, "Number of post urls generated: " +str(post_count) +"  ("+str(post_ratio)+"% of "+str(count)+")"
-    print >> processed_file, "Number of delete urls generated: " +str(delete_count) +"  ("+str(delete_ratio)+"% of "+str(count)+")"
+    print("URL ratio Validation:", file=processed_file)
+    print("Total number of urls generated: " +str(count), file=processed_file)
+    print("Number of get urls generated: "+ str(int(id_count)+int(name_count)+int(zip_count)) +"  ("+str(get_ratio)+"% of "+str(count)+")", file=processed_file)
+    print("    Number of get id urls generated: " +str(id_count) +"  ("+str(idurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")", file=processed_file)
+    print("    Number of get name urls generated: " +str(name_count) +"  ("+str(nameurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")", file=processed_file)
+    print("    Number of get zip urls generated: " +str(zip_count) +"  ("+str(zipurl_ratio)+"% of "+str(int(id_count)+int(name_count)+int(zip_count))+")", file=processed_file)
+    print("Number of post urls generated: " +str(post_count) +"  ("+str(post_ratio)+"% of "+str(count)+")", file=processed_file)
+    print("Number of delete urls generated: " +str(delete_count) +"  ("+str(delete_ratio)+"% of "+str(count)+")", file=processed_file)
 
-  print >> processed_file, "--------------------------------------"
+  print("--------------------------------------", file=processed_file)
 
-  print >> processed_file, "Requests Validation:"
+  print("Requests Validation:", file=processed_file)
 
   if run_mode == 1:
-    print >> processed_file, "Total runtime duration: " +str(int(MT_interval))
+    print("Total runtime duration: " +str(int(MT_interval)), file=processed_file)
   else:
-    print >> processed_file, "Total requests processed (MT): "+ str(request)
+    print("Total requests processed (MT): "+ str(request), file=processed_file)
 
-  print >> processed_file, "Total number of get requests: " +str(tot_get)
-  print >> processed_file, "Total number of post requests: " +str(tot_post)
-  print >> processed_file, "Total number of delete requests: " +str(tot_del)
+  print("Total number of get requests: " +str(tot_get), file=processed_file)
+  print("Total number of post requests: " +str(tot_post), file=processed_file)
+  print("Total number of delete requests: " +str(tot_del), file=processed_file)
 
   processed_file.flush()
   processed_file.close()
   processed_file = open(processed_filename, "r")
-  print processed_file.read()
+  print(processed_file.read())
   processed_file.close()
-  print ("[%s] Printing Summary done.\n" % (util.get_current_time()))
+  print(("[%s] Printing Summary done.\n" % (util.get_current_time())))
   if multiple_instance:
     util.create_indicator_file(rundir,"run_completed", instance_id, "")
 
@@ -1453,10 +1463,10 @@ def plot_graph_request_based_run(output_file):
   try:
     filehl = open(os.path.join(os.path.join(results_dir,directory),temp_log), "r")
   except IOError as e:
-    print("Error: %s File not found." % temp_log)
+    print(("Error: %s File not found." % temp_log))
     sys.exit(1)
 
-  print ("[%s] Plotting graphs." % (util.get_current_time()))
+  print(("[%s] Plotting graphs." % (util.get_current_time())))
   csvReader = csv.reader(filehl)
   for row in csvReader:
     if len(row) == 6 and row[1].isdigit():
@@ -1479,7 +1489,7 @@ def plot_graph_request_based_run(output_file):
   plt.plot(start_time, response_time, linewidth=1, linestyle='', marker='.', color='r', label='response time')
   plt.tight_layout()
   plt.savefig(os.path.join(os.path.join(results_dir,directory),directory+'-latency.png'))
-  print("The latency graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-latency.png')))
+  print(("The latency graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-latency.png'))))
 
   plt.figure("Throughput RPS")
   plt.grid(True)
@@ -1487,7 +1497,7 @@ def plot_graph_request_based_run(output_file):
   plt.ylabel('Throughput req/sec')
   plt.plot(start_time, rps, linewidth=1, linestyle='', marker='.', color='g', label='rps')
   plt.savefig(os.path.join(os.path.join(results_dir,directory), directory+'-rps_time.png'))
-  print("\nThe throughput graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-rps_time.png')))
+  print(("\nThe throughput graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-rps_time.png'))))
 
   if os.path.exists(os.path.abspath(os.path.join(log_dir,memlogfile+".csv"))):
     with open(os.path.join(log_dir,memlogfile+".csv")) as f:
@@ -1504,8 +1514,8 @@ def plot_graph_request_based_run(output_file):
       plt.legend(loc=9, bbox_to_anchor=(0.5, -0.1),ncol=3)
       plt.tight_layout(pad=3)
       plt.savefig(os.path.join(os.path.join(results_dir,directory), directory+'-memory_usage.png'))
-      print("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-memory_usage.png')))
-  print ("[%s] Plotting graphs done." % (util.get_current_time()))
+      print(("\nThe memory usage graph is located at  " +os.path.abspath(os.path.join(os.path.join(results_dir,directory),directory+'-memory_usage.png'))))
+  print(("[%s] Plotting graphs done." % (util.get_current_time())))
   #zip the temp_log file
   temp_zip = zipfile.ZipFile(os.path.join(log_dir,'temp_log.zip') , mode='w')
   temp_zip.write(os.path.join(os.path.join(results_dir,directory),temp_log))

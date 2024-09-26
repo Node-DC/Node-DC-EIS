@@ -15,15 +15,19 @@
 
 #!/usr/bin/python
 
+from __future__ import absolute_import
+from __future__ import print_function
 import json, time
 import os
-import urlparse
+import six.moves.urllib.parse
 import re
 import sys
 from functools import partial
-from eventlet.green import urllib2
+from eventlet.green import urllib
 from eventlet.green import socket
 import eventlet
+import six
+from six.moves import range
 requests = eventlet.import_patched('requests.__init__')
 import requests
 from collections import OrderedDict 
@@ -78,7 +82,7 @@ def get_ip(hostname):
   try:
     ip = socket.gethostbyname(hostname)
   except socket.herror as e:
-    print e
+    print(e)
     sys.exit(1)
   ip_cache[hostname] = ip
   return ip
@@ -98,7 +102,7 @@ def get_url(url, url_type, request_num, phase, accept_header, http_headers):
   data = ""
   headers = ""
 
-  urlo = urlparse.urlparse(url)
+  urlo = six.moves.urllib.parse.urlparse(url)
   ip = get_ip(urlo.hostname)
   start = time.time()
 
@@ -120,9 +124,9 @@ Connection: close\r
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(30)
     sock.connect((ip, urlo.port))
-    sock.sendall(req)
+    sock.sendall(req.encode('utf-8'))
     while "\r\n\r\n" not in data:
-      data = sock.recv(256)
+      data = sock.recv(256).decode('utf-8')
       headers += data
 
     http_status = data[9:12]
@@ -163,24 +167,24 @@ def post_function(url, post_data):
     r.raise_for_status()
   except requests.exceptions.Timeout as e:
     timeout_err = timeout_err + 1
-    print "Time out error occured"
-    print e
+    print("Time out error occured")
+    print(e)
   except requests.exceptions.ConnectionError as e:
     conn_err = conn_err + 1
-    print "connection error occured"
-    print e
+    print("connection error occured")
+    print(e)
   except requests.exceptions.HTTPError as e:
     http_err = http_err + 1
-    print "HTTP error occured"
-    print e
+    print("HTTP error occured")
+    print(e)
   except requests.exceptions.TooManyRedirects as e:
     bad_url = bad_url + 1
-    print "Too many redirects error occured"
-    print e
+    print("Too many redirects error occured")
+    print(e)
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
-    print "Catastrophic exception"
-    print e
+    print("Catastrophic exception")
+    print(e)
   return r
 
 def post_url(url, url_type, request_num, phase):
@@ -216,23 +220,23 @@ def post_url(url, url_type, request_num, phase):
       total_length = calculate_len_postdel(r)
       break
   if not r:
-    print "Post request failed. Received null response.Exiting run"
-    print request_num, url
-    print post_data
+    print("Post request failed. Received null response.Exiting run")
+    print(request_num, url)
+    print(post_data)
     return
   response_time = end-start
   try:
     result = json.loads(r.content)
   except ValueError:
     # decoding failed
-    print "Exception -- Decoding of result from posturl failed. Exiting"
+    print("Exception -- Decoding of result from posturl failed. Exiting")
     exit(1)
   if result:
     if 'result' in result:
       employee_idlist.append(result['result']['employee_id'])
     else:
       print("Exception -- Post did not return a valid employee_id")
-      print post_data
+      print(post_data)
       exit(1)
 
   util.printlog(log,phase,url_type,request_num,url,start,end,response_time,total_length)
@@ -260,20 +264,20 @@ def delete_url(url, url_type, request_num, phase):
       get_res = s.get(url, headers=headers)   
     except requests.exceptions.RequestException as e:
       #catastrophic error. bail.
-      print e
+      print(e)
       sys.exit(1)
     try:
       response = json.loads(get_res.content)
     except ValueError:
     # decoding failed
-      print "Exception -- Decoding of result from getid for delete failed. Exiting"
+      print("Exception -- Decoding of result from getid for delete failed. Exiting")
       sys.exit(1)(1)
     if response:
       if 'employee' in response:
         post_datalist.insert(front_oflist,response)
     else:
-      print url
-      print "Warning : Record not found"
+      print(url)
+      print("Warning : Record not found")
     start = time.time()
     r = s.delete(url, headers=headers)
   except requests.exceptions.Timeout as e:
@@ -286,7 +290,7 @@ def delete_url(url, url_type, request_num, phase):
     bad_url = bad_url + 1 
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
-    print e
+    print(e)
     sys.exit(1)
   finally:
     end = time.time()
@@ -328,7 +332,7 @@ def calculate_len_postdel(response):
   header_len = (
     17 + # size of 'HTTP/1.1 200 OK\r\n' at the top
     # size of keys + size of values
-    sum(len(kk) + len(vv) for kk, vv in header.iteritems()) +
+    sum(len(kk) + len(vv) for kk, vv in six.iteritems(header)) +
     # size of the extra ': ' between key and value and '\r\n' per header
     len(header) * 4 +
     2 # size of the empty line at the end
@@ -340,7 +344,7 @@ def open_log(log_dir):
   try:
       log = open(os.path.join(log_dir, "tempfile_" + str(file_cnt)), "w")
   except IOError:
-      print "[%s] Could not open templog file for writing." % (util.get_current_time())
+      print("[%s] Could not open templog file for writing." % (util.get_current_time()))
       sys.exit(1)
 
   return log
@@ -388,7 +392,7 @@ def main_entry(url, request_num, url_type, log_dir, phase, interval,
     try:
       log = open(os.path.join(log_dir, temp_log), "a")
     except IOError:
-      print "Error: %s File not found." % temp_log
+      print("Error: %s File not found." % temp_log)
       sys.exit(1)
 
   if url_type == 1:
