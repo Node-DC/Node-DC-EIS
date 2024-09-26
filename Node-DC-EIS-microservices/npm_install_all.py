@@ -23,6 +23,6 @@ sl = ["address_service", "comp_service", "db_loader_service",
 for dname in sl:
 	wd = os.getcwd()
 	os.chdir(dname)
-	print "npm install running in " + dname + "..."
+	print("npm install running in " + dname + "...")
 	os.system("npm install")
 	os.chdir(wd)
