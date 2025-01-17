@@ -25,9 +25,6 @@ var remoteSvc = require('./controllers/remote_svc_controller');
 const os = require('os');
 var app = express();
 
-// Connect to the database
-mongoose.connect(appConfig.db_url);
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
@@ -56,6 +53,7 @@ app.get('/employees/zipcode',      employeeCtrl.getEmployeesByZipcode);
 //add a new employee record
 app.post('/employees',             employeeCtrl.addNewEmployee);
 app.delete('/employees/id/:employee_id', employeeCtrl.deleteByEmployeeId);
+app.delete('/cleanupdb',              employeeCtrl.cleanUpDB);
 
 //Get all EmployeeIds to create a list
 app.get('/employees/id',           employeeCtrl.getAllEmployeeIds);
@@ -110,10 +108,19 @@ app.get('/stopserver', function stopServer(req, res) {
   process.exit(0);
 });
 
-var port = appConfig.employee_svc_port;;
-var server = app.listen(port);
+async function main() {
+  console.log('**************************************************');
+  console.log('Start Time:' + Date());
+  await mongoose.connect(appConfig.db_url);
+  console.log('Connection open to the database');
+  const port = appConfig.employee_svc_port;;
+  const server = app.listen(port, "10.54.34.152");
 
-console.log('**************************************************');
-console.log('Start Time:' + Date());
-console.log(serviceName + ' Service is listening at port:', port);
-console.log('**************************************************');
+  console.log('Start Time:' + Date());
+  console.log(serviceName + ' Service is listening at port:', port);
+  console.log('**************************************************');
+};
+
+main().catch( (err) => console.log(err.message));
+
+
