@@ -77,7 +77,6 @@ function doPostRequest(url, data) {
       continue;
     }
     const token = urlSplit[idx];
-    console.log(token);
     if (idx == 3) {
       hostname = token;
     } else if (idx == 4) {
@@ -123,34 +122,73 @@ function doPostRequest(url, data) {
   });
 };
 
-function remoteServiceDeleteCall(service_url, callback) {
-  request({
-    headers: {'content-type' : 'application/json'},
-    url: service_url, 
-    method: 'DELETE'
-  }, function(error, response, result) {
-    if(error) {
-      console.log(error);
-      return callback(error, null);
-    }
+function doDeleteRequest(url) {
+  console.log(`Making a DELETE call to a service at ${url}`);
 
-    if (response.statusCode != 200) {
-      console.log('Remote service error:' + response.statusCode + ':' + service_url);
-      return callback(error, null);
+  // Input url format is: http://<hostname>:<port>/<endpoint>/...
+  // Get the hostname, port and path from the url
+  const urlSplit = url.split(/[/:]/);
+  
+  let hostname='';
+  let port='';
+  let path='/';
+  for (let idx=0; idx < urlSplit.length; idx++) {
+    if (idx < 3) {
+      continue;
     }
+    const token = urlSplit[idx];
+    if (idx == 3) {
+      hostname = token;
+    } else if (idx == 4) {
+      port = token;
+    } else {
+      path += token;
+      if (idx < urlSplit.length-1) {
+        path += '/';
+      }
+    }
+  }
 
-    callback();
+  const options = {
+    hostname: hostname,
+    port: port,
+    path: path,
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    }
+  };
+
+  return  new Promise( (resolve, reject) => {
+    const req = http.request(options, (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      res.on('end', () => {
+        resolve(JSON.parse(data));
+      });
+    });
+
+    req.on('error', (error) => {
+      console.log('Error:', error.message);
+      reject(error);
+    });
+
+    req.end();
   });
 };
 
+/******************************************************/
 exports.cleanUpDB = async function cleanUpDB(req, res) {
   try {
     const e = Employee.deleteMany().exec();
-     const a = Address.deleteMany().exec();
-     const f = Family.deleteMany().exec();
-     const c = Compensation.deleteMany().exec();
-     const h = Health.deleteMany().exec();
-     const p = Photo.deleteMany().exec();
+    const a = Address.deleteMany().exec();
+    const f = Family.deleteMany().exec();
+    const c = Compensation.deleteMany().exec();
+    const h = Health.deleteMany().exec();
+    const p = Photo.deleteMany().exec();
 
     const results = await Promise.all([
       e, a, f, c, h, p
@@ -623,9 +661,9 @@ exports.getEmployeesByZipcode = function getEmployeesByZipcode(req, res) {
   });
 };
 
-exports.deleteByEmployeeId = function(req, res) {
+exports.deleteByEmployeeId = async function(req, res) {
 
-  var employee_id = req.params.employee_id;
+  const employee_id = req.params.employee_id;
 
   if(!employee_id) {
     sendJSONResponse(res, 400, { 
@@ -633,52 +671,36 @@ exports.deleteByEmployeeId = function(req, res) {
     return;
   }
 
+  try {
+    let service_url = appConfig.address_svc + "/" + employee_id;
+    const oldAddress = doDeleteRequest(service_url);
 
-  //Save employee record and capture employee_id 
-  Employee.remove({'_id' : employee_id}, function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'Delete Employee: Internal error while saving employee record'});
-      return;
-    }
+    service_url = appConfig.family_svc + "/" + employee_id;
+    const oldFamily = doDeleteRequest(service_url);
 
-    async.parallel([
-      function(callback) {
-        //Remote call to delete the record
-        var service_url = appConfig.address_svc + "/" + employee_id;
-        remoteServiceDeleteCall(service_url, callback);
-      },
-      function(callback) {
-        //Compensation
-        var service_url = appConfig.compensation_svc + "/" + employee_id;
-        remoteServiceDeleteCall(service_url, callback);
-      },
-      function(callback) {
-        //family
-        var service_url = appConfig.family_svc + "/" + employee_id;
-        remoteServiceDeleteCall(service_url, callback);
-      },
-      function(callback) {
-        //health
-        var service_url = appConfig.health_svc + "/" + employee_id;
-        remoteServiceDeleteCall(service_url, callback);
-      },
-      function(callback) {
-        //Photo
-        var service_url = appConfig.photo_svc + "/" + employee_id;
-        remoteServiceDeleteCall(service_url, callback);
-      }
-    ], function(err) {
-      if (err) {
-        console.log('Delete Employee: Error occured with async.parallel');
-        sendJSONResponse(res, 500, {
-          message: 'async.parallel error while deleting employee record'
-        });
-        return;
-      }
+    service_url = appConfig.compensation_svc + "/" + employee_id;
+    const oldComp = doDeleteRequest(service_url);
 
-      sendJSONResponse(res, 200, null);
-    }); //End of async.parallel()
-  }); //End of Employee.save()
+    service_url = appConfig.health_svc + "/" + employee_id;
+    const oldHealth = doDeleteRequest(service_url);
+
+    service_url = appConfig.photo_svc + "/" + employee_id;
+    const oldPhoto = doDeleteRequest(service_url);
+
+    const oldEmployee = await Employee.deleteOne({'_id' : employee_id});
+
+    const results = await Promise.all([
+      oldAddress, oldFamily, oldComp, oldHealth, oldPhoto, oldEmployee
+    ]);
+
+    console.log('Delete Employee:', results);
+    sendJSONResponse(res, 200, results);
+
+  } catch (err) {
+    console.log(err.message);
+    sendJSONResponse(res, 500, { 
+      message: 'Delete Employee: Internal error while saving employee record'});
+    return;
+  }
+
 };

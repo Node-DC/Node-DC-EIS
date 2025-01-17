@@ -123,7 +123,7 @@ exports.newCompensation = async function newCompensation(req, res) {
   }
 };
 
-exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
+exports.deleteByEmployeeId = async function deleteByEmployeeId(req, res) {
   var employee_id = req.params.employee_id;
 
   if (!employee_id) {
@@ -132,17 +132,15 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
     });
     return;
   }
+  try {
+    const result = await Compensation.deleteMany({'_employee': new ObjectId(employee_id)});
+    sendJSONResponse(res, 200, result);
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'deleteByEmployeeId query failed. Internal Server error'
+    });
+  }
 
-  Compensation.remove({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'deleteByEmployeeId query failed. Internal Server error'
-      });
-      return;
-    }
-    sendJSONResponse(res, 200, null);
-  });
   return;
 };
