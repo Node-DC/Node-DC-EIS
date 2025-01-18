@@ -30,6 +30,7 @@ module.exports = {
   'photo_svc_byemployeeid'        : 'http://localhost:3005/photos/:employee_id',
   'db_loader_svc_ipaddress'       : 'http://localhost:4001/loaddb',
   'checkdb_svc_ipaddress'         : 'http://localhost:4001/checkdb',
+  'cleanupdb_svc_ipaddress'       : 'http://localhost:4001/cleanupdb',
   'app_mode' : 'Micro-services',
   'mongodb_timeout' : 30000
 };

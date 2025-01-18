@@ -68,12 +68,11 @@ exports.findByZipcode = async function findByZipcode(req, res) {
 
   if (!zipcode) {
     try {
-      const addresss = await Address.find();
+      const addresses = await Address.find();
       const zipCodeArr = collectZipCodes(addresses);
-   
-        sendJSONResponse(res, 200, zipCodeArr);
+      sendJSONResponse(res, 200, zipCodeArr);
     } catch (err) {
-      console.log(err);
+      console.log(err.message);
       sendJSONResponse(res, 500, {
         message: 'getAllZipcodes query failed. Internal Server Error'});
       return;

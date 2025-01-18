@@ -33,6 +33,9 @@ app.get('/', function homeRoot(req, res) {
   res.json({message: 'Hello from ' + serviceName + ' service.'});
 });
 
+//clean up the database
+app.delete('/cleanupdb', loaderCtrl.cleanUpDB);
+
 //load the database
 app.get('/loaddb', loaderCtrl.initDb);
 
@@ -91,7 +94,7 @@ async function main() {
   await mongoose.connect(appConfig.db_url);
   console.log('Connection open to the database');
   var port = appConfig.app_port;
-  var server = app.listen(port, "10.54.34.152");
+  var server = app.listen(port);
 
   console.log(serviceName + ' Service is listening at port:', port);
 };

@@ -26,9 +26,6 @@ const Family = require('../models/family');
 const Compensation = require('../models/compensation');
 const Health = require('../models/health');
 const Photo = require('../models/photo');
-var remoteSvc = require('./remote_svc_controller');
-var request = require('request');
-var async = require('async');
 
 /************************************************************
 Local helper functions to populate database with random data
@@ -37,7 +34,6 @@ function sendJSONResponse(res, status, content) {
   res.status(status);
   res.json(content);
 };
-
 
 /******************************************************
  API interface
@@ -180,28 +176,7 @@ function doDeleteRequest(url) {
   });
 };
 
-/******************************************************/
-exports.cleanUpDB = async function cleanUpDB(req, res) {
-  try {
-    const e = Employee.deleteMany().exec();
-    const a = Address.deleteMany().exec();
-    const f = Family.deleteMany().exec();
-    const c = Compensation.deleteMany().exec();
-    const h = Health.deleteMany().exec();
-    const p = Photo.deleteMany().exec();
-
-    const results = await Promise.all([
-      e, a, f, c, h, p
-    ]);
-    sendJSONResponse(res, 200, results);
-  } catch (err) {
-    console.log(err.message);
-    sendJSONResponse(res, 400, { message: 'Error: cleanUpDB'});
-  }
-
-  return;
-};
-
+// Exported API functions/methods
 exports.addNewEmployee = async function addNewEmployeeAddress(req, res) {
   let missing_field_flag = false;
   let warning_msg;
@@ -552,82 +527,38 @@ function collectLastNames(data) {
   return(lastNameArr);
 }
 
-exports.getEmployeesByName = function getEmployeesByName(req, res) {
+exports.getEmployeesByName = async function getEmployeesByName(req, res) {
 
   var first_name=req.query.first_name;
   var last_name=req.query.last_name;
 
-  if (!first_name && !last_name) {
-    var query = Employee.find();
-    query.select('last_name');
-    query.exec(function(err, data) {
-      if (err) {
-        console.log(err);
-        sendJSONResponse(res, 500, { 
-          message: 'getEmployeesByName query failed. Internal Server Error'});
-        return;
-      }
-      
-      var lastNameArr = collectLastNames(data);
-
+  try {
+    if (!first_name && !last_name) {
+      const data = await Employee.find({}).select('last_name');
+      const lastNameArr = collectLastNames(data);
       sendJSONResponse(res, 200, lastNameArr);
-      return;
-    });
+    } else if (first_name && last_name) {
+      const employyes = await Employee.find({
+        'first_name': first_name,
+        'last_name': last_name});
+      sendJSONResponse(res, 200, employees);
+    } else if (first_name && !last_name) {
+      const employees = await Employee.find({'first_name': first_name});
+      sendJSONResponse(res, 200, employees);
+    } else if (last_name && !first_name) {
+      const employees = await Employee.find({'last_name': last_name});
+      sendJSONResponse(res, 200, employees);
+    }
+  } catch (err) {
+     console.log(err);
+    sendJSONResponse(res, 500, { 
+      message: 'getEmployeesByName query failed. Internal Server Error'});
   }
-  
-  if (first_name && last_name) {
-    Employee.find({'first_name': first_name, 'last_name': last_name}, function findEmployee(err, employees) {
-      if (err) {
-        console.log('*** Internal Error while retrieving an employee record:');
-        console.log(err);
-        sendJSONResponse(res, 500, { 
-          message: 'findBy first and last name failed. Internal Server Error' });
-        return;
-      }
 
-      if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
-        return;
-      }
-      sendJSONResponse(res, 200, employees);
-    }); 
-  } else if (first_name && !last_name) {
-    Employee.find({'first_name': first_name}, function(err, employees) {
-      if (err) {
-        console.log('*** Internal Error while retrieving an employee record:');
-        console.log(err);
-        sendJSONResponse(res, 500, { 
-          message: 'findBy first name failed. Internal Server Error' });
-        return;
-      }
-
-      if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
-        return;
-      }
-      sendJSONResponse(res, 200, employees);
-    }); 
-
-  } else if (last_name && !first_name) {
-    Employee.find({'last_name': last_name}, function(err, employees) {
-      if (err) {
-        console.log('*** Internal Error while retrieving an employee record:');
-        console.log(err);
-        sendJSONResponse(res, 500, { 
-          message: 'findBy last name failed. Internal Server Error' });
-        return;
-      }
-
-      if (!employees) {
-        sendJSONResponse(res, 200, {message: 'No records found'});
-        return;
-      }
-      sendJSONResponse(res, 200, employees);
-    }); 
-  }
+  return;
 };
 
-exports.getEmployeesByZipcode = function getEmployeesByZipcode(req, res) {
+exports.getEmployeesByZipcode = async function getEmployeesByZipcode(req, res) {
 
   var zipcode = req.query.zipcode;
 
@@ -637,28 +568,15 @@ exports.getEmployeesByZipcode = function getEmployeesByZipcode(req, res) {
     remote_svc = address_svc_byzipcode + "?zipcode=" + zipcode;
   }
 
-  request(remote_svc, function remoteSVC(error, response, addresses) {
-    if(error) {
-      sendJSONResponse(res, 500, { 
-        message: 'Internal Error with Remote service:' + remote_svc});
-      return;
-    }
-
-    if (response.statusCode != 200) {
-      sendJSONResponse(res, response.statusCode, {
-        message: 'Remote query failed.' + remote_svc});
-      return;
-    }
-
-    if (!addresses) {
-      sendJSONResponse(res, response.statusCode, {
-        message: 'Remote query: No zipcodes found:' +  remote_svc});
-      return;
-    }
-
+  try {
+    const addresses = await doGetRequest(remote_svc);
     sendJSONResponse(res, 200, addresses);
-    return;
-  });
+  } catch (error) {
+    console.log(error.message);
+    sendJSONResponse(res, 500, { 
+      message: 'Internal Error with Remote service:' + remote_svc});
+  }
+  return;
 };
 
 exports.deleteByEmployeeId = async function(req, res) {
@@ -693,7 +611,6 @@ exports.deleteByEmployeeId = async function(req, res) {
       oldAddress, oldFamily, oldComp, oldHealth, oldPhoto, oldEmployee
     ]);
 
-    console.log('Delete Employee:', results);
     sendJSONResponse(res, 200, results);
 
   } catch (err) {
@@ -702,5 +619,52 @@ exports.deleteByEmployeeId = async function(req, res) {
       message: 'Delete Employee: Internal error while saving employee record'});
     return;
   }
+};
 
+exports.loaddb = async function loaddb(req, res) {
+  var count = req.query.count;
+  var zipcount = req.query.zipcode;
+  var lastnamecount = req.query.lastname;
+  
+  const service_url = appConfig.db_loader_svc_ipaddress+ "?count="+count+"&zipcode="+zipcount+"&lastname="+lastnamecount;
+	try {
+  	const updatedDB = await doGetRequest(service_url);
+    sendJSONResponse(res, 200, updatedDB);
+	} catch (err) {
+    sendJSONResponse(res, 500, { 
+    	message: `loadDB serice request failed with ${err.message} error`});
+	}
+  return;
+};
+
+exports.checkdb = async function checkdb(req, res) {
+  let count = req.query.count;
+  if ( (count === undefined) || (count === 0)) {
+    count = appConfig.count;
+  }
+  if ( (count === undefined) || (count === 0)) {
+    count = 1;
+  }
+  const service_url = appConfig.checkdb_svc_ipaddress+"?count="+count;
+	try {
+  	const results = await doGetRequest(service_url);
+    sendJSONResponse(res, 200, JSON.parse(results));
+	} catch (err) {
+    sendJSONResponse(res, 500, { 
+    	message: `checkDB serice request failed with ${err.message} error`});
+	}
+  return;
+};
+
+exports.cleanupdb = async function cleanupdb(req, res) {
+  const service_url = appConfig.cleanupdb_svc_ipaddress;
+	try {
+  	const results = await doDeleteRequest(service_url);
+    sendJSONResponse(res, 200, results);
+	} catch (err) {
+		console.log(err.message);
+    sendJSONResponse(res, 500, { 
+    	message: `checkDB serice request failed with ${err.message} error`});
+	}
+  return;
 };

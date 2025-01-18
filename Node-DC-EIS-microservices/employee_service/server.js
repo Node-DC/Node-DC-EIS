@@ -32,11 +32,14 @@ app.get('/', function homeRoot(req, res) {
   res.json({message: 'Hello from ' + serviceName + ' service.'});
 });
 
+//cleanup the database
+app.get('/cleanupdb',              employeeCtrl.cleanupdb);
+
 //load the database
-app.get('/loaddb',                 remoteSvc.loaddb);
+app.get('/loaddb',                 employeeCtrl.loaddb);
 
 //check the number of records in the database
-app.get('/checkdb',                remoteSvc.checkdb);
+app.get('/checkdb',                employeeCtrl.checkdb);
 
 //get all employee records
 app.get('/employees',              employeeCtrl.getAllEmployees);
@@ -53,7 +56,7 @@ app.get('/employees/zipcode',      employeeCtrl.getEmployeesByZipcode);
 //add a new employee record
 app.post('/employees',             employeeCtrl.addNewEmployee);
 app.delete('/employees/id/:employee_id', employeeCtrl.deleteByEmployeeId);
-app.delete('/cleanupdb',              employeeCtrl.cleanUpDB);
+//app.delete('/cleanupdb',              employeeCtrl.cleanUpDB);
 
 //Get all EmployeeIds to create a list
 app.get('/employees/id',           employeeCtrl.getAllEmployeeIds);

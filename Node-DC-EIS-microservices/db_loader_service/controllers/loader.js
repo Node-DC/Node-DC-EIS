@@ -23,7 +23,6 @@ const Photo = require('../models/photo');
 const appConfig = require('../config/configuration');
 const fs = require('fs');
 const readline = require('readline');
-const async = require('async');
 
 let fnames = [];
 let lnames = [];
@@ -121,6 +120,28 @@ function generateZipCodes(zipcount) {
   }
   return(zipCodeArr);
 }
+
+// Exports API functions/methods
+exports.cleanUpDB = async function cleanUpDB(req, res) {
+  try {
+    const e = Employee.deleteMany().exec();
+    const a = Address.deleteMany().exec();
+    const f = Family.deleteMany().exec();
+    const c = Compensation.deleteMany().exec();
+    const h = Health.deleteMany().exec();
+    const p = Photo.deleteMany().exec();
+
+    const results = await Promise.all([
+      e, a, f, c, h, p
+    ]);
+    sendJSONResponse(res, 200, results);
+  } catch (err) {
+    console.log(err.message);
+    sendJSONResponse(res, 400, { message: 'Error: cleanUpDB'});
+  }
+
+  return;
+};
 
 exports.initDb = function initDB(req, res) {
   var count = req.query.count;
@@ -314,7 +335,7 @@ exports.initDb = function initDB(req, res) {
 exports.isDBSet = function isDBSet(req, res) {
   //Check if Employees.count(), Addresses.count(), etc. matches as expected
   var count = req.query.count;
-  var e_count = 0; //Get the employee count using async.parallel
+  var e_count = 0; //Get the employee count using async/await pattern
   var a_count = 0; //Get the addresses count
   var c_count = 0; //Get the compensations count
   var f_count = 0; //Get the families count
