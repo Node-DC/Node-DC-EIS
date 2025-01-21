@@ -21,7 +21,6 @@ var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var appConfig = require('./config/configuration');
 var employeeCtrl = require('./controllers/employee_controller');
-var remoteSvc = require('./controllers/remote_svc_controller');
 const os = require('os');
 var app = express();
 
