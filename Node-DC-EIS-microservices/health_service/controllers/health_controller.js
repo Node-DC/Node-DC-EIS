@@ -55,7 +55,6 @@ exports.getHealthInformationByEmployeeId = async function getHealthInformationBy
       return;
     }
 
-		console.log('sending response from health service');
     sendJSONResponse(res, 200, data);
   } catch (err) {
       console.log('*** Internal Error while retrieving health records.');
@@ -82,8 +81,8 @@ exports.newHealth = async function newHealth(req, res) {
   }
   
   const paid_family_leave =  req.body.paid_family_leave;
-  const long_term_disability_plan =  req.body.long_term_disability_plan;
-  const short_term_disability_plan =  req.body.short_term_disability_plan;
+  const longterm_disability_plan =  req.body.longterm_disability_plan;
+  const shortterm_disability_plan =  req.body.shortterm_disability_plan;
 
   const health = new Health();
   health._employee = employee_id;
@@ -95,16 +94,16 @@ exports.newHealth = async function newHealth(req, res) {
     health.paid_family_leave = paid_family_leave;
   }
 
-  if (long_term_disability_plan == undefined) {
+  if (longterm_disability_plan == undefined) {
     missing_field_flag = true;
   } else {
-    health.long_term_disability_plan = long_term_disability_plan;
+    health.longterm_disability_plan = longterm_disability_plan;
   }
 
-  if (short_term_disability_plan == undefined) {
+  if (shortterm_disability_plan == undefined) {
     missing_field_flag = true;
   } else {
-    health.short_term_disability_plan = short_term_disability_plan;
+    health.shortterm_disability_plan = shortterm_disability_plan;
   }
 
   if(missing_field_flag) {

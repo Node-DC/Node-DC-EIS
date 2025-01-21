@@ -106,7 +106,6 @@ exports.getAddressByEmployeeId = async function(req, res) {
       return;
     }
 
-    console.log('sending response from address service');
     sendJSONResponse(res, 200, data);
   } catch (err) {
       console.log('*** Internal Error while retrieving addresses records.');

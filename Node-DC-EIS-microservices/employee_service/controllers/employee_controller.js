@@ -39,7 +39,6 @@ function sendJSONResponse(res, status, content) {
  API interface
 ******************************************************/
 async function doGetRequest(url) {
-  console.log('Making a GET call to a service at:', url);
   return new Promise( (resolve, reject) => {
     http.get(url, (res) => {
       let data = '';
@@ -58,7 +57,6 @@ async function doGetRequest(url) {
 };
 
 function doPostRequest(url, data) {
-  console.log(`Making a POST call to a service at ${url} with input ${data}`);
   const postInput = JSON.stringify(data);
 
   // Input url format is: http://<hostname>:<port>/<endpoint>/...
@@ -119,8 +117,6 @@ function doPostRequest(url, data) {
 };
 
 function doDeleteRequest(url) {
-  console.log(`Making a DELETE call to a service at ${url}`);
-
   // Input url format is: http://<hostname>:<port>/<endpoint>/...
   // Get the hostname, port and path from the url
   const urlSplit = url.split(/[/:]/);
@@ -304,11 +300,11 @@ exports.addNewEmployee = async function addNewEmployeeAddress(req, res) {
     missing_field_flag = true;
   }
 
-  if(!health || health.long_term_disability_plan == undefined){
+  if(!health || health.longterm_disability_plan == undefined){
     missing_field_flag = true;
   }
 
-  if(!health || health.short_term_disability_plan == undefined){
+  if(!health || health.shortterm_disability_plan == undefined){
     missing_field_flag = true;
   }
 
@@ -360,7 +356,6 @@ exports.addNewEmployee = async function addNewEmployeeAddress(req, res) {
     service_url = appConfig.photo_svc;
     const newPhotoRec = doPostRequest(service_url, photo);
 
-    console.log('Issueed all post requests, waiting for the results');
     const results = await Promise.all([
       newAddressRec,
       newFamilyRec,
@@ -416,7 +411,6 @@ exports.getEmployeeById = async function(req, res) {
     return;
   }
 
-
   async function getDetailsOfEmployee(employee_id) {
     try {
       // Get Address data
@@ -443,8 +437,6 @@ exports.getEmployeeById = async function(req, res) {
       const photo_svc_byemployeeid = appConfig.photo_svc_byemployeeid;
       remote_svc_url = photo_svc_byemployeeid.replace(":employee_id", employee_id);
       const photoDetails = doGetRequest(remote_svc_url);
-
-      console.log('Issueed all requests, waiting for the results');
 
       const results = await Promise.all([
         addressDetails,
@@ -491,23 +483,22 @@ function collectEmployeeIds(data) {
   return(ids);
 }
 
-exports.getAllEmployeeIds = function getAllEmployeeIds(req, res) {
+exports.getAllEmployeeIds = async function getAllEmployeeIds(req, res) {
 
-  var query = Employee.find();
-  query.select('_id');
-  query.exec(function callJSON(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'getAllEmployeeIds query failed. Internal Server Error'});
-      return;
-    }
-    var ids = null;
-    if (data) {
+  try {
+    const data = await Employee.find({}).select('_id');
+    let ids = null;
+    if (data && data.length > 0) {
       ids = collectEmployeeIds(data);
     }
     sendJSONResponse(res, 200, ids);
-  });
+  } catch (err) {
+    console.log(err.message);
+    sendJSONResponse(res, 500, { 
+      message: 'getAllEmployeeIds query failed. Internal Server Error'});
+  }
+
+  return;
 };
 
 function collectLastNames(data) {
@@ -627,13 +618,13 @@ exports.loaddb = async function loaddb(req, res) {
   var lastnamecount = req.query.lastname;
   
   const service_url = appConfig.db_loader_svc_ipaddress+ "?count="+count+"&zipcode="+zipcount+"&lastname="+lastnamecount;
-	try {
-  	const updatedDB = await doGetRequest(service_url);
-    sendJSONResponse(res, 200, updatedDB);
-	} catch (err) {
+  try {
+    const updatedDB = await doGetRequest(service_url);
+    sendJSONResponse(res, 200, JSON.parse(updatedDB));
+  } catch (err) {
     sendJSONResponse(res, 500, { 
-    	message: `loadDB serice request failed with ${err.message} error`});
-	}
+      message: `loadDB serice request failed with ${err.message} error`});
+  }
   return;
 };
 
@@ -646,25 +637,25 @@ exports.checkdb = async function checkdb(req, res) {
     count = 1;
   }
   const service_url = appConfig.checkdb_svc_ipaddress+"?count="+count;
-	try {
-  	const results = await doGetRequest(service_url);
+  try {
+    const results = await doGetRequest(service_url);
     sendJSONResponse(res, 200, JSON.parse(results));
-	} catch (err) {
+  } catch (err) {
     sendJSONResponse(res, 500, { 
-    	message: `checkDB serice request failed with ${err.message} error`});
-	}
+      message: `checkDB serice request failed with ${err.message} error`});
+  }
   return;
 };
 
 exports.cleanupdb = async function cleanupdb(req, res) {
   const service_url = appConfig.cleanupdb_svc_ipaddress;
-	try {
-  	const results = await doDeleteRequest(service_url);
+  try {
+    const results = await doDeleteRequest(service_url);
     sendJSONResponse(res, 200, results);
-	} catch (err) {
-		console.log(err.message);
+  } catch (err) {
+    console.log(err.message);
     sendJSONResponse(res, 500, { 
-    	message: `checkDB serice request failed with ${err.message} error`});
-	}
+      message: `checkDB serice request failed with ${err.message} error`});
+  }
   return;
 };

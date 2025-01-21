@@ -117,7 +117,7 @@ async function main() {
   await mongoose.connect(appConfig.db_url);
   console.log('Connection open to the database');
   const port = appConfig.employee_svc_port;;
-  const server = app.listen(port, "10.54.34.152");
+  const server = app.listen(port);
 
   console.log('Start Time:' + Date());
   console.log(serviceName + ' Service is listening at port:', port);

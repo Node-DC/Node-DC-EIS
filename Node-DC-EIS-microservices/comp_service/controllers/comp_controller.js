@@ -56,7 +56,6 @@ exports.getCompensationByEmployeeId = async function getCompensationByEmployeeId
       return;
     }
 
-    console.log('sending response from Compensation service');
     sendJSONResponse(res, 200, data);
 
   } catch (err) {

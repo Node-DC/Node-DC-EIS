@@ -56,7 +56,6 @@ exports.getFamilyInfoByEmployeeId = async function getFamilyInfo(req, res) {
       return;
     }
 
-		console.log('sending response from family service');
    	sendJSONResponse(res, 200, data);
   } catch (err) {
       console.log('*** Internal Error while retrieving addresses records.');

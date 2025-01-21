@@ -55,7 +55,6 @@ exports.getPhotoByEmployeeId = async function getPhotoByEmployeeId(req, res) {
       return;
     }
 
-		console.log('sending response from photo service');
     sendJSONResponse(res, 200, data);
   } catch (err) {
       console.log('*** Internal Error while retrieving addresses records.');

@@ -178,12 +178,12 @@ exports.initDb = function initDB(req, res) {
 
   //Cleanup the database
   async function main(count) {
-    Employee.deleteMany().exec();
-    Address.deleteMany().exec();
-    Family.deleteMany().exec();
-    Compensation.deleteMany().exec();
-    Health.deleteMany().exec();
-    Photo.deleteMany().exec();
+    await Employee.deleteMany().exec();
+    await Address.deleteMany().exec();
+    await Family.deleteMany().exec();
+    await Compensation.deleteMany().exec();
+    await Health.deleteMany().exec();
+    await Photo.deleteMany().exec();
 
     const zipCodeArr = generateZipCodes(zipcount);
     await readTextInputs(); // Read list of first, last and street names
@@ -264,7 +264,7 @@ exports.initDb = function initDB(req, res) {
           address.country = 'USA';
           address._employee = employee._id;
           address.employee = employee;
-          await address.save();
+          const arec = await address.save();
           a_count++;
 
           // Compensation record
@@ -273,7 +273,7 @@ exports.initDb = function initDB(req, res) {
           compensation.stock = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
           compensation._employee = employee._id;
           compensation.employee = employee;
-          await compensation.save();
+          const crec = await compensation.save();
           c_count++;
 
           // Family record
@@ -283,7 +283,7 @@ exports.initDb = function initDB(req, res) {
           family.childrens = Math.floor(Math.random() * (5 - 3 + 1)) + 1;
           family._employee = employee._id;
           family.employee = employee;
-          await family.save();
+          const frec = await family.save();
           f_count++;
 
           // Health record
@@ -297,7 +297,7 @@ exports.initDb = function initDB(req, res) {
           health.paid_family_leave = last_paid_family_leave_status;
           health._employee = employee._id;
           health.employee = employee;
-          await health.save();
+          const hrec = await health.save();
           h_count++;
 
           // Photo identification record
@@ -309,8 +309,12 @@ exports.initDb = function initDB(req, res) {
           photo.image = imageStr;
           photo._employee = employee._id;
           photo.employee = employee;
-          await photo.save();
+          const prec = await photo.save();
           p_count++;
+          const results = await Promise.all([
+            arec,crec, frec, hrec, prec
+          ]);
+
           if ( (e_count == count) && (a_count == count) && (c_count == count) &&
             (f_count == count) && (h_count == count) && (p_count == count)) {
             res.send({'message' : count + ' records are populated'});
