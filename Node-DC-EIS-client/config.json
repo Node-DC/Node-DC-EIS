@@ -10,7 +10,7 @@
     "tempfile":"RTdata",
     "total_urls":"100",
     "server_ipaddress":"localhost",
-    "server_port":"3000",
+    "server_port":"9000",
     "root_endpoint": "/",
     "nameurl_count":"25", 
     "zipurl_count":"25",
