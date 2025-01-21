@@ -1236,10 +1236,12 @@ def post_process_request_based_data(temp_log,output_file):
           continue
         datasize=sortedlist[i][col_datasize]
         total_bytes_arr.append(float(datasize))
-  tot_lapsedtime = max(read_time) - abs_start
-  if not tot_lapsedtime:
-    throughput = 1
-  throughput = float(int(request)/tot_lapsedtime)
+  tot_lapsedtime = 0
+  throughput = 1
+  if len(read_time) > 0:
+    tot_lapsedtime = max(read_time) - abs_start
+  if tot_lapsedtime > 0:
+    throughput = float(int(request)/tot_lapsedtime)
   response_array.sort()
   respa = np.array(response_array)
   percent = np.percentile(respa, 99)
