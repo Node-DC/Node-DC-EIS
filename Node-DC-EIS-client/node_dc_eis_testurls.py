@@ -40,9 +40,9 @@ front_oflist = 0
 init = False
 
 ##setup data for post request
-static_postdata = {"emp" :
+static_postdata = {"employee" :
                 {"last_name":"Omar","email":"Grenfell23@example.com","first_name":"Grenfell","phone":"6126380368","role":"regular"},
-             "addr" :
+             "address" :
                 {"country" : "USA", "state" : "FL", "zipcode" : "10253","street" : "4286, SW Lane"},
              "compensation" :
                 {"stock" : "4739", "pay" : "521021"},

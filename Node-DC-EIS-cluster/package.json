@@ -19,10 +19,10 @@
   "license": "Apache-2.0",
   "dependencies": {
     "async": "2.6.4",
-    "express": "4.20.0",
+    "express": "4.21.2",
     "body-parser": "1.20.3",
     "lru-cache": "4.0.1",
-    "mongoose": "5.13.20",
+    "mongoose": "8.9.5",
     "pug": "3.0.3"
   },
   "devDependencies": {},

@@ -66,6 +66,9 @@ function startSingleNodeInstance() {
     res.status(200).send("OK");
   });
 
+  //clean up database
+  app.get('/cleanupdb', loaderCtrl.cleanUpDb);
+
   //loads database
   app.get('/loaddb', loaderCtrl.initDb);
 
