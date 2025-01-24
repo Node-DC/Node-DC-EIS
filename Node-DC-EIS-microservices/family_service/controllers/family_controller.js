@@ -30,54 +30,50 @@ function sendJSONResponse(res, status, content) {
 /******************************************************
  API interface
 ******************************************************/
-exports.findAll = function findAll(req, res) {
-  Family.find()
-  .exec(function sendJSON(err, data) {
-    if (err) {
-      console.log('*** Internal Error while retrieving all compensation records.');
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'findAll query failed. Internal Server Error'});
-      return;
-    }   
+exports.findAll = async function findAll(req, res) {
+	try {
+  	const data = await Family.find();
+    sendJSONResponse(res, 200, data);
+	} catch (err) {
+    console.log(err.message);
+    sendJSONResponse(res, 500, { 
+      message: 'findAll query failed. Internal Server Error'});
+	}
+
+  return;
+};
+
+exports.getFamilyInfoByEmployeeId = async function getFamilyInfo(req, res) {
+
+  const employee_id=req.query.employee_id || req.params.employee_id;
+
+  try {
+    const data = await Family.findOne({'_employee': new ObjectId(employee_id)});
 
     if (!data) {
       sendJSONResponse(res, 200, { 
         message: 'No records found'});
       return;
-    }   
+    }
 
-    sendJSONResponse(res, 200, data);
-  }); 
-};
-
-exports.getFamilyInfo = function getFamilyInfo(req, res) {
-
-  var employee_id=req.query.employee_id || req.params.employee_id;
-
-  Family.findOne({'employee._id':  new ObjectId(employee_id)})
-    .exec(function findOneEmployee(err, data) {
-    if (err) {
+   	sendJSONResponse(res, 200, data);
+  } catch (err) {
+      console.log('*** Internal Error while retrieving addresses records.');
       console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'exports.getFamilyInfo query failed. Internal Server Error'});
+      sendJSONResponse(res, 500, { 
+        message: 'getFamilyInfoByEmployeeId query failed. Internal Server Error'});
       return;
-    }
+  }
 
-    if (!data) {
-      //console.log('No data found for employee id:' + employee_id);
-    }
-
-    sendJSONResponse(res, 200, data);
-  });
   return;
 };
 
-exports.newFamily = function newFamily(req, res) {
-  var employee_id = req.body._employee;
-  var employeeObj = req.body.employee;
-  var missing_field_flag = false;
-  var warning_msg = {};
+exports.newFamily = async function newFamily(req, res) {
+
+  const employee_id = req.body._employee;
+  const employeeObj = req.body.employee;
+  let missing_field_flag = false;
+  let warning_msg = {};
   
   if(!employee_id) {
     sendJSONResponse(res, 400, {
@@ -86,13 +82,12 @@ exports.newFamily = function newFamily(req, res) {
     return;
   }
 
-  var childrens =  req.body.childrens;
-  var marital_status =  req.body.marital_status;
+  const childrens =  req.body.childrens;
+  const marital_status =  req.body.marital_status;
 
-  var family = new Family();
+  const family = new Family();
   family._employee = employee_id;
   family.employee = employeeObj;
-  family.employee._id = new ObjectId(employeeObj._id);
 
   if (childrens == undefined) {
     missing_field_flag = true;
@@ -113,23 +108,22 @@ exports.newFamily = function newFamily(req, res) {
     warning_msg = "All fields from family input are present";
   }
 
-  family.save(function saveFamily(err, data) {
-    if(err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'newFamily save query failed. Internal error'
-      });
-      return;
-    }
-
+	try {
+  	const data = await family.save();
     sendJSONResponse(res, 200, {
       'family_id' : data._id,
       'warning_msg' : warning_msg
     });
-  });
+	} catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'newFamily save query failed. Internal error'
+    });
+    return;
+	}
 };
 
-exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
+exports.deleteByEmployeeId = async function deleteByEmployeeId(req, res) {
   var employee_id = req.params.employee_id;
 
   if (!employee_id) {
@@ -139,17 +133,15 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
     return;
   }
 
+  try {
+    const result = await Family.deleteMany({'_employee': new ObjectId(employee_id)});
+    sendJSONResponse(res, 200, result);
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'deleteByEmployeeId query failed. Internal Server error'
+    });
+  }
 
-  Family.remove({'employee._id':  new ObjectId(employee_id)})
-    .exec(function removeEmployeeById(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'deleteByEmployeeId query failed. Internal Server error'
-      });
-      return;
-    }
-    sendJSONResponse(res, 200, null);
-  });
   return;
 };

@@ -30,54 +30,48 @@ var sendJSONResponse = function(res, status, content) {
 /******************************************************
  API interface
 ******************************************************/
-exports.findAll = function findAll(req, res) {
-  Health.find()
-  .exec(function(err, data) {
-    if (err) {
-      console.log('*** Internal Error while retrieving all compensation records.');
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'findAll query failed. Internal Server Error'});
-      return;
-    }   
+exports.findAll = async function findAll(req, res) {
+	try {
+  	const data = await Health.find()
+    sendJSONResponse(res, 200, data);
+	} catch (err) {
+    console.log('*** Internal Error while retrieving all compensation records.');
+    console.log(err);
+    sendJSONResponse(res, 500, { 
+      message: 'findAll query failed. Internal Server Error'});
+	}
+};
+
+exports.getHealthInformationByEmployeeId = async function getHealthInformationByEmployeeId(req, res) {
+
+  const employee_id=req.query.employee_id || req.params.employee_id;
+
+  try {
+    const data = await Health.findOne({'_employee': new ObjectId(employee_id)});
 
     if (!data) {
       sendJSONResponse(res, 200, { 
         message: 'No records found'});
       return;
-    }   
+    }
 
     sendJSONResponse(res, 200, data);
-  }); 
-};
-
-exports.getHealthInformationByEmployeeId = function getHealthInformationByEmployeeId(req, res) {
-
-  var employee_id=req.query.employee_id || req.params.employee_id;
-
-  Health.findOne({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
+  } catch (err) {
+      console.log('*** Internal Error while retrieving health records.');
       console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'exports.getHealthInformationByEmployeeId query failed. Internal Server Error'});
+      sendJSONResponse(res, 500, { 
+        message: 'getHealthInformationByEmployeeId query failed. Internal Server Error'});
       return;
-    }
+  }
 
-    if (!data) {
-      //console.log('No data found for employee id:' + employee_id);
-    }
-
-    sendJSONResponse(res, 200, data);
-  });
   return;
 };
 
-exports.newHealth = function newHealth(req, res) {
-  var employee_id = req.body._employee;
-  var employeeObj = req.body.employee;
-  var missing_field_flag = false;
-  var warning_msg = {};
+exports.newHealth = async function newHealth(req, res) {
+  const employee_id = req.body._employee;
+  const employeeObj = req.body.employee;
+  let missing_field_flag = false;
+  let warning_msg = {};
   
   if(!employee_id) {
     sendJSONResponse(res, 400, {
@@ -85,12 +79,14 @@ exports.newHealth = function newHealth(req, res) {
     });
     return;
   }
+  
+  const paid_family_leave =  req.body.paid_family_leave;
+  const longterm_disability_plan =  req.body.longterm_disability_plan;
+  const shortterm_disability_plan =  req.body.shortterm_disability_plan;
 
-  var paid_family_leave =  req.body.paid_family_leave;
-  var long_term_disability_plan =  req.body.long_term_disability_plan;
-  var short_term_disability_plan =  req.body.short_term_disability_plan;
-
-  var health = new Health();
+  const health = new Health();
+  health._employee = employee_id;
+  health.employee = employeeObj;
 
   if (paid_family_leave == undefined) {
     missing_field_flag = true;
@@ -98,46 +94,42 @@ exports.newHealth = function newHealth(req, res) {
     health.paid_family_leave = paid_family_leave;
   }
 
-  if (long_term_disability_plan == undefined) {
+  if (longterm_disability_plan == undefined) {
     missing_field_flag = true;
   } else {
-    health.long_term_disability_plan = long_term_disability_plan;
+    health.longterm_disability_plan = longterm_disability_plan;
   }
 
-  if (short_term_disability_plan == undefined) {
+  if (shortterm_disability_plan == undefined) {
     missing_field_flag = true;
   } else {
-    health.short_term_disability_plan = short_term_disability_plan;
+    health.shortterm_disability_plan = shortterm_disability_plan;
   }
 
-  health._employee = employee_id;
-  health.employee = employeeObj;
-  health.employee._id = new ObjectId(employeeObj._id);
-  
   if(missing_field_flag) {
     warning_msg = "Some field from Health input are missing";
-    missing_field_flag = false;
   } else{
     warning_msg = "All fields from Health input are present";
+    missing_field_flag = false;
   }
 
-  health.save(function saveHealth(err, data) {
-    if(err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'newHealth save query failed. Internal error'
-      });
-      return;
-    }
-
+	try {
+  	const data = await health.save();
     sendJSONResponse(res, 200, {
       'health_id' : data._id,
       'warning_msg' : warning_msg
     });
-  });
+	} catch (err) {
+  	console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'newHealth save query failed. Internal error'
+    });
+	}
+	
+	return;
 };
 
-exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
+exports.deleteByEmployeeId = async function deleteByEmployeeId(req, res) {
   var employee_id = req.params.employee_id;
 
   if (!employee_id) {
@@ -147,16 +139,15 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
     return;
   }
 
-  Health.remove({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'deleteByEmployeeId query failed. Internal Server error'
-      });
-      return;
-    }
-    sendJSONResponse(res, 200, null);
-  });
+  try {
+    const result = await Health.deleteMany({'_employee': new ObjectId(employee_id)});
+    sendJSONResponse(res, 200, result);
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'deleteByEmployeeId query failed. Internal Server error'
+    });
+  }
+
   return;
 };

@@ -30,25 +30,17 @@ function sendJSONResponse(res, status, content) {
 /******************************************************
  API interface
 ******************************************************/
-exports.findAll = function findAll(req, res) {
-  Address.find()
-  .exec(function sendJSON(err, addresses) {
-    if (err) {
-      console.log('*** Internal Error while retrieving all addresses.');
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'findAll query failed. Internal Server Error'});
-      return;
-    }   
-
-    if (!addresses) {
-      sendJSONResponse(res, 200, { 
-        message: 'No records found'});
-      return;
-    }   
-
+exports.findAll = async function findAll(req, res) {
+  try {
+    const addresses = await Address.find();
     sendJSONResponse(res, 200, addresses);
-  }); 
+  } catch (err) {
+    console.log('*** Internal Error while retrieving all addresses.');
+    console.log(err);
+    sendJSONResponse(res, 500, { 
+      message: 'findAll query failed. Internal Server Error'});
+    return;
+  }
 };
 
 function collectZipCodes(addresses) {
@@ -70,64 +62,65 @@ function collectZipCodes(addresses) {
 
 }
 
-exports.findByZipcode = function findByZipcode(req, res) {
+exports.findByZipcode = async function findByZipcode(req, res) {
 
   var zipcode=req.query.zipcode;
 
   if (!zipcode) {
-    Address.find({},function sendJSON(err, addresses) {
-      if (err) {
-        console.log(err);
-        sendJSONResponse(res, 500, {
-          message: 'getAllZipcodes query failed. Internal Server Error'});
-        return;
-      }
-
-      var zipCodeArr = collectZipCodes(addresses);
-   
+    try {
+      const addresses = await Address.find();
+      const zipCodeArr = collectZipCodes(addresses);
       sendJSONResponse(res, 200, zipCodeArr);
-    });
+    } catch (err) {
+      console.log(err.message);
+      sendJSONResponse(res, 500, {
+        message: 'getAllZipcodes query failed. Internal Server Error'});
+      return;
+    }
   } else {
-    Address.find({'zipcode': zipcode})
-      .populate('_employee')
-      .exec(function(err, data) {
-      if (err) {
-        console.log(err);
-        sendJSONResponse(res, 500, {
-          message: 'findByZipcode query failed. Internal Server Error'});
-        return;
-      }
-
-      sendJSONResponse(res, 200, data);
-    });
+    try {
+      const addresses = 
+        await Address.find({'zipcode': zipcode})
+          .populate('_employee')
+          .exec();
+      sendJSONResponse(res, 200, addresses);
+    } catch (err) {
+      console.log(err);
+      sendJSONResponse(res, 500, {
+        message: 'findByZipcode query failed. Internal Server Error'});
+      return;
+    }
   }
 };
 
-exports.getAddressByEmployeeId = function(req, res) {
+exports.getAddressByEmployeeId = async function(req, res) {
 
-  var employee_id=req.query.employee_id || req.params.employee_id;
+  const employee_id=req.query.employee_id || req.params.employee_id;
 
-  //.populate('_employee').select({"first_name" : 1, "last_name" : 1})
-  Address.findOne({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'getAddressByEmployeeId query failed. Internal Server Error'});
+  try {
+    const data = await Address.findOne({'_employee': new ObjectId(employee_id)});
+
+    if (!data) {
+      sendJSONResponse(res, 200, { 
+        message: 'No records found'});
       return;
     }
-    if (!data) {
-      //console.log('No data found for employee id:' + employee_id);
-    }
+
     sendJSONResponse(res, 200, data);
-  });
+  } catch (err) {
+      console.log('*** Internal Error while retrieving addresses records.');
+      console.log(err);
+      sendJSONResponse(res, 500, { 
+        message: 'getAddressByEmployeeId query failed. Internal Server Error'});
+      return;
+  }
+
   return;
 };
 
-exports.newAddress = function newAddress(req, res) {
+exports.newAddress = async function newAddress(req, res) {
 
-  var employee_id = req.body._employee;
-  var employeeObj = req.body.employee;
+  const employee_id = req.body._employee;
   if(!employee_id) {
     sendJSONResponse(res, 400, {
       message: 'newAddress: Missing employee_id'
@@ -135,10 +128,10 @@ exports.newAddress = function newAddress(req, res) {
     return;
   }
 
-  var street =  req.body.street;
-  var state =  req.body.state;
-  var zipcode =  req.body.zipcode;
-  var country = req.body.country;
+  const street =  req.body.street;
+  const state =  req.body.state;
+  const zipcode =  req.body.zipcode;
+  const country = req.body.country;
 
   if(!zipcode) {
     sendJSONResponse(res, 400, {
@@ -150,11 +143,11 @@ exports.newAddress = function newAddress(req, res) {
   var missing_field_flag = false;
   var warning_msg = {};
   var address = new Address();
+  const employeeObj = req.body.employee;
 
   address.zipcode = zipcode;
   address._employee = employee_id;
   address.employee = employeeObj;
-  address.employee._id = new ObjectId(employeeObj._id);
 
   if (street == undefined) {
     missing_field_flag = true;
@@ -181,22 +174,22 @@ exports.newAddress = function newAddress(req, res) {
     warning_msg = "All fields from Address input are present";
   }
   
-  address.save(function(err, data) {
-    if(err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'newAddress save query failed. Internal error'
-      });
-      return;
-    }
+  try {
+    const data = await address.save();
     sendJSONResponse(res, 200, {
       'address_id' : data._id,
       'warning_msg' : warning_msg
     });
-  });
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'newAddress save query failed. Internal error'
+    });
+    return;
+  }
 };
 
-exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
+exports.deleteByEmployeeId = async function deleteByEmployeeId(req, res) {
   var employee_id = req.params.employee_id;
 
   if (!employee_id) {
@@ -206,16 +199,14 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
     return;
   }
 
-  Address.remove({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'deleteByEmployeeId query failed. Internal Server error'
-      });
-      return;
-    }
-    sendJSONResponse(res, 200, null);
-  });
+  try {
+    const result = await Address.deleteMany({'_employee': new ObjectId(employee_id)});
+    sendJSONResponse(res, 200, result);
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'deleteByEmployeeId query failed. Internal Server error'
+    });
+  }
   return;
 };

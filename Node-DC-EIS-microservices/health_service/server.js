@@ -97,10 +97,18 @@ app.get('/getcpuinfo', function collectCpuInfo(req, res) {
   res.json(systemInfo);     
 });
 
-var port = appConfig.app_port;
-var server = app.listen(port);
+async function main() {
+  console.log('**************************************************');
+	console.log('Start Time:' + Date());
+	await mongoose.connect(appConfig.db_url);
+	console.log('Connection open to the database');
+  const port = appConfig.app_port;
+	const server = app.listen(port);
 
-console.log('**************************************************');
-console.log('Start Time:' + Date());
-console.log(serviceName + ' Service is listening at port:', port);
-console.log('**************************************************');
+  console.log('Start Time:' + Date());
+  console.log(serviceName + ' Service is listening at port:', port);
+  console.log('**************************************************');
+};
+
+main().catch( (err) => console.log(err.message));
+

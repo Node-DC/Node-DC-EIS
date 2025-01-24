@@ -17,7 +17,7 @@
 module.exports = {
   'db_url': process.env.MONGO_SERVER_URL || 'mongodb://127.0.0.1:27017/node-els-db',
   'app_port' : process.env.DB_LOADER_SERVER_PORT || 4001,
-  'count': 100,
+  'count': 1000,
   'zipcount': 10,
   'lastnamecount': 10,
   'mongodb_timeout' : 30000

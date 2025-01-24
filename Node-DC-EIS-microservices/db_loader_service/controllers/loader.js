@@ -14,106 +14,101 @@
 // limitations under the License.
 */
 
-var Employee = require('../models/employee');
-var Address = require('../models/address');
-var Compensation = require('../models/compensation');
-var Family = require('../models/family');
-var Health = require('../models/health');
-var Photo = require('../models/photo');
-var appConfig = require('../config/configuration');
-var fs = require('fs');
-var readline = require('readline');
-var async = require('async');
+const Employee = require('../models/employee');
+const Address = require('../models/address');
+const Compensation = require('../models/compensation');
+const Family = require('../models/family');
+const Health = require('../models/health');
+const Photo = require('../models/photo');
+const appConfig = require('../config/configuration');
+const fs = require('fs');
+const readline = require('readline');
 
-var fnames = [];
-var lnames = [];
-var addresses = [];
+let fnames = [];
+let lnames = [];
+let addresses = [];
 
-var states = [ 'AL', 'OR', 'CA', 'WA', 'NJ', 'TN', 'DE', 'FL', 'TX', 'ID' ];
-var street_suffixes = [ 'Way', 'Drive', 'Rd', 'Lane', 'Court', 'Street', 'Ave', 'Plaza' ];
-var directions = [ 'E', 'W', 'N', 'S', 'SE', 'SW', 'NE', 'NW' ];
+const states = [ 'AL', 'OR', 'CA', 'WA', 'NJ', 'TN', 'DE', 'FL', 'TX', 'ID' ];
+const street_suffixes = [ 'Way', 'Drive', 'Rd', 'Lane', 'Court', 'Street', 'Ave', 'Plaza' ];
+const directions = [ 'E', 'W', 'N', 'S', 'SE', 'SW', 'NE', 'NW' ];
 
 function sendJSONResponse(res, status, content) {
   res.status(status);
   res.json(content);
 };
 
-function read_in_addresses(callback) {
+async function read_in_addresses() {
   console.log('Constructing list of Addresses');
-  if (addresses.length  === 0) {
-    var rd = readline.createInterface({
-      input: fs.createReadStream('./data/people.streets'),
-      output: process.stdout,
-      terminal: false
-    });
+  console.log('------------------------');
+
+  const fileStream = fs.createReadStream('./data/people.streets');
+  const rd = readline.createInterface({
+    input: fileStream,
+    //output: process.stdout,
+    console: false
+  });
   
-    rd.on('line', function processLine(line) {
+  const lines = [];
+  for await (const line of rd) {
       var aptnum = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
       var street_dir = directions[Math.floor(Math.random() * (directions.length))];
       var street_sfx = street_suffixes[Math.floor(Math.random() * (street_suffixes.length))];
-      var addr =  aptnum + ", " + street_dir + " " + street_sfx;
-      addresses.push(addr);
-    });
-    rd.on('close', function close() {
-      rd.close();
-      callback();
-    });
+      var addr =  aptnum + ", " + street_dir + " " + line + " " + street_sfx;
+      lines.push(addr);
   }
-  else {
-    callback();
-  } 
+
+  await fileStream.close();
+  return lines;
 }
 
-function read_in_lastnames(callback) {
+async function read_in_lastnames() {
   console.log('Constructing list of last names');
-  if (lnames.length  === 0) {
-    var rd = readline.createInterface({
-      input: fs.createReadStream('./data/people.lname'),
-      output: process.stdout,
-      terminal: false
-    });
-  
-    rd.on('line', function pushLine(line) {
-      lnames.push(line);
-    });
-    rd.on('close', function close() {
-      rd.close();
-      callback();
-    });
-  }
-  else {
-    callback();
-  } 
-}
+  console.log('------------------------');
 
-function read_in_firstnames(callback) {
-  console.log('Constructing list of first names');
-  if (fnames.length  === 0) {
-    var rd = readline.createInterface({
-      input: fs.createReadStream('./data/people.fname'),
-      output: process.stdout,
-      terminal: false
-    });
-  
-    rd.on('line', function pushLine(line) {
-      fnames.push(line);
-    });
-    rd.on('close', function close() {
-      rd.close();
-      callback();
-    });
-  }
-  else {
-    callback();
-  } 
-}
-
-function start_here(count, callback) {
-  read_in_firstnames(function readInLastNames() {
-    read_in_lastnames(function readInAddresses() {
-      read_in_addresses(callback);
-    });
+  const fileStream = fs.createReadStream('./data/people.lname');
+  const rd = readline.createInterface({
+    input: fileStream,
+    //output: process.stdout,
+    console: false
   });
+ 
+  const lines = [];
+  for await (const line of rd) {
+    lines.push(line);
+  }
+
+  await fileStream.close();
+  return lines;
+}
+
+async function read_in_firstnames() {
+  console.log('Constructing list of first names');
+  console.log('------------------------');
+
+  const fileStream = fs.createReadStream('./data/people.fname');
+  const rd = readline.createInterface({
+    input: fileStream,
+    //output: process.stdout,
+    console: false
+  });
+ 
+  const lines = [];
+  for await (const line of rd) {
+    lines.push(line);
+  }
+
+  await fileStream.close();
+  return lines;
+}
+
+async function readTextInputs() {
+  try {
+    fnames= await read_in_firstnames();
+    lnames = await read_in_lastnames();
+    addresses = await read_in_addresses();
+  } catch (error) {
+    console.error("Error processing input files:", error.message);
+  }
 };
 
 function generateZipCodes(zipcount) {
@@ -125,6 +120,28 @@ function generateZipCodes(zipcount) {
   }
   return(zipCodeArr);
 }
+
+// Exports API functions/methods
+exports.cleanUpDB = async function cleanUpDB(req, res) {
+  try {
+    const e = Employee.deleteMany().exec();
+    const a = Address.deleteMany().exec();
+    const f = Family.deleteMany().exec();
+    const c = Compensation.deleteMany().exec();
+    const h = Health.deleteMany().exec();
+    const p = Photo.deleteMany().exec();
+
+    const results = await Promise.all([
+      e, a, f, c, h, p
+    ]);
+    sendJSONResponse(res, 200, results);
+  } catch (err) {
+    console.log(err.message);
+    sendJSONResponse(res, 400, { message: 'Error: cleanUpDB'});
+  }
+
+  return;
+};
 
 exports.initDb = function initDB(req, res) {
   var count = req.query.count;
@@ -160,315 +177,209 @@ exports.initDb = function initDB(req, res) {
   }
 
   //Cleanup the database
-  Employee.remove().exec();
-  Address.remove().exec();
-  Family.remove().exec();
-  Compensation.remove().exec();
-  Health.remove().exec();
-  Photo.remove().exec();
+  async function main(count) {
+    await Employee.deleteMany().exec();
+    await Address.deleteMany().exec();
+    await Family.deleteMany().exec();
+    await Compensation.deleteMany().exec();
+    await Health.deleteMany().exec();
+    await Photo.deleteMany().exec();
 
-  var zipCodeArr = generateZipCodes(zipcount);
+    const zipCodeArr = generateZipCodes(zipcount);
+    await readTextInputs(); // Read list of first, last and street names
+    
+    var saved_record=0;
+    var last_marital_status = true;
+    var last_shortterm_disability_plan = false;
+    var last_longterm_disability_plan = true;
+    var last_paid_family_leave_status = true;
 
-  start_here({'count': count}, function startHere() {
-  var saved_record=0;
-  var last_marital_status = true;
-  var last_shortterm_disability_plan = false;
-  var last_longterm_disability_plan = true;
-  var last_paid_family_leave_status = true;
+    let e_count=0;
+    let a_count=0;
+    let c_count=0;
+    let f_count=0;
+    let h_count = 0;
+    let p_count = 0;
+    let zipcode_current_index=0;
+    let lastname_current_index=0;
+    let street_current_index=0;
 
-  var e_count=0;
-  var a_count=0;
-  var c_count=0;
-  var f_count=0;
-  var h_count = 0;
-  var p_count = 0;
-  var zipcode_current_index=0;
-  var lastname_current_index=0;
-  var employee_id;
-  var employeeObj;
-  original_lname_len = lnames.length;
-  if(original_lname_len <= lastnamecount) {
-    var new_namecount = lastnamecount - original_lname_len;
-    var idx = 0;
-    for (var ii = 0; ii < new_namecount; ii++) {
-      var new_name = lnames[idx]+ii.toString();
-      idx++;
-      if (idx > original_lname_len) {
-        idx = 0;
+    original_lname_len = lnames.length;
+    if(original_lname_len <= lastnamecount) {
+      var new_namecount = lastnamecount - original_lname_len;
+      var idx = 0;
+      for (var ii = 0; ii < new_namecount; ii++) {
+        var new_name = lnames[idx]+ii.toString();
+        idx++;
+        if (idx > original_lname_len) {
+          idx = 0;
+        }
+        lnames.push(new_name);
       }
-      lnames.push(new_name);
     }
-  }
-  for (var ii=0; ii < count; ii++) {
-    async.series([
-      function(callback) {
-        //Build Employee record
-        var employee = new Employee();
-        employee.phone = Math.floor(Math.random() * (9999999999 - 1111111111 + 1)) + 1111111111;
-        employee.first_name = fnames[Math.floor(Math.random() * (fnames.length))];
-        employee.email = employee.first_name + ii.toString() + '@example.com';
 
-        if (lastname_current_index >= lastnamecount) {
-          lastname_current_index=0;
-        }
-        var lastname = lnames[lastname_current_index]; 
-        lastname_current_index++;
+    async function createRecords(count) {
 
-        employee.last_name = lastname;
-        //Save employee record and capture employee_id 
-        employee.save(function saveEmployee(err, data) {
-          if (err) {
-            console.log(err);
-            console.log('Saving Employee: Internal error while saving employee record');
-            return callback(err, null);
-          }
-          employee_id = data._id;
-          employeeObj = data;
-          e_count++;
-          callback();
-        });
-      },
-      function(callback) {
-        //Save address for that employee _id
-        var _employee = employee_id;
-        var aptnum = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
-        var street_dir = directions[Math.floor(Math.random() * (directions.length))];
-        var street_sfx = street_suffixes[Math.floor(Math.random() * (street_suffixes.length))];
-        var street = aptnum + ", " + street_dir + " " + street_sfx;
-        var state = states[Math.floor(Math.random() * (states.length))];
+      for (var ii=0; ii < count; ii++) { // Create count# of employee, etc records 
 
-        if (zipcode_current_index >= zipCodeArr.length) {
-          zipcode_current_index=0;
-        }
-
-        var zipcode = zipCodeArr[zipcode_current_index]; 
-        zipcode_current_index++;
-
-        var address = new Address();
-        address.street = street;
-        address.zipcode = zipcode;
-        address.state = state;
-        address.country = 'USA';
-        address._employee = _employee;
-        address.employee = employeeObj;
-        address.save(function saveAddress(err, data) {
-          if (err) {
-            console.log(err);
-            console.log('Saving Address: Internal error while saving employee record');
-            return callback(err, null);
-          }
-
-          a_count++;
-          employee_id = data._employee;
-          employeeObj = data.employee;
-          callback();
-        });
-      }, 
-      function(callback) {
-        //Save Compensation info for that employee _id
-        var _employee = employee_id;
-        var compensation = new Compensation();
-        compensation.pay = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
-        compensation.stock = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
-        compensation._employee = _employee;
-        compensation.employee = employeeObj;
-        compensation.save(function saveCompensation(err, data) {
-          if (err) {
-            console.log(err);
-            console.log('Saving Compensation: Internal error while saving employee record');
-            return callback(err, null);
-          }
-          c_count++;
-          employee_id = data._employee;
-          employeeObj = data.employee;
-          //console.log('New Comp for:' + employee_id);
-          callback();
-        });
-      },
-      function(callback) {
-        //Save Family info for that employee _id
-        var _employee = employee_id;
-        var family = new Family();
-        last_marital_status = !last_marital_status;
-        family.marital_status = last_marital_status;
-        family.childrens = Math.floor(Math.random() * (5 - 3 + 1)) + 1;
-        family._employee = _employee;
-        family.employee = employeeObj;
-        family.save(function saveFamily(err, data) {
-          if (err) {
-            console.log(err);
-            console.log('Saving Family: Internal error while saving employee record');
-            return callback(err, null);
-          }
-          f_count++;
-          employee_id = data._employee;
-          employeeObj = data.employee;
-          //console.log('New family for:' + employee_id);
-          callback();
-        });
-      }, 
-      function(callback) {
-        //Save Health info for that employee _id
-        var _employee = employee_id;
-        last_shortterm_disability_plan = !last_shortterm_disability_plan;
-        last_longterm_disability_plan = !last_longterm_disability_plan;
-        last_paid_family_leave_status = !last_paid_family_leave_status;
-
-        var health = new Health();
-        health.shortterm_disability_plan = last_shortterm_disability_plan;
-        health.longterm_disability_plan = last_longterm_disability_plan;
-        health.paid_family_leave = last_paid_family_leave_status;
-        health._employee = _employee;
-        health.employee = employeeObj;
-        health.save(function saveHealth(err, data) {
-          if (err) {
-            console.log(err);
-            console.log('Saving Health: Internal error while saving employee record');
-            return callback(err, null);
-          }
-          h_count++;
-          employee_id = data._employee;
-          employeeObj = data.employee;
-          //console.log('New Health for:' + employee_id);
-          callback();
-        });
-      },
-      function(callback) {
-        //Build the image as a string
-        var _employee = employee_id;
-        var imageStr = null;
         try {
-          var fileContents;
+          // Employee record
+          const phone = Math.floor(Math.random() * (9999999999 - 1111111111 + 1)) + 1111111111;
+          const first_name = fnames[Math.floor(Math.random() * (fnames.length))];
+          if (lastname_current_index >= lastnamecount) {
+            lastname_current_index=0;
+          }
+          const last_name = lnames[lastname_current_index]; 
+          lastname_current_index++;
+
+          const email = first_name + ii.toString() + '@example.com';
+          const employee = new Employee();
+          employee.first_name = first_name;
+          employee.last_name = last_name;
+          employee.phone = phone;
+          employee.email = email;
+          await employee.save();
+          e_count++;
+
+          // Address record
+          if (street_current_index >= addresses.length) {
+            street_current_index=0;
+          }
+
+          const street = addresses[street_current_index];
+          street_current_index++;
+
+          const state = states[Math.floor(Math.random() * (states.length))];
+          if (zipcode_current_index >= zipCodeArr.length) {
+            zipcode_current_index=0;
+          }
+
+          const  zipcode = zipCodeArr[zipcode_current_index]; 
+          zipcode_current_index++;
+
+          const address = new Address();
+          address.street = street;
+          address.zipcode = zipcode;
+          address.state = state;
+          address.country = 'USA';
+          address._employee = employee._id;
+          address.employee = employee;
+          const arec = await address.save();
+          a_count++;
+
+          // Compensation record
+          const compensation = new Compensation();
+          compensation.pay = Math.floor(Math.random() * (999999 - 100000 + 1)) + 100000;
+          compensation.stock = Math.floor(Math.random() * (9999 - 1000 + 1)) + 1000;
+          compensation._employee = employee._id;
+          compensation.employee = employee;
+          const crec = await compensation.save();
+          c_count++;
+
+          // Family record
+          const family = new Family();
+          last_marital_status = !last_marital_status;
+          family.marital_status = last_marital_status;
+          family.childrens = Math.floor(Math.random() * (5 - 3 + 1)) + 1;
+          family._employee = employee._id;
+          family.employee = employee;
+          const frec = await family.save();
+          f_count++;
+
+          // Health record
+          last_shortterm_disability_plan = !last_shortterm_disability_plan;
+          last_longterm_disability_plan = !last_longterm_disability_plan;
+          last_paid_family_leave_status = !last_paid_family_leave_status;
+
+          const health = new Health();
+          health.shortterm_disability_plan = last_shortterm_disability_plan;
+          health.longterm_disability_plan = last_longterm_disability_plan;
+          health.paid_family_leave = last_paid_family_leave_status;
+          health._employee = employee._id;
+          health.employee = employee;
+          const hrec = await health.save();
+          h_count++;
+
+          // Photo identification record
+          let imageStr = null;
+           var fileContents;
           fileContents = fs.readFileSync(__dirname + '/../data/image.jpeg');
           imageStr = fileContents.toString('base64');
-        } catch (err) {
-          console.log(err);
-          return callback(err, null);
-        }
-
-        if (!imageStr) {
-          console.log(err);
-          console.log('image is null: Internal error while saving employee record');
-          return callback(err, null);
-        }
-        var photo = new Photo();
-        photo.image = imageStr;
-        photo._employee = employee_id;
-        photo.employee = employeeObj;
-        photo.save(function savePhoto(err, data) {
-          if (err) {
-            console.log(err);
-            console.log('Saving Photo: Internal error while saving employee record');
-            return callback(err, null);
-          }
+          const photo = new Photo();
+          photo.image = imageStr;
+          photo._employee = employee._id;
+          photo.employee = employee;
+          const prec = await photo.save();
           p_count++;
-          //console.log(p_count + ' New Photo  is saved:' + data._employee);
-          callback();
-        }); //End of Photo.save
-      }
-    ], function(err) {
-        if(err) {
-          console.log('Error while running async.series' + err);
-        } else {
+          const results = await Promise.all([
+            arec,crec, frec, hrec, prec
+          ]);
+
           if ( (e_count == count) && (a_count == count) && (c_count == count) &&
             (f_count == count) && (h_count == count) && (p_count == count)) {
-           res.send({'message' : count + ' records are populated'});
+            res.send({'message' : count + ' records are populated'});
+            return;
           }
+          
+        } catch (error) {
+          console.error('Error saving record:', error.message);
+          sendJSONResponse(res, 500, {
+             message: 'Internal server error initDB function'
+          });
+          return;
         }
-      });
-    } //End of a for loop
-  });
+      }
+    };
+    createRecords(count);
+  }
+
+  main(count);
 };
 
 exports.isDBSet = function isDBSet(req, res) {
   //Check if Employees.count(), Addresses.count(), etc. matches as expected
   var count = req.query.count;
-  var e_count = 0; //Get the employee count using async.parallel
+  var e_count = 0; //Get the employee count using async/await pattern
   var a_count = 0; //Get the addresses count
   var c_count = 0; //Get the compensations count
   var f_count = 0; //Get the families count
   var h_count = 0; //Get the health count
   var p_count = 0; //Get the photos count
   var result = {};
+  
+  async function getRecordCountInParallel() {
+    const ecount = await Employee.countDocuments({});
+    const acount = await Address.countDocuments({});
+    const fcount = await Family.countDocuments({});
+    const ccount = await Compensation.countDocuments({});
+    const hcount = await Health.countDocuments({});
+    const pcount = await Photo.countDocuments({});
 
-  async.parallel([
-  function(callback) {
-     Employee.count({},function countEmployee(err,count){
-      if(err) {
-        return callback(err, null);
+    try {
+      result['e_count'] = ecount;
+      result['a_count'] = acount;
+      result['c_count'] = ccount;
+      result['f_count'] = fcount;
+      result['h_count'] = hcount;
+      result['p_count'] = pcount;
+      result['count'] = count;
+      if ( (ecount == count) && (acount == count) && 
+        (ccount == count) && (fcount == count) && 
+        (hcount == count) && (pcount == count)) {  
+        res.send({'db_status': 200, 'message': 'Database is set' , 'result': result});
+      } else {
+        res.send({'db_status': 201, 'message': 'Database generation is still in progress','result': result });
       }
-      e_count = count;
-      callback();
-     });
-  },
-  function(callback) {
-    Address.count({},function countAddress(err,count){
-      if(err) {
-        return callback(err, null);
-      }
-      a_count = count;
-      callback();
-     });
-  },
-  function(callback) {
-     Family.count({},function countFamily(err,count){
-      if(err) {
-        return callback(err, null);
-      }
-      f_count = count;
-      callback();
-     });
-  },
-  function(callback) {
-     Compensation.count({},function countCompensation(err,count){
-      if(err) {
-        return callback(err, null);
-      }
-      c_count = count;
-      callback();
-     });
-  },
-  function(callback) {
-     Health.count({},function countHealth(err,count){
-      if(err) {
-        return callback(err, null);
-      }
-      h_count = count;
-      callback();
-     });
-  },
-  function(callback) {
-    //Photo
-    Photo.count({},function countPhoto(err,count){
-      if(err) {
-        return callback(err, null);
-      }
-      p_count = count;
-      callback();
-     });
-  }
-  ], function(err) {
-   if (err) {
-    console.log('isDBSet: Error occured with async.parallel');
-    sendJSONResponse(res, 500, {
-        message: 'async.parallel error while isDBSet'
-    });
+    } catch (error) {
+      console.log('isDBSet: Error occured in getRecordCountInParallel:', error.message); 
+      sendJSONResponse(res, 500, {
+        message: 'Error in getRecordCountInParallel function'
+      });
+      return;
+    }
     return;
-   }
-  result['e_count'] = e_count;
-  result['a_count'] = a_count;
-  result['c_count'] = c_count;
-  result['f_count'] = f_count;
-  result['h_count'] = h_count;
-  result['p_count'] = p_count;
-  result['count'] = count;
-  if ( (e_count == count) && (a_count == count) && (c_count == count) &&
-    (f_count == count) && (h_count == count) && (p_count == count)) {  
-    res.send({'db_status': 200, 'message': 'Database is set' , 'result': result});
-  } else {
-    res.send({'db_status': 201, 'message': 'Database generation is still in progress','result': result });
   }
-  }); //End of async.parallel()
 
-  return;
+  getRecordCountInParallel();
+
 };

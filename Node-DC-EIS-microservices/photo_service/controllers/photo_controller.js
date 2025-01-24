@@ -30,54 +30,48 @@ var sendJSONResponse = function(res, status, content) {
 /******************************************************
  API interface
 ******************************************************/
-exports.findAll = function findAll(req, res) {
-  Photo.find()
-  .exec(function(err, data) {
-    if (err) {
-      console.log('*** Internal Error while retrieving all compensation records.');
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'findAll query failed. Internal Server Error'});
-      return;
-    }   
+exports.findAll = async function findAll(req, res) {
+	try {
+  	const data = await Photo.find();
+    sendJSONResponse(res, 200, data);
+	} catch (err) {
+    console.log('*** Internal Error while retrieving all compensation records.');
+    console.log(err);
+    sendJSONResponse(res, 500, { 
+      message: 'findAll query failed. Internal Server Error'});
+	}
+
+	return;
+};
+
+exports.getPhotoByEmployeeId = async function getPhotoByEmployeeId(req, res) {
+  const employee_id=req.query.employee_id || req.params.employee_id;
+  try {
+    const data = await Photo.findOne({'_employee': new ObjectId(employee_id)});
 
     if (!data) {
       sendJSONResponse(res, 200, { 
         message: 'No records found'});
       return;
-    }   
+    }
 
     sendJSONResponse(res, 200, data);
-  }); 
-};
-
-exports.getPhotoByEmployeeId = function getPhotoByEmployeeId(req, res) {
-
-  var employee_id=req.query.employee_id || req.params.employee_id;
-
-  Photo.findOne({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
+  } catch (err) {
+      console.log('*** Internal Error while retrieving addresses records.');
       console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'exports.getPhotoByEmployeeId query failed. Internal Server Error'});
+      sendJSONResponse(res, 500, { 
+        message: 'getPhotoByEmployeeId query failed. Internal Server Error'});
       return;
-    }
+  }
 
-    if (!data) {
-      //console.log('No data found for employee id:' + employee_id);
-    }
-
-    sendJSONResponse(res, 200, data);
-  });
   return;
 };
 
-exports.newPhoto = function newPhoto(req, res) {
-  var employee_id = req.body._employee;
-  var employeeObj = req.body.employee;
-  var missing_field_flag = false;
-  var warning_msg = {};
+exports.newPhoto = async function newPhoto(req, res) {
+  const employee_id = req.body._employee;
+  const employeeObj = req.body.employee;
+  let missing_field_flag = false;
+  let warning_msg = {};
 
   if(!employee_id) {
     sendJSONResponse(res, 400, {
@@ -86,9 +80,11 @@ exports.newPhoto = function newPhoto(req, res) {
     return;
   }
 
-  var imageStr =  req.body.image;
+  const imageStr =  req.body.image;
 
-  var photo = new Photo();
+  const photo = new Photo();
+  photo._employee = employee_id;
+  photo.employee = employeeObj;
 
   if(imageStr == undefined){
     missing_field_flag = true;
@@ -96,33 +92,29 @@ exports.newPhoto = function newPhoto(req, res) {
     photo.image = imageStr;
   }
 
-  photo._employee = employee_id;
-  photo.employee = employeeObj;
-  photo.employee._id = new ObjectId(employeeObj._id);
-
   if(missing_field_flag) {
     warning_msg = "Some field from Photo input are missing";
     missing_field_flag = false;
   } else{
     warning_msg = "All fields from Photo input are present";
   }
-  photo.save(function savePhoto(err, data) {
-    if(err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'newPhoto save query failed. Internal error'
-      });
-      return;
-    }
 
+	try {
+  	const data = await photo.save();
     sendJSONResponse(res, 200, {
       'photo_id' : data._id,
       'warning_msg' : warning_msg
     });
-  });
+	} catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'newPhoto save query failed. Internal error' });
+	}
+	
+	return;
 };
 
-exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
+exports.deleteByEmployeeId = async function deleteByEmployeeId(req, res) {
   var employee_id = req.params.employee_id;
 
   if (!employee_id) {
@@ -132,16 +124,15 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
     return;
   }
 
-  Photo.remove({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'deleteByEmployeeId query failed. Internal Server error'
-      });
-      return;
-    }
-    sendJSONResponse(res, 200, null);
-  });
+  try {
+    const result = await Photo.deleteMany({'_employee': new ObjectId(employee_id)});
+    sendJSONResponse(res, 200, result);
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'deleteByEmployeeId query failed. Internal Server error'
+    });
+  }
+
   return;
 };

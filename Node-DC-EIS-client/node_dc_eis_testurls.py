@@ -40,17 +40,17 @@ front_oflist = 0
 init = False
 
 ##setup data for post request
-static_postdata = {"employee" :   
-                {"last_name":"Omar","email":"Grenfell23@example.com","first_name":"Grenfell","phone":"6126380368","updated_at":"2016-10-13T22:14:43.943Z","created_at":"2016-10-13T22:14:43.943Z","role":"regular"},
-             "address" : 
+static_postdata = {"emp" :
+                {"last_name":"Omar","email":"Grenfell23@example.com","first_name":"Grenfell","phone":"6126380368","role":"regular"},
+             "addr" :
                 {"country" : "USA", "state" : "FL", "zipcode" : "10253","street" : "4286, SW Lane"},
-             "compensation" : 
-                {"stock" : "4739", "pay" : "521021"}, 
-             "family": 
-                {"childrens" : "1", "marital_status" : "true"}, 
-             "health" : 
+             "compensation" :
+                {"stock" : "4739", "pay" : "521021"},
+             "family":
+                {"childrens" : "1", "marital_status" : "true"},
+             "health" :
                 {"paid_family_leave" : "true", "longterm_disability_plan" : "true", "shortterm_disability_plan" : "false"},
-             "photo" : "1" }
+             "photo" : { "image": "/9j/4AAQSkZJRgABAQAASABIAAD/4QCMRXhpZgAATU0AKgAAAAgABQESAAMAAAABAAEAAAEaAAUAAAABAAAASgEbAAUAAAABAAAAUgEoAAMAAAABAAIAAIdpAAQAAAABAAAAWgAAAAAAAABIAAAAAQAAAEgAAAABAAOgAQADAAAAAQABAACgAgAEAAAAAQAAACCgAwAEAAAAAQAAACAAAAAA/+0AOFBob3Rvc2hvcCAzLjAAOEJJTQQEAAAAAAAAOEJJTQQlAAAAAAAQ1B2M2Y8AsgTpgAmY7PhCfv/AABEIACAAIAMBIgACEQEDEQH/xAAfAAABBQEBAQEBAQAAAAAAAAAAAQIDBAUGBwgJCgv/xAC1EAACAQMDAgQDBQUEBAAAAX0BAgMABBEFEiExQQYTUWEHInEUMoGRoQgjQrHBFVLR8CQzYnKCCQoWFxgZGiUmJygpKjQ1Njc4OTpDREVGR0hJSlNUVVZXWFlaY2RlZmdoaWpzdHV2d3h5eoOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4eLj5OXm5+jp6vHy8/T19vf4+fr/xAAfAQADAQEBAQEBAQEBAAAAAAAAAQIDBAUGBwgJCgv/xAC1EQACAQIEBAMEBwUEBAABAncAAQIDEQQFITEGEkFRB2FxEyIygQgUQpGhscEJIzNS8BVictEKFiQ04SXxFxgZGiYnKCkqNTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqCg4SFhoeIiYqSk5SVlpeYmZqio6Slpqeoqaqys7S1tre4ubrCw8TFxsfIycrS09TV1tfY2dri4+Tl5ufo6ery8/T19vf4+fr/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwgJC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/3QAEAAL/2gAMAwEAAhEDEQA/APbH1CVJGj+y3j7VBDpECrcZ4Oab/anzhfs94DnBzCPl9zV6SQw2DyqASkRYA+wrzebxJPczWss+nWEkt0ilnMbZHA/2uetbU6TqbGNWqqe53Z1Nh1t7vcG2lRGpI4JzjPI47etOi1BpWCeTdRsSQPMhwBgZyfauGh8UXUN1cGGxso5LePh1jbJGOh+bgcV6FbTtc6ZDOwAaWFXIHQErmipSdPcKdVVNj//Q91uFL6ZKqgljCQAO/wAtfPFvo3ir7KWe31UtFGgXKS5HQcccfhX0BLpNvOxaWPc5AyRIw7e3Sn/2bF5nmAOG9RM1ddDEKjfS9zkxGHda3Sx8/TaP4r+ygi21QO6uMrHLuP8Avcc+2a+grBGj0a1R1KstugII5B2ioho1sDnY/XP+vf0x605dKgSRZEjIdOVPmtjOMdO9FfEKqkrWsGHw8qLfW5//2Q==" } }
 
 #globals for error checking
 timeout_err = 0
@@ -134,8 +134,10 @@ Connection: close\r
       http_err += 1
 
   except socket.timeout:
+    print("GET urlo timeout_error")
     timeout_err += 1 
   except socket.error as e:
+    print("GET urlo socket connection error")
     conn_err += 1
   finally:
     sock.close()
@@ -264,12 +266,13 @@ def delete_url(url, url_type, request_num, phase):
       get_res = s.get(url, headers=headers)   
     except requests.exceptions.RequestException as e:
       #catastrophic error. bail.
+      print("--> DELETE url reques exception")
       print(e)
       sys.exit(1)
     try:
       response = json.loads(get_res.content)
     except ValueError:
-    # decoding failed
+      # decoding failed
       print("Exception -- Decoding of result from getid for delete failed. Exiting")
       sys.exit(1)(1)
     if response:
@@ -281,15 +284,20 @@ def delete_url(url, url_type, request_num, phase):
     start = time.time()
     r = s.delete(url, headers=headers)
   except requests.exceptions.Timeout as e:
+    print("--> DELETE url timeout errr");
     timeout_err = timeout_err + 1 
   except requests.exceptions.ConnectionError as e:
     conn_err = conn_err + 1
+    print("--> DELETE url connection errr");
   except requests.exceptions.HTTPError as e:
     http_err = http_err + 1
+    print("--> DELETE url HTTP errr");
   except requests.exceptions.TooManyRedirects as e:
     bad_url = bad_url + 1 
+    print("--> DELETE url too many redirects errr");
   except requests.exceptions.RequestException as e:
     #catastrophic error. bail.
+    print("--> DELETE url request exception errr");
     print(e)
     sys.exit(1)
   finally:

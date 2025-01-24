@@ -29,55 +29,51 @@ function sendJSONResponse(res, status, content) {
 /******************************************************
  API interface
 ******************************************************/
-exports.findAll = function findAll(req, res) {
-  Compensation.find()
-  .exec(function(err, data) {
-    if (err) {
-      console.log('*** Internal Error while retrieving all compensation records.');
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'findAll query failed. Internal Server Error'});
-      return;
-    }   
-
-    if (!data) {
-      sendJSONResponse(res, 200, { 
-        message: 'No records found'});
-      return;
-    }   
-
+exports.findAll = async function findAll(req, res) {
+  try {
+    const data = await Compensation.find();
     sendJSONResponse(res, 200, data);
-  }); 
-};
+  } catch (err) {
+    console.log('*** Internal Error while retrieving all compensation records.');
+    console.log(err);
+    sendJSONResponse(res, 500, { 
+      message: 'findAll query failed. Internal Server Error'});
+  }
 
-exports.getCompensationByEmployeeId = function getCompensationByEmployeeId(req, res) {
-
-  var employee_id=req.query.employee_id || req.params.employee_id;
-
-  Compensation.findOne({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'exports.getCompensationByEmployeeId query failed. Internal Server Error'});
-      return;
-    }
-
-    if (!data) {
-      //console.log('No data found for employee id:' + employee_id);
-    }
-
-    sendJSONResponse(res, 200, data);
-  });
   return;
 };
 
-exports.newCompensation = function newCompensation(req, res) {
+exports.getCompensationByEmployeeId = async function getCompensationByEmployeeId(req, res) {
 
-  var employee_id = req.body._employee;
-  var employeeObj = req.body.employee;
-  var missing_field_flag = false;
-  var warning_msg = {};
+  const employee_id=req.query.employee_id || req.params.employee_id;
+
+  try {
+    const data = await Compensation.findOne({'employee._id':  new ObjectId(employee_id)});
+    if (!data) {
+      sendJSONResponse(res, 200, {
+        message: 'No records found'}
+      );
+      return;
+    }
+
+    sendJSONResponse(res, 200, data);
+
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'getCompensationByEmployeeId query failed. Internal Server Error'});
+    return;
+  }
+
+  return;
+};
+
+exports.newCompensation = async function newCompensation(req, res) {
+
+  const employee_id = req.body._employee;
+  const employeeObj = req.body.employee;
+  let missing_field_flag = false;
+  let warning_msg = {};
   
   if(!employee_id) {
     sendJSONResponse(res, 400, {
@@ -86,10 +82,10 @@ exports.newCompensation = function newCompensation(req, res) {
     return;
   }
 
-  var pay =  req.body.pay;
-  var stock =  req.body.stock;
+  const pay =  req.body.pay;
+  const stock =  req.body.stock;
   
-  var compensation = new Compensation();
+  const compensation = new Compensation();
   compensation._employee = employee_id;
   compensation.employee = employeeObj;
   compensation.employee._id = new ObjectId(employeeObj._id);
@@ -112,23 +108,21 @@ exports.newCompensation = function newCompensation(req, res) {
     warning_msg = "All fields from Compensation input are present";
   }
 
-  compensation.save(function saveCompensation(err, data) {
-    if(err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'newCompensation save query failed. Internal error'
-      });
-      return;
-    }
-
+  try {
+    const data = await compensation.save();
     sendJSONResponse(res, 200, {
       'compensation_id' : data._id,
       'warning_msg' : warning_msg
     });
-  });
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'newCompensation save query failed. Internal error'
+    });
+  }
 };
 
-exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
+exports.deleteByEmployeeId = async function deleteByEmployeeId(req, res) {
   var employee_id = req.params.employee_id;
 
   if (!employee_id) {
@@ -137,17 +131,15 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
     });
     return;
   }
+  try {
+    const result = await Compensation.deleteMany({'_employee': new ObjectId(employee_id)});
+    sendJSONResponse(res, 200, result);
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, {
+      message: 'deleteByEmployeeId query failed. Internal Server error'
+    });
+  }
 
-  Compensation.remove({'employee._id':  new ObjectId(employee_id)})
-    .exec(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, {
-        message: 'deleteByEmployeeId query failed. Internal Server error'
-      });
-      return;
-    }
-    sendJSONResponse(res, 200, null);
-  });
   return;
 };

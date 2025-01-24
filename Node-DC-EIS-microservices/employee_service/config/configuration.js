@@ -16,7 +16,7 @@
 
 module.exports = {
   'db_url': process.env.MONGO_SERVER_URL || 'mongodb://127.0.0.1:27017/node-els-db',
-  'employee_svc_port'             : process.env.EMPLOYEE_SERVER_PORT || 3000,
+  'employee_svc_port'             : process.env.EMPLOYEE_SERVER_PORT || 9000,
   'address_svc'                   : 'http://localhost:3001/addresses',
   'address_svc_byzipcode'         : 'http://localhost:3001/addresses/zipcode',
   'address_svc_byemployeeid'      : 'http://localhost:3001/addresses/:employee_id',
@@ -30,6 +30,7 @@ module.exports = {
   'photo_svc_byemployeeid'        : 'http://localhost:3005/photos/:employee_id',
   'db_loader_svc_ipaddress'       : 'http://localhost:4001/loaddb',
   'checkdb_svc_ipaddress'         : 'http://localhost:4001/checkdb',
+  'cleanupdb_svc_ipaddress'       : 'http://localhost:4001/cleanupdb',
   'app_mode' : 'Micro-services',
   'mongodb_timeout' : 30000
 };

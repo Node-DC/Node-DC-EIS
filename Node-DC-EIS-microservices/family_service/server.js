@@ -24,9 +24,6 @@ var familyCtrl = require('./controllers/family_controller');
 const os = require('os');
 var app = express();
 
-// Connect to the database
-mongoose.connect(appConfig.db_url);
-
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
 
@@ -38,7 +35,7 @@ app.get('/', function homeRoot(req, res) {
 app.get('/families',              familyCtrl.findAll);
 
 //get family record by employee ID
-app.get('/families/:employee_id', familyCtrl.getFamilyInfo);
+app.get('/families/:employee_id', familyCtrl.getFamilyInfoByEmployeeId);
 
 //add new family record
 app.post('/families',             familyCtrl.newFamily);
@@ -94,10 +91,20 @@ app.get('/stopserver', function stopServer(req, res) {
   process.exit(0);
 });
 
-var port = appConfig.app_port;
-var server = app.listen(port);
+async function main() {
+  console.log('**************************************************');
+	console.log('Start Time:' + Date());
 
-console.log('**************************************************');
-console.log('Start Time:' + Date());
-console.log(serviceName + ' Service is listening at port:', port);
-console.log('**************************************************');
+  // Connect to the database
+	await mongoose.connect(appConfig.db_url);
+	console.log('Connection open to the database');
+
+  const port = appConfig.app_port;
+	const server = app.listen(port);
+
+  console.log('Start Time:' + Date());
+  console.log(serviceName + ' Service is listening at port:', port);
+  console.log('**************************************************');
+};
+
+main().catch( (err) => console.log(err.message));

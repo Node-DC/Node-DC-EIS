@@ -12,3 +12,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 This directory contains code which implements culster version as microservices. 
+
+All services are structured to following async/await for all remote and 
+database (mongodb queries) calls.

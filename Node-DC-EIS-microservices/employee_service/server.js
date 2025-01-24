@@ -21,12 +21,8 @@ var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var appConfig = require('./config/configuration');
 var employeeCtrl = require('./controllers/employee_controller');
-var remoteSvc = require('./controllers/remote_svc_controller');
 const os = require('os');
 var app = express();
-
-// Connect to the database
-mongoose.connect(appConfig.db_url);
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -35,11 +31,14 @@ app.get('/', function homeRoot(req, res) {
   res.json({message: 'Hello from ' + serviceName + ' service.'});
 });
 
+//cleanup the database
+app.get('/cleanupdb',              employeeCtrl.cleanupdb);
+
 //load the database
-app.get('/loaddb',                 remoteSvc.loaddb);
+app.get('/loaddb',                 employeeCtrl.loaddb);
 
 //check the number of records in the database
-app.get('/checkdb',                remoteSvc.checkdb);
+app.get('/checkdb',                employeeCtrl.checkdb);
 
 //get all employee records
 app.get('/employees',              employeeCtrl.getAllEmployees);
@@ -56,6 +55,7 @@ app.get('/employees/zipcode',      employeeCtrl.getEmployeesByZipcode);
 //add a new employee record
 app.post('/employees',             employeeCtrl.addNewEmployee);
 app.delete('/employees/id/:employee_id', employeeCtrl.deleteByEmployeeId);
+//app.delete('/cleanupdb',              employeeCtrl.cleanUpDB);
 
 //Get all EmployeeIds to create a list
 app.get('/employees/id',           employeeCtrl.getAllEmployeeIds);
@@ -110,10 +110,19 @@ app.get('/stopserver', function stopServer(req, res) {
   process.exit(0);
 });
 
-var port = appConfig.employee_svc_port;;
-var server = app.listen(port);
+async function main() {
+  console.log('**************************************************');
+  console.log('Start Time:' + Date());
+  await mongoose.connect(appConfig.db_url);
+  console.log('Connection open to the database');
+  const port = appConfig.employee_svc_port;;
+  const server = app.listen(port);
 
-console.log('**************************************************');
-console.log('Start Time:' + Date());
-console.log(serviceName + ' Service is listening at port:', port);
-console.log('**************************************************');
+  console.log('Start Time:' + Date());
+  console.log(serviceName + ' Service is listening at port:', port);
+  console.log('**************************************************');
+};
+
+main().catch( (err) => console.log(err.message));
+
+

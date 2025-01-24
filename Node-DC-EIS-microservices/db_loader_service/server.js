@@ -25,7 +25,6 @@ var app = express();
 const os = require('os');
 
 // Connect to the database
-mongoose.connect(appConfig.db_url);
 
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(bodyParser.json());
@@ -33,6 +32,9 @@ app.use(bodyParser.json());
 app.get('/', function homeRoot(req, res) {
   res.json({message: 'Hello from ' + serviceName + ' service.'});
 });
+
+//clean up the database
+app.delete('/cleanupdb', loaderCtrl.cleanUpDB);
 
 //load the database
 app.get('/loaddb', loaderCtrl.initDb);
@@ -50,7 +52,6 @@ app.get('/getmeminfo', function collectMemInfo(req, res) {
   }); 
   res.json({memoryInfo});    
 });
-
 //get system info(hardware,software and version details)
 app.get('/getcpuinfo', function collectCpuInfo(req, res) {
   var hwInfo = {};
@@ -88,8 +89,15 @@ app.get('/stopserver', function stopServer(req, res) {
   process.exit(0);
 });
 
-var port = appConfig.app_port;
-var server = app.listen(port);
+async function main() {
+  console.log('Start Time:' + Date());
+  await mongoose.connect(appConfig.db_url);
+  console.log('Connection open to the database');
+  var port = appConfig.app_port;
+  var server = app.listen(port);
 
-console.log('Start Time:' + Date());
-console.log(serviceName + ' Service is listening at port:', port);
+  console.log(serviceName + ' Service is listening at port:', port);
+};
+
+main().catch( (err) => console.log(err.message));
+
