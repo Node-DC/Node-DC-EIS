@@ -178,8 +178,20 @@ exports.addNewEmployee = async function addNewEmployeeAddress(req, res) {
   let warning_msg;
 
   //Build Employee record
-  const emp = req.body.emp;
-  const addr = req.body.addr;
+
+  let emp;
+  let addr;
+  if (req.body.emp) {
+    emp = req.body.emp;
+  } else if (req.body.employee) {
+    emp = req.body.employee;
+  }
+  if (req.body.addr) {
+    addr = req.body.addr;
+  } else if (req.body.address) {
+    addr = req.body.address;
+  }
+
   let compensation = req.body.compensation;
   let family = req.body.family;
   let health = req.body.health;
