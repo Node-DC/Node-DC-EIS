@@ -92,13 +92,25 @@ function resetCache() {
 
 exports.resetCache = resetCache;
 
-exports.addNewEmployee = function addNewEmployee(req, res) {
+exports.addNewEmployee = async function addNewEmployee(req, res) {
   var missing_field_flag = false;
   var warning_msg;
 
   //Build Employee record
-  var employeeObj = req.body.employee;
-  var addressObj = req.body.address;
+  var employeeObj;
+  var addressObj;
+  if (req.body.emp) {
+		console.log('Found emp property instead of employee');
+    employeeObj = req.body.emp;
+	} else if (req.body.employee) {
+    employeeObj = req.body.employee;
+	}
+	if (req.body.addr) {
+		console.log('Found addr property instead of address');
+    addressObj = req.body.addr;
+	} else if (req.body.address) {
+    addressObj = req.body.address;
+	}
   var compensationObj = req.body.compensation;
   var familyObj = req.body.family;
   var healthObj = req.body.health;
@@ -107,7 +119,6 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
     resetCache();
   }
 
-  //zipcode and last_name are required fields
   if(!employeeObj || !addressObj || !compensationObj || !familyObj || !healthObj || !photoObj){
     sendJSONResponse(res, 400, { 
       message: 'addNewEmployee: Missing employee input'});
@@ -116,13 +127,13 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
 
   if(!employeeObj.first_name || !employeeObj.last_name){
     sendJSONResponse(res, 400, { 
-      message: 'addNewEmployee: Missing employee input'});
+      message: 'addNewEmployee: Missing employee name input'});
     return;
   }
 
   if(!addressObj.zipcode){
     sendJSONResponse(res, 400, { 
-      message: 'addNewEmployee: Missing employee input'});
+      message: 'addNewEmployee: Missing employee address zipcode input'});
     return;
   }
 
@@ -260,29 +271,26 @@ exports.addNewEmployee = function addNewEmployee(req, res) {
   }
 
   //Save employee record and capture employee_id 
-  employee.save(function(err, data) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'Saving Employee: Internal error while saving employee record'});
-      return;
-    }
-
-    var employee_id = data._id;
-
+  try {
+    await employee.save();
     var returned_obj = {};
-      returned_obj.employee_id = employee_id;
+      returned_obj.employee_id = employee._id;
       if (warning_msg) {
         returned_obj.warning_msg = warning_msg;
       }
       
       sendJSONResponse(res, 200, {
-        result: returned_obj
-      });
-  }); //End of Employee.save()
+        result: returned_obj });
+  } catch (err) {
+    console.log(err);
+    sendJSONResponse(res, 500, { 
+      message: 'Saving Employee: Internal error while saving employee record'});
+	}
+
+  return;
 };
 
-exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
+exports.deleteByEmployeeId = async function deleteByEmployeeId(req, res) {
   if (enable_caching) {
     resetCache();
   }
@@ -296,20 +304,20 @@ exports.deleteByEmployeeId = function deleteByEmployeeId(req, res) {
     return;
   }
   
-  Employee.remove({ '_id': employee_id }, function(err) {
-    if (err) {
-      console.log(err);
-      sendJSONResponse(res, 500, { 
-        message: 'Deleting Employee: Internal error while deleting employee record'});
-      return;
-    }
-  sendJSONResponse(res, 200, {
-    message: 'Employee record Successfully deleted'}
-    );     
-  }); //ENd of employee remove
+	try {
+    const oldEmployee = await Employee.deleteOne({'_id' : employee_id});
+    sendJSONResponse(res, 200, {
+      message: 'Employee record Successfully deleted'});     
+	} catch (err) {
+    console.log(err.message);
+    sendJSONResponse(res, 500, { 
+      message: 'Deleting Employee: Internal error while deleting employee record'});
+	}
+
+  return;
 };
 
-exports.findAll = function findAll(req, res) {
+exports.findAll = async function findAll(req, res) {
   if (enable_caching) {
     var cacheKey = req.originalUrl;
     var cachedRes = employeeCache.get(cacheKey);
@@ -319,40 +327,27 @@ exports.findAll = function findAll(req, res) {
     }
   }
 
-  Employee.find({}, {
-    address: 0,
-    compensation: 0,
-    family: 0,
-    health: 0,
-    photo: 0
-  })
-  .exec(function(err, employees) {
-    if (err) {
-      console.log('*** Internal Error while retrieving employee records.');
-      console.log(err);
-      sendResponse(res, 500, {
-        message: 'findAll query failed. Internal Server Error'});
-      return;
-    }
+  try {
+    const employees = await Employee.find({}).select('-address -compensation -health -family -photo');
 
     if (!employees) {
-      var response = {
-        message: 'No records found'};
-
-      sendResponse(res, 200, response);
-
-      if(enable_caching) {
-        employeeCache.set(cacheKey, response);
-      }
+      sendJSONResponse(res, 200, {
+        message: 'No records found'});
       return;
     }
 
-    if (enable_caching) {
+    if(enable_caching) {
       employeeCache.set(cacheKey, employees);
     }
 
-    sendResponse(res, 200, employees);
-  });
+    sendJSONResponse(res, 200, employees);
+  } catch (err) {
+      console.log('*** Internal Error while retrieving employee records.');
+      console.log(err);
+      sendJSONResponse(res, 500, {
+        message: 'findAll query failed. Internal Server Error'});
+  }
+  return;
 };
 
 function collectEmployeeIds(data) {
@@ -365,9 +360,9 @@ function collectEmployeeIds(data) {
   return(ids);
 }
 
-exports.getAllIds = function getAllIds(req, res) {
+exports.getAllIds = async function getAllIds(req, res) {
+  let cacheKey = req.originalUrl;
   if (enable_caching) {
-    var cacheKey = req.originalUrl;
     var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
       sendResponse(res, 200, cachedRes);
@@ -375,24 +370,27 @@ exports.getAllIds = function getAllIds(req, res) {
     }
   }
 
-  var query = Employee.find({}, { _id: 1});
-  query.exec(function callJSON(err, data) {
-    if (err) {
-      console.log(err);
-      sendResponse(res, 500, {
-        message: 'getAllIds query failed. Internal Server Error'});
-      return;
+  try {
+    const data = await Employee.find({}).select('_id');
+    let ids = null;
+    if (data && data.length > 0) {
+      ids = collectEmployeeIds(data);
     }
-    var ids = collectEmployeeIds(data);
 
     if (enable_caching) {
       employeeCache.set(cacheKey, ids);
     }
-    sendResponse(res, 200, ids);
-  });
+    sendJSONResponse(res, 200, ids);
+  } catch (err) {
+    console.log(err.message);
+    sendJSONResponse(res, 500, { 
+      message: 'getAllIds query failed. Internal Server Error'});
+  }
+
+  return;
 };
 
-exports.findByZipcode = function findByZipcode(req, res) {
+exports.findByZipcode = async function findByZipcode(req, res) {
   if (enable_caching) {
     var cacheKey = req.originalUrl;
     var cachedRes = employeeCache.get(cacheKey);
@@ -404,13 +402,8 @@ exports.findByZipcode = function findByZipcode(req, res) {
   var zipcode=req.query.zipcode;
   
   if (!zipcode) {
-    Employee.distinct("address.zipcode").exec(function findAddress(err, data) {
-      if (err) {
-        console.log(err);
-        sendResponse(res, 500, {
-          message: 'getAllZipcodes query failed. Internal Server Error'});
-        return;
-      }
+		try {
+    	const data = await Employee.distinct("address.zipcode");
       
       var zipCodeArr = data;
 
@@ -418,29 +411,32 @@ exports.findByZipcode = function findByZipcode(req, res) {
         employeeCache.set(cacheKey, zipCodeArr);
       }
       sendResponse(res, 200, zipCodeArr);
-    });
-  } else {
-    Employee.find({'address.zipcode' : zipcode})
-    .exec(function(err, addresses) {
-      if (err) {
-        console.log(err);
-        sendResponse(res, 500, {
-          message: 'findByZipcode query failed. Internal Server Error'});
-        return;
-      }
-
-      if (enable_caching) {
-        employeeCache.set(cacheKey, addresses);
-      }
-      sendResponse(res, 200, addresses);
-    });
+		} catch (err) {
+      console.log(err);
+      sendResponse(res, 500, {
+        message: 'getAllZipcodes query failed. Internal Server Error'});
+		}
+    return;
   }
+  
+	try {
+	  const addresses = await Employee.find({'address.zipcode' : zipcode});
+    if (enable_caching) {
+      employeeCache.set(cacheKey, addresses);
+    }
+    sendResponse(res, 200, addresses);
+	} catch (err) {
+    console.log(err);
+    sendResponse(res, 500, {
+      message: 'findByZipcode query failed. Internal Server Error'});
+    return;
+	}
 };
 
 
-exports.findByName = function findByName(req, res) {
+exports.findByName = async function findByName(req, res) {
+  const cacheKey = req.originalUrl;
   if (enable_caching) {
-    var cacheKey = req.originalUrl;
     var cachedRes = employeeCache.get(cacheKey);
     if (cachedRes) {
       sendResponse(res, 200, cachedRes);
@@ -452,27 +448,22 @@ exports.findByName = function findByName(req, res) {
   var last_name=req.query.last_name;
 
   if (!first_name && !last_name) {
-    var query = Employee.distinct('last_name');
-    query.exec(function(err, data) {
-      if (err) {
-        console.log(err);
-        sendResponse(res, 500, {
-          message: 'findAll by Lastname query failed. Internal Server Error'});
-        return;
-      }
-
-      var lastNameArr = data;
-
+		try {
+      const data = await Employee.distinct('last_name');
       if (enable_caching) {
-        employeeCache.set(cacheKey, lastNameArr);
+        employeeCache.set(cacheKey, data);
       }
-      sendResponse(res, 200, lastNameArr);
-      return;
-    });
+      sendResponse(res, 200, data);
+		} catch (err) {
+      console.log(err.message);
+      sendResponse(res, 500, {
+        message: `findAll query for distinct lastnames failed. Internal Server Error. ${err.message}`});
+		}
+
     return;
   }
   
-  var query = {};
+  let query = {};
   if (first_name) {
     query.first_name = first_name;
   }
@@ -481,35 +472,22 @@ exports.findByName = function findByName(req, res) {
     query.last_name = last_name;
   }
 
-  Employee.find(query, function(err, employees) {
-    if (err) {
-      console.log('*** Internal Error while retrieving an employee record:');
-      console.log(err);
-      sendResponse(res, 500, {
-        message: 'findBy last name failed. Internal Server Error' });
-      return;
-    }
-
-    if (!employees) {
-      var response = {message: 'No records found'};
-      if (enable_caching) {
-        employeeCache.set(cacheKey, response);
-      }
-      sendResponse(res, 200, response);
-      return;
-    }
-
-    if (enable_caching) {
+	try {
+    const employees = await Employee.find(query);
+		if (employees && employees.length > 0 && enable_caching) {
       employeeCache.set(cacheKey, employees);
-    }
-
+		}
     sendResponse(res, 200, employees);
-  }); 
+	} catch (err) {
+    console.log(err.message);
+    sendResponse(res, 500, {
+      message: `findBy ${query} failed. Internal Server Error. ${err.message}` });
+  }
 
-
+  return;
 };
 
-exports.findById = function findById(req, res) {
+exports.findById = async function findById(req, res) {
   if (enable_caching) {
     var cacheKey = req.originalUrl;
     var cachedRes = employeeCache.get(cacheKey);
@@ -520,25 +498,9 @@ exports.findById = function findById(req, res) {
   }
 
   var eid=req.params.id || req.query.id;
-
-  Employee.findOne({'_id': eid}, function findOneEmployee(err, employee) {
-    if (err) {
-      console.log('*** Internal Error while retrieving an employee record:');
-      console.log(err);
-      sendResponse(res, 500, {
-        message: 'findById failed. Internal Server Error' },
-        'employee');
-      return;
-    }
-
-    if (!employee) {
-      sendResponse(res, 200, {
-        message: 'No records found'
-      }, 'employee');
-      return;
-    }
-
-    var result = {};
+	try {
+    const employee = await Employee.findOne({'_id': eid});
+    let result = {};
     result.employee = {
       "_id" : employee._id,
       "last_name" : employee.last_name,
@@ -557,12 +519,18 @@ exports.findById = function findById(req, res) {
       employeeCache.set(cacheKey, result);
     }
     sendResponse(res, 200, result, 'employee');
-    return;
-    }
-  ); 
+	} catch (err) {
+    console.log('*** Internal Error while retrieving an employee record:');
+    console.log(err.message);
+    sendResponse(res, 500, {
+      message: 'findById failed. Internal Server Error' },
+      'employee');
+	}
+
+  return;
 };
 
-exports.findPhotoById = function findPhotoById(req, res) {
+exports.findPhotoById = async function findPhotoById(req, res) {
   var eid = req.params.id || req.query.id || "";
   let cacheKey = req.originalUrl;
 
@@ -577,32 +545,21 @@ exports.findPhotoById = function findPhotoById(req, res) {
 
   try {
     eid = new ObjectId(eid);
+		const result = await Employee.findOne({'_id': eid});
+		if (result) {
+      if (enable_caching) {
+        employeeCache.set(cacheKey, imgdata);
+      }
+      sendImageResponse(res, 200,result.photo.image);
+			return;
+    }
+    sendImageResponse(res, 200, "");
+
   } catch(e) {
-    sendImageResponse(res, 404, {message: 'No photo found'});
-    return;
+    console.log(err.message);
+    sendImageResponse(res, 500, {
+        message: 'findPhotoById failed. Internal Server Error' });
   }
 
-
-  Employee.findOne({'_id': eid}, {
-    "photo.image": 1
-  }, function findOnePhoto(err, result) {
-    if (err) {
-      console.log(err);
-      sendImageResponse(res, 500, {
-        message: 'findPhotoById failed. Internal Server Error' });
-      return;
-    }
-
-    if (!result) {
-      sendResponse(res, 404, {message: 'No photo found'});
-      return;
-    }
-
-    var data = new Buffer(result.photo.image, 'base64');
-
-    if (enable_caching) {
-      employeeCache.set(cacheKey, data);
-    }
-    sendImageResponse(res, 200, data);
-  });
+  return;
 };
