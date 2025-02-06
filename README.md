@@ -4,7 +4,7 @@ The Node-DC is an open source collaboration project to develop workloads represe
 Workloads APIs, functionalities and metrics will be used to evaluate performance of the complete software stack for Node.js, Operating Systems, containers, virtualization, network stacks as well as various data center configuration choices. These are relevant for hardware and software developers, researchers and Node.js community. One priority for this project is to update the workloads in order to keep them up with the fast moving eco-system of Node.js. 
 
 # Current Release
-Latest code has been marked stable and released as v1.1.2
+Latest code has been marked stable and released as v2.0
 
 # Contributing and Community   
 
@@ -14,7 +14,7 @@ If you want to contribute code to a project, first you need to fork the project.
 ## Contribution to use cases: 
 We are constantly evaluating the relevant use cases. The list below includes the current status and is evolving based on the continuous feedback we are receiving from the community and major datacenter deployments for Node.js: 
 
-  - Node-DC-EIS (Node.js - Data Center - Employee Information Services): Current release is at v1.2.0.
+  - Node-DC-EIS (Node.js - Data Center - Employee Information Services): Current release is at v2.0
     
   - Node-DC-SSR (Node.js - Data Center - Server Side Rendering): Current release is at v0.8.0.
 
@@ -381,4 +381,4 @@ Windows Server 2012 R2
     - Try using higher bandwidth NIC (> 10G),
     - Try reducing data set size (by using small size images used by the server). Checkout configuration.js in the server code. Now there is a way to try using image file with different sizes.
 
-## Last checked: 1/21/2025
+## Last checked: 2/06/2025
