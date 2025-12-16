@@ -1,3 +1,9 @@
+# THIS PROJECT IS ARCHIVED
+Intel will not provide or guarantee development of or support for this project, including but not limited to, maintenance, bug fixes, new releases or updates.
+Patches to this project are no longer accepted by Intel.  
+If you have an ongoing need to use this project, are interested in independently developing it, or would like to maintain patches for the community, please create your own fork of the project. 
+
+
 # Objective 
 The Node-DC is an open source collaboration project to develop workloads representing realistic use cases of Node.js in the data center. It started in 2016 with collaboration from the open source community, Node.js experts and companies playing important roles in Node.js’s evolution and production deployments in the data centers. 
 
